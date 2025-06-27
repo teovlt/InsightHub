@@ -1,0 +1,82 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { StatInterface } from "@/interfaces/Stat";
+import { EditStatDialog } from "./editStatDialog";
+import { DeleteConfirmationDialog } from "./deleteConfirmationDialog";
+
+interface StatCardProps {
+  stat: StatInterface;
+  color: string;
+  colorVars: Record<string, string>;
+  refresh: () => void; // Optional callback to refresh stats
+}
+
+export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const handleDelete = () => {
+    //Delete
+    setDeleteDialogOpen(false);
+  };
+
+  return (
+    <>
+      <Card
+        className="relative overflow-hidden group"
+        style={
+          {
+            background: `linear-gradient(135deg, ${color}15 0%, ${color}05 100%)`,
+            borderColor: `${color}40`,
+            ...colorVars,
+          } as React.CSSProperties
+        }
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium pr-2">{stat.name}</CardTitle>
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 rounded-full opacity-60" style={{ backgroundColor: color }} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 w-6 ">
+                  <MoreHorizontal className="h-3 w-3" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold" style={{ color: `hsl(var(--category-color-dark))` }}>
+            {stat.value}
+            {stat.unit && <span className="text-lg ml-1">{stat.unit}</span>}
+          </div>
+          {stat.description && <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>}
+        </CardContent>
+      </Card>
+
+      <EditStatDialog stat={stat} open={editDialogOpen} onOpenChange={setEditDialogOpen} refresh={refresh} />
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Delete Statistic"
+        description={`Are you sure you want to delete "${stat.name}"? This action cannot be undone.`}
+      />
+    </>
+  );
+}

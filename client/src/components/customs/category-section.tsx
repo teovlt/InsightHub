@@ -4,6 +4,7 @@ import * as LucideIcons from "lucide-react";
 import { CategoryInterface } from "@/interfaces/Category";
 import { generateGradientColors, getColorVariables } from "@/utils/colors";
 import { AddStatDialog } from "./addStatDialog";
+import { StatCard } from "./statCard";
 
 interface CategorySectionProps {
   category: CategoryInterface;
@@ -31,51 +32,7 @@ export function CategorySection({ category, refresh }: CategorySectionProps) {
           const statColor = gradientColors[index % gradientColors.length];
           const colorVars = getColorVariables(statColor, index);
 
-          return (
-            <Card
-              key={stat._id}
-              className="relative overflow-hidden"
-              style={
-                {
-                  background: `linear-gradient(135deg, ${statColor}15 0%, ${statColor}05 100%)`,
-                  borderColor: `${statColor}40`,
-                  ...colorVars,
-                } as React.CSSProperties
-              }
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.name}</CardTitle>
-                <div className="h-4 w-4 rounded-full opacity-60" style={{ backgroundColor: statColor }} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold" style={{ color: `hsl(var(--category-color-dark))` }}>
-                  {typeof stat.value === "number" ? stat.value.toLocaleString() : stat.value}
-                  {stat.unit && <span className="text-lg ml-1">{stat.unit}</span>}
-                </div>
-
-                {stat.trend && (
-                  <div className="flex items-center text-xs mt-1">
-                    {stat.trend.direction === "up" && <TrendingUp className="h-3 w-3 mr-1 text-green-600" />}
-                    {stat.trend.direction === "down" && <TrendingDown className="h-3 w-3 mr-1 text-red-600" />}
-                    {stat.trend.direction === "neutral" && <Minus className="h-3 w-3 mr-1 text-gray-600" />}
-                    <span
-                      className={
-                        stat.trend.direction === "up"
-                          ? "text-green-600"
-                          : stat.trend.direction === "down"
-                            ? "text-red-600"
-                            : "text-gray-600"
-                      }
-                    >
-                      {stat.trend.label || `${stat.trend.percentage}%`}
-                    </span>
-                  </div>
-                )}
-
-                {stat.description && <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>}
-              </CardContent>
-            </Card>
-          );
+          return <StatCard key={stat._id} stat={stat} color={statColor} colorVars={colorVars} refresh={refresh} />;
         })}
 
         {category.stats.length === 0 && (
