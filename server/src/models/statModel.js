@@ -7,7 +7,7 @@ const statSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    category: {
+    categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
@@ -20,15 +20,11 @@ const statSchema = new mongoose.Schema(
       type: String,
     },
     value: {
-      type: Number,
+      type: String,
       required: true,
     },
     unit: {
       type: String,
-    },
-    date: {
-      type: Date,
-      default: Date.now,
     },
   },
   {

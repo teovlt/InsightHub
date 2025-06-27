@@ -5,4 +5,5 @@ export interface CategoryInterface {
   icon: string;
   color: string;
   createdAt: Date;
+  stats: StatInterface[];
 }

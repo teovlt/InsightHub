@@ -9,25 +9,21 @@ import { toast } from "sonner";
 
 export const Home = () => {
   const [categories, setCategories] = useState<CategoryInterface[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchAllCategories();
   }, []);
 
   async function fetchAllCategories(page: number = 0, size: number = 10) {
-    setLoading(true);
     try {
       const response = await axiosConfig.get("/categories");
       setCategories(response.data.categories);
     } catch (error: any) {
       toast.error(error.response?.data?.error);
-    } finally {
-      setLoading(false);
     }
   }
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <div className="container mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -38,7 +34,7 @@ export const Home = () => {
 
         <div className="space-y-8">
           {categories.map((category) => (
-            <CategorySection key={category._id} category={category} />
+            <CategorySection key={category._id} category={category} refresh={fetchAllCategories} />
           ))}
 
           {categories.length === 0 && (

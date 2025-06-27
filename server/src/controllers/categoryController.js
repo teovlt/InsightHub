@@ -1,4 +1,5 @@
 import { Category } from "../models/categoryModel.js";
+import { Stat } from "../models/statModel.js";
 
 /**
  * Get a paginated list of categories.
@@ -8,16 +9,37 @@ import { Category } from "../models/categoryModel.js";
 export const getCategories = async (req, res) => {
   const size = parseInt(req.query.size) || 10;
   const page = parseInt(req.query.page) || 0;
+  const userId = req.userId;
 
   try {
     const categories = await Category.find({})
       .sort({ createdAt: 1 })
       .skip(page * size)
-      .limit(size);
+      .limit(size)
+      .lean();
+
+    const categoryIds = categories.map((cat) => cat._id);
+
+    const stats = await Stat.find({
+      userId: userId,
+      categoryId: { $in: categoryIds },
+    }).lean();
+
+    const statsByCategory = {};
+    stats.forEach((stat) => {
+      const catId = stat.categoryId.toString();
+      if (!statsByCategory[catId]) statsByCategory[catId] = [];
+      statsByCategory[catId].push(stat);
+    });
+
+    const categoriesWithStats = categories.map((cat) => ({
+      ...cat,
+      stats: statsByCategory[cat._id.toString()] || [],
+    }));
 
     const count = await Category.countDocuments();
 
-    res.status(200).json({ categories, count });
+    res.status(200).json({ categories: categoriesWithStats, count });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
