@@ -6,7 +6,8 @@
   "author": "villett",
   "scripts": {
     "dev": "vite",
-    "format": "pnpm exec prettier --write './**/*.{js,ts,json,css,md,tsx}'"
+    "format": "pnpm exec prettier --write './**/*.{js,ts,json,css,md,tsx}'",
+    "build": "vite build"
   },
   "keywords": [],
   "license": "ISC",
