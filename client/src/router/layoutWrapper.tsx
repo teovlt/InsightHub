@@ -11,7 +11,7 @@ export const LayoutWrapper = ({ withLayout = true }: LayoutWrapperProps) => {
     <>
       {withLayout && <Navbar />}
       <Outlet />
-      {withLayout && <Footer />}
+      {/* {withLayout && <Footer />} */}
     </>
   );
 };
