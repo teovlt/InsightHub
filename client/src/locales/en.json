@@ -1,0 +1,174 @@
+{
+  "navbar": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "account": "My account",
+    "login": "Login",
+    "language": "Language",
+    "languageChanged": "Language changed to English.",
+    "changingLanguage": "Changing language...",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "pages": {
+    "home": {
+      "welcome_message": "Welcome to this boilerplate!"
+    },
+    "account": {
+      "errors": {
+        "check_approval": "Please check the box to confirm the deletion of your account.",
+        "password_min": "Password is at least 6 characters long.",
+        "name_min": "Name must be at least 2 characters long.",
+        "name_max": "Name must be at most 25 characters long.",
+        "forename_min": "Forename must be at least 2 characters long.",
+        "forename_max": "Forename must be at most 25 characters long.",
+        "username_min": "Username must be at least 2 characters long.",
+        "username_max": "Username must be at most 25 characters long.",
+        "invalid_email": "Invalid email address.",
+        "current_password_min": "Current password is at least 6 characters long.",
+        "new_password_min": "New password is at least 6 characters long.",
+        "new_password_max": "Password must be at most 25 characters long.",
+        "new_password_confirm_min": "New password confirmation is at least 6 characters long.",
+        "passwords_do_not_match": "Passwords do not match.",
+        "username_no_spaces": "Username must not contain leading, trailing, middle spaces or uppercase letters."
+      },
+      "account_settings_title": "Account Settings",
+      "account_settings_description": "Update your personal information and account details.",
+      "forename_label": "Forename",
+      "name_label": "Name",
+      "username_label": "Username",
+      "email_label": "Email",
+      "password_label": "Password",
+      "choose_image": "Choose Image",
+      "delete_account_title": "Delete account",
+      "delete_account_description": "Please be very mindful of your action, there is no going back",
+      "accept_delete_account": "I accept to delete my account forever",
+      "accept_delete_account_description": "Please note that this action is irreversible and will delete all your data and settings. If you are sure, please check the box to confirm.",
+      "password_placeholder": "********",
+      "delete_account_button": "Delete this account",
+      "edit_profile_title": "Edit profile",
+      "edit_profile_description": "Make changes to your password here. Click save when you're done.",
+      "current_password_label": "Current password",
+      "new_password_label": "New password",
+      "new_password_confirm_label": "New password confirmation",
+      "updating_account": "Updating account...",
+      "updating_password": "Updating password...",
+      "updating_profile_picture": "Updating profile picture...",
+      "change_password": "Change Password",
+      "delete_account": "Delete account",
+      "deleting_account": "Deleting account...",
+      "actions": "Actions"
+    },
+    "login": {
+      "welcome_back": "Welcome Back",
+      "field": "Username or email",
+      "field_description": "Enter your username or email",
+      "password": "Password",
+      "password_description": "Enter your password",
+      "login_button": "Login",
+      "login_button_google": "Login with Google",
+      "no_account": "Don't have an account?",
+      "sign_up": "Sign up",
+      "agree_terms": "By clicking login, you agree to our Terms of Service and Conditions.",
+      "errors": {
+        "login_name_min": "Username or email must be at least 2 characters long",
+        "password_min": "Password must be at least 6 characters long",
+        "password_max": "Password must be at most 255 characters long",
+        "login_name_no_spaces": "Username or email must not contain leading, trailing, middle spaces or uppercase letters."
+      },
+      "or_continue_with": "Or continue with"
+    },
+    "register": {
+      "title": "Create an account",
+      "forename": "Forename",
+      "name": "Name",
+      "username": "Username",
+      "username_description": "Enter your username",
+      "email": "Email",
+      "email_description": "Enter your email",
+      "password": "Password",
+      "password_description": "Enter your password",
+      "confirmPassword": "Confirm password",
+      "confirmPassword_description": "Enter your password again for verification",
+      "register": "Register",
+      "register_google": "Register with Google",
+      "already_have_account": "Already have an account?",
+      "login": "Login",
+      "terms_and_conditions": "By clicking register, you agree to our Terms of Service and Conditions.",
+      "errors": {
+        "name_min": "Name must be at least 2 characters long.",
+        "name_max": "Name must be at most 25 characters long.",
+        "forename_min": "Forename must be at least 2 characters long.",
+        "forename_max": "Forename must be at most 25 characters long.",
+        "username_min": "Username must be at least 2 characters long.",
+        "username_max": "Username must be at most 25 characters long.",
+        "username_no_spaces": "Username must not contain leading, trailing, middle spaces or uppercase letters.",
+        "invalid_email": "Please enter a valid email address.",
+        "password_max": "Password must be at most 255 characters long.",
+        "passwords_mismatch": "The passwords do not match.",
+        "password_invalid": "Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character."
+      }
+    }
+  },
+  "components": {
+    "inputFile": {
+      "choose_file": "Choose a file",
+      "choose_image": "Choose an image"
+    }
+  },
+  "global": {
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "update": "Update"
+    }
+  },
+  "server": {
+    "global": {
+      "errors": {
+        "missing_fields": "Please fill in all required fields.",
+        "no_such_user": "No such user found."
+      }
+    },
+    "auth": {
+      "errors": {
+        "regex": "Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character",
+        "password_no_match": "Passwords do not match",
+        "email_taken": "This email is already taken",
+        "username_taken": "This username is already taken",
+        "invalid_credentials": "Invalid credentials"
+      },
+      "messages": {
+        "register_success": "Registered successfully",
+        "login_success": "Logged in successfully",
+        "logout_success": "Logged out successfully"
+      }
+    },
+    "upload": {
+      "errors": {
+        "no_file": "No file uploaded",
+        "invalid_file_type": "Invalid file type. Only jpg, jpeg, png, gif, and svg are allowed",
+        "limit": "File size exceeds the allowed limit."
+      },
+      "messages": {
+        "avatar_success": "Avatar updated successfully"
+      }
+    },
+    "users": {
+      "errors": {
+        "email_taken": "This email is already taken",
+        "username_taken": "This username is already taken",
+        "invalid_role": "Invalid role",
+        "actual_password_incorrect": "The current password is incorrect",
+        "regex_error": "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers, and special characters.",
+        "passwords_do_not_match": "The new password and confirmation do not match",
+        "password_incorrect": "The password is incorrect"
+      },
+      "messages": {
+        "user_updated": "User updated successfully",
+        "password_updated": "Password updated successfully",
+        "user_deleted": "User deleted successfully"
+      }
+    }
+  }
+}
