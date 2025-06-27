@@ -121,7 +121,8 @@
       "cancel": "Annuler",
       "save": "Enregistrer",
       "update": "Mettre à jour"
-    }
+    },
+    "session_expired": "Votre session a éxpiré"
   },
   "server": {
     "global": {
