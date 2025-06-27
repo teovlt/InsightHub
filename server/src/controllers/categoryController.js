@@ -11,7 +11,7 @@ export const getCategories = async (req, res) => {
 
   try {
     const categories = await Category.find({})
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
       .skip(page * size)
       .limit(size);
 

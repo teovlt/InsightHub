@@ -1,5 +1,6 @@
 "use client";
 
+import { CategorySection } from "@/components/customs/category-section";
 import { axiosConfig } from "@/config/axiosConfig";
 import { CategoryInterface } from "@/interfaces/Category";
 import { useEffect, useState } from "react";
@@ -31,18 +32,13 @@ export const Home = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="text-center space-y-4 flex-1">
-            <h1 className="text-4xl font-bold bg-gradient-to-r bg-accent bg-clip-text text-transparent">Life Dashboard</h1>
             <p className="text-muted-foreground text-lg">Track your progress, celebrate your wins, optimize your life</p>
           </div>
         </div>
 
         <div className="space-y-8">
           {categories.map((category) => (
-            // <CategorySection key={category.id} category={category} onAddStat={handleAddStat} />
-            <div key={category._id} className="p-6 rounded-lg shadow-md">
-              <h2 className="text-2xl font-semibold mb-4">{category.name}</h2>
-              <p className="text-muted-foreground mb-4">{category.description}</p>
-            </div>
+            <CategorySection key={category._id} category={category} />
           ))}
 
           {categories.length === 0 && (
