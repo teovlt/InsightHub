@@ -6,7 +6,7 @@ import { useAxiosInterceptor } from "./hooks/useAxiosInterceptors.js";
 
 function App() {
   const { loading } = useAuthContext();
-  useAxiosInterceptor();
+  useAxiosInterceptor(loading);
 
   if (loading) {
     return <Loading />;

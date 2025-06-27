@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-export const useAxiosInterceptor = () => {
+export const useAxiosInterceptor = (isAuthLoading: boolean) => {
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export const useAxiosInterceptor = () => {
         const isNotAuth = error.response && error.response.status === 401 && error.response.data?.error === "Not Authenticated";
         const isNotOnAuthPage = !window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/register");
 
-        if (isNotAuth && isNotOnAuthPage) {
+        if (isNotAuth && isNotOnAuthPage && !isAuthLoading) {
           toast(t("global.session_expired"));
           window.location.href = "/login";
         }
@@ -25,5 +25,5 @@ export const useAxiosInterceptor = () => {
     return () => {
       axiosConfig.interceptors.response.eject(interceptor);
     };
-  }, [t]);
+  }, [t, isAuthLoading]);
 };
