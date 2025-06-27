@@ -9,7 +9,7 @@ export const categoryRouter = new express.Router();
  * @description Retrieves all the categories.
  * @middleware verifyToken({ role: "admin" }) - Ensures the user is authenticated and has the 'admin' role.
  */
-categoryRouter.get("/", verifyToken({ role: "admin" }), getCategories);
+categoryRouter.get("/", verifyToken(), getCategories);
 
 /**
  * @route POST /
