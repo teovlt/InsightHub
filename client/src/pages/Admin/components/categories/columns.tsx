@@ -8,7 +8,7 @@ import { CategoryInterface } from "@/interfaces/Category";
 import * as LucideIcons from "lucide-react";
 import { LucideProps } from "lucide-react";
 
-export const getColumns = (deleteCategory: (id: string) => void): ColumnDef<CategoryInterface>[] => [
+export const getColumns = (callback: (action: string, data: any) => void): ColumnDef<CategoryInterface>[] => [
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -111,9 +111,14 @@ export const getColumns = (deleteCategory: (id: string) => void): ColumnDef<Cate
             >
               <Copy className="w-4 h-4" /> Copy category ID
             </DropdownMenuItem>
-            <DropdownMenuItem className="flex gap-4 text-destructive hover:text-destructive!" onClick={() => deleteCategory(category._id)}>
-              <Trash className="w-4 h-4 " />
-              <span>Delete this category</span>
+            <DropdownMenuItem className="flex gap-4" onClick={() => callback("update", category._id)}>
+              <LucideIcons.Pencil className="w-4 h-4" /> Update this category
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex gap-4 text-destructive hover:text-destructive!"
+              onClick={() => callback("delete", category._id)}
+            >
+              <Trash className="w-4 h-4" /> Delete this category
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

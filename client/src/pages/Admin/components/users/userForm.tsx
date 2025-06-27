@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { createPlayerSchema, deletePlayerSchema, updatePlayerSchema } from "@/lib/zod/schemas/admin/zod";
+import { createPlayerSchema, deleteInfoSchema, updatePlayerSchema } from "@/lib/zod/schemas/admin/zod";
 import { Copy } from "lucide-react";
 import { UserInterface } from "@/interfaces/User";
 
@@ -46,8 +46,8 @@ export const UserForm = ({ dialog, refresh, action, user }: UserFormProps) => {
     },
   });
 
-  const deleteForm = useForm<z.infer<typeof deletePlayerSchema>>({
-    resolver: zodResolver(deletePlayerSchema),
+  const deleteForm = useForm<z.infer<typeof deleteInfoSchema>>({
+    resolver: zodResolver(deleteInfoSchema),
     defaultValues: {
       confirmDelete: "",
     },
@@ -83,7 +83,7 @@ export const UserForm = ({ dialog, refresh, action, user }: UserFormProps) => {
     }
   };
 
-  const onDeleteSubmit: SubmitHandler<z.infer<typeof deletePlayerSchema>> = async (values) => {
+  const onDeleteSubmit: SubmitHandler<z.infer<typeof deleteInfoSchema>> = async (values) => {
     if (values.confirmDelete.toLowerCase() === "delete") {
       try {
         setLoading(true);

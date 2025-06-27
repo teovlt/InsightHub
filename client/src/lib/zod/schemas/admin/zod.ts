@@ -38,16 +38,27 @@ export const updatePlayerSchema = z.object({
   password: z.string().max(255, { message: "Password must be at most 255 characters long" }).optional(),
 });
 
-export const deletePlayerSchema = z.object({
+export const deleteInfoSchema = z.object({
   confirmDelete: z
     .string()
-    .toUpperCase()
-    .refine((val) => val === "DELETE", {
-      message: "You must type 'DELETE' to confirm",
-    }),
+    .min(1, { message: "You must type something" })
+    .transform((val) => val.toUpperCase()),
 });
 
 export const createCategorySchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long" })
+    .max(100, { message: "Name must be at most 100 characters long" }),
+  description: z
+    .string()
+    .min(2, { message: "Description must be at least 2 characters long" })
+    .max(500, { message: "Description must be at most 500 characters long" }),
+  icon: z.string().min(1, { message: "Icon is required" }),
+  color: z.string().min(1, { message: "Color is required" }),
+});
+
+export const updateCategorySchema = z.object({
   name: z
     .string()
     .min(2, { message: "Name must be at least 2 characters long" })

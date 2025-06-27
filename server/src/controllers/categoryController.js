@@ -45,7 +45,7 @@ export const createCategory = async (req, res) => {
       color,
     });
 
-    res.status(201).json({ category, message: "User created successfully" });
+    res.status(201).json({ category, message: "Category created successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -8,7 +8,7 @@ import { CategoryForm } from "./categoryForm";
 import { CategoryInterface } from "@/interfaces/Category";
 
 export const Categories = () => {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<CategoryInterface[]>([]);
   const [loading, setLoading] = useState(false);
   const [categoriesCount, setCategoriesCount] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
@@ -25,16 +25,6 @@ export const Categories = () => {
       toast.error(error.response?.data?.error);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function deleteCategory(categoryId: string) {
-    try {
-      const response = await axiosConfig.delete(`/categories/${categoryId}`);
-      toast.success(response.data.message);
-      fetchAllCategories();
-    } catch (error: any) {
-      toast.error(error.response);
     }
   }
 
@@ -57,6 +47,15 @@ export const Categories = () => {
         setAction("create");
         setOpenDialog(true);
         break;
+      case "update":
+        setSelectedCategory(categories.find((c) => c._id === data));
+        setAction("update");
+        setOpenDialog(true);
+        break;
+      case "delete":
+        setSelectedCategory(categories.find((c) => c._id === data));
+        setAction("delete");
+        setOpenDialog(true);
       default:
         break;
     }
@@ -66,7 +65,7 @@ export const Categories = () => {
     <div>
       <div className="container px-4 mx-auto">
         <DataTable
-          columns={getColumns(deleteCategory)}
+          columns={getColumns(callback)}
           data={categories}
           dataCount={categoriesCount}
           fetchData={fetchAllCategories}
@@ -82,8 +81,8 @@ export const Categories = () => {
           <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
             <DialogContent className="sm:max-w-[625px]">
               <DialogHeader>
-                <DialogTitle>{action.charAt(0).toUpperCase() + action.slice(1)} a user</DialogTitle>
-                {action === "create" && <DialogDescription>Here you can give life to a new user</DialogDescription>}
+                <DialogTitle>{action.charAt(0).toUpperCase() + action.slice(1)} a category</DialogTitle>
+                {action === "create" && <DialogDescription>Here you can give life to a new category</DialogDescription>}
               </DialogHeader>
               <CategoryForm dialog={setOpenDialog} refresh={fetchAllCategories} action={action} category={selectedCategory} />
             </DialogContent>
