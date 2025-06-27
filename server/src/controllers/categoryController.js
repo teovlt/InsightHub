@@ -26,22 +26,28 @@ export const getCategories = async (req, res) => {
 /**
  * Create a new category.
  *
- * @param {Object} categoryData - Data for the category.
- * @param {string} categoryData.name - The category name.
- * @param {string} categoryData.description - The category description.
- * @param {string} categoryData.icon - The category icon.
- * @param {string} categoryData.color - The category color.
+ * @param {Object} req - The request object containing category data.
+ * @param {Object} res - The response object to send the result.
+ * @returns {Object} JSON response with created category or error.
  */
-export const createCategory = async ({ name, description, icon, color }) => {
+export const createCategory = async (req, res) => {
+  const { name, description, icon, color } = req.body;
+
   if (!name || !description || !icon || !color) {
-    console.error("createCategory: Missing parameters", { name, description, icon, color });
-    return;
+    return res.status(400).json({ error: "Missing fields" });
   }
 
   try {
-    await Category.create({ name, description, icon, color });
+    const category = await Category.create({
+      name,
+      description,
+      icon,
+      color,
+    });
+
+    res.status(201).json({ category, message: "User created successfully" });
   } catch (err) {
-    console.error("createCategory: Error creating category", err);
+    res.status(500).json({ error: err.message });
   }
 };
 
