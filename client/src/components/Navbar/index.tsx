@@ -3,7 +3,7 @@ import { ThemeChanger } from "./themeChanger";
 import { LanguageChanger } from "./languageChanger";
 import { useTranslation } from "react-i18next";
 import { Separator } from "../ui/separator";
-import { House, LogIn, LogOut, Menu, Presentation, User, Wrench, WrenchIcon, X } from "lucide-react";
+import { ChartBar, House, LogIn, LogOut, Menu, Presentation, User, Wrench, WrenchIcon, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -73,6 +73,9 @@ export const Navbar = () => {
                 <>
                   <Button onClick={() => navigate("/")} variant="link">
                     {t("navbar.home")}
+                  </Button>
+                  <Button onClick={() => navigate("/statistics")} variant="link">
+                    {t("navbar.statistics")}
                   </Button>
                   <Button onClick={() => navigate("/account")} variant="link">
                     {t("navbar.account")}
@@ -163,6 +166,10 @@ export const Navbar = () => {
             <Button onClick={() => closeDialogAndNavigate("/")} variant="link" className="flex items-center justify-start gap-4">
               <House className="w-4 h-4" />
               {t("navbar.home")}
+            </Button>
+            <Button onClick={() => closeDialogAndNavigate("/statistics")} variant="link" className="flex items-center justify-start gap-4">
+              <ChartBar className="w-4 h-4" />
+              {t("navbar.statistics")}
             </Button>
 
             {authUser ? (

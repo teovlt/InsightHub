@@ -13,6 +13,7 @@ import { Register } from "@/pages/Authentication/register";
 import { Config } from "@/pages/Admin/components/config";
 import { RegisterGoogleForm } from "@/pages/Authentication/registerGoogleForm";
 import { Categories } from "@/pages/Admin/components/categories";
+import { Statistics } from "@/pages/Statistics";
 
 export const Router = () => {
   return (
@@ -62,12 +63,27 @@ export const Router = () => {
       </Route>
 
       <Route element={<LayoutWrapper />}>
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute authRequired={true}>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/account"
           element={
             <ProtectedRoute authRequired={true}>
               <Account />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/statistics"
+          element={
+            <ProtectedRoute authRequired={true}>
+              <Statistics />
             </ProtectedRoute>
           }
         />

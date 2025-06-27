@@ -8,7 +8,8 @@
     "languageChanged": "Language changed to English.",
     "changingLanguage": "Changing language...",
     "logout": "Logout",
-    "profile": "Profile"
+    "profile": "Profile",
+    "statistics": "Statistics"
   },
   "pages": {
     "home": {

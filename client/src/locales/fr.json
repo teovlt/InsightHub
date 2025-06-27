@@ -8,7 +8,8 @@
     "languageChanged": "Langage changé en français.",
     "changingLanguage": "Changement de langage...",
     "logout": "Se déconnecter",
-    "profile": "Profil"
+    "profile": "Profil",
+    "statistics": "Statistiques"
   },
   "pages": {
     "home": {
