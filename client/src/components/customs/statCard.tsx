@@ -2,25 +2,35 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, RotateCcw } from "lucide-react";
 import { StatInterface } from "@/interfaces/Stat";
 import { EditStatDialog } from "./editStatDialog";
 import { DeleteConfirmationDialog } from "./deleteConfirmationDialog";
+import { axiosConfig } from "@/config/axiosConfig";
+import { toast } from "sonner";
+import { RollbackStatDialog } from "./rollbackDialog";
 
 interface StatCardProps {
   stat: StatInterface;
   color: string;
   colorVars: Record<string, string>;
-  refresh: () => void; // Optional callback to refresh stats
+  refresh: () => void;
 }
 
 export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [rollbackDialog, setRollbackDialog] = useState(false);
 
-  const handleDelete = () => {
-    //Delete
-    setDeleteDialogOpen(false);
+  const handleDelete = async () => {
+    try {
+      const response = await axiosConfig.delete(`/stats/${stat._id}`);
+      toast.success(response.data.message);
+      setDeleteDialogOpen(false);
+      refresh();
+    } catch (error: any) {
+      toast.error(error.response.data.error);
+    }
   };
 
   return (
@@ -47,6 +57,10 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setRollbackDialog(true)}>
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Rollback
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
@@ -69,7 +83,7 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
       </Card>
 
       <EditStatDialog stat={stat} open={editDialogOpen} onOpenChange={setEditDialogOpen} refresh={refresh} />
-
+      <RollbackStatDialog stat={stat} open={rollbackDialog} onOpenChange={setRollbackDialog} refresh={refresh} />
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

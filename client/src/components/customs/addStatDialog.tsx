@@ -70,6 +70,10 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
                 placeholder="e.g., Weight, Net Worth, Books Read"
                 required
               />
+              <span className="text-red-400 text-sm">
+                Please note that renaming a stat is not allowed. Therefore this name should be unique and descriptive. You will not be able
+                to change it later.
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-2">

@@ -5,7 +5,6 @@ import { axiosConfig } from "@/config/axiosConfig";
 import { CategoryInterface } from "@/interfaces/Category";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-// import { CategorySection } from "../components/category-section";
 
 export const Home = () => {
   const [categories, setCategories] = useState<CategoryInterface[]>([]);

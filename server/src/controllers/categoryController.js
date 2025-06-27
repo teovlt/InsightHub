@@ -23,6 +23,7 @@ export const getCategories = async (req, res) => {
     const stats = await Stat.find({
       userId: userId,
       categoryId: { $in: categoryIds },
+      current: true,
     }).lean();
 
     const statsByCategory = {};

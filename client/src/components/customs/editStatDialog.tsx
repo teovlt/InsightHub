@@ -4,12 +4,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StatInterface } from "@/interfaces/Stat";
+import { toast } from "sonner";
+import { axiosConfig } from "@/config/axiosConfig";
+import { FormDescription } from "../ui/form";
 
 interface EditStatDialogProps {
   stat: StatInterface | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  refresh: () => void; // Optional callback to refresh stats after editing
+  refresh: () => void;
 }
 
 export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDialogProps) {
@@ -27,23 +30,26 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
     }
   }, [stat]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stat || !name.trim() || !value.trim()) return;
 
-    const updatedStat: StatInterface = {
+    const updatedStat = {
       ...stat,
-      name: name.trim(),
       value: value.trim(),
       unit: unit.trim() || undefined,
       description: description.trim() || undefined,
+      categoryId: stat.categoryId,
     };
 
-    //Update
-    console.log(updatedStat);
-
-    refresh();
-    onOpenChange(false);
+    try {
+      const response = await axiosConfig.put(`/stats/${stat._id}`, updatedStat);
+      toast.success(response.data.message);
+      onOpenChange(false);
+      refresh();
+    } catch (error: any) {
+      toast.error(error.response.data.error);
+    }
   };
 
   if (!stat) return null;
@@ -65,6 +71,7 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Weight, Net Worth, Books Read"
                 required
+                disabled={true}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">

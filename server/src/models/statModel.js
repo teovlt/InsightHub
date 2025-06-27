@@ -26,6 +26,10 @@ const statSchema = new mongoose.Schema(
     unit: {
       type: String,
     },
+    current: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,
