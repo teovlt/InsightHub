@@ -46,3 +46,16 @@ export const deletePlayerSchema = z.object({
       message: "You must type 'DELETE' to confirm",
     }),
 });
+
+export const createCategorySchema = z.object({
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long" })
+    .max(100, { message: "Name must be at most 100 characters long" }),
+  description: z
+    .string()
+    .min(2, { message: "Description must be at least 2 characters long" })
+    .max(500, { message: "Description must be at most 500 characters long" }),
+  icon: z.string().min(1, { message: "Icon is required" }),
+  color: z.string().min(1, { message: "Color is required" }),
+});

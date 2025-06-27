@@ -3,11 +3,17 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { getColumns } from "./columns";
 import { DataTable } from "@/components/customs/dataTable";
+import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { CategoryForm } from "./categoryForm";
+import { CategoryInterface } from "@/interfaces/Category";
 
 export const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categoriesCount, setCategoriesCount] = useState(0);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [action, setAction] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<CategoryInterface>();
 
   async function fetchAllCategories(page: number = 0, size: number = 10) {
     setLoading(true);
@@ -43,9 +49,14 @@ export const Categories = () => {
   }
 
   function callback(action: string, data: any) {
+    setSelectedCategory(undefined);
     switch (action) {
       case "deleteAll":
         deleteAllCategories();
+      case "create":
+        setAction("create");
+        setOpenDialog(true);
+        break;
       default:
         break;
     }
@@ -63,8 +74,21 @@ export const Categories = () => {
           callback={callback}
           searchElement="name"
           searchPlaceholder="Filter by name"
-          actions={["deleteAll"]}
+          actions={["deleteAll", "create"]}
         />
+      </div>
+      <div>
+        {openDialog && (
+          <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
+            <DialogContent className="sm:max-w-[625px]">
+              <DialogHeader>
+                <DialogTitle>{action.charAt(0).toUpperCase() + action.slice(1)} a user</DialogTitle>
+                {action === "create" && <DialogDescription>Here you can give life to a new user</DialogDescription>}
+              </DialogHeader>
+              <CategoryForm dialog={setOpenDialog} refresh={fetchAllCategories} action={action} category={selectedCategory} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );
