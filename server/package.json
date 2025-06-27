@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "format": "pnpm exec prettier --write './**/*.{js,ts,json,css,md}'"
+    "format": "pnpm exec prettier --write './**/*.{js,ts,json,css,md}'",
+    "build": "echo 'No build step defined for the server'"
   },
   "keywords": [],
   "license": "ISC",
