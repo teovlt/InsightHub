@@ -1,0 +1,101 @@
+import { Category } from "../models/categoryModel.js";
+
+/**
+ * Get a paginated list of categories.
+ *
+ * @returns {Object} JSON response with categories and total count.
+ */
+export const getCategories = async (req, res) => {
+  const size = parseInt(req.query.size) || 10;
+  const page = parseInt(req.query.page) || 0;
+
+  try {
+    const categories = await Category.find({})
+      .sort({ createdAt: -1 })
+      .skip(page * size)
+      .limit(size);
+
+    const count = await Category.countDocuments();
+
+    res.status(200).json({ categories, count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Create a new category.
+ *
+ * @param {Object} categoryData - Data for the category.
+ * @param {string} categoryData.name - The category name.
+ * @param {string} categoryData.description - The category description.
+ * @param {string} categoryData.icon - The category icon.
+ * @param {string} categoryData.color - The category color.
+ */
+export const createCategory = async ({ name, description, icon, color }) => {
+  if (!name || !description || !icon || !color) {
+    console.error("createCategory: Missing parameters", { name, description, icon, color });
+    return;
+  }
+
+  try {
+    await Category.create({ name, description, icon, color });
+  } catch (err) {
+    console.error("createCategory: Error creating category", err);
+  }
+};
+
+/**
+ * Update a specific category by ID.
+ *
+ * @returns {Object} JSON response with updated category or error.
+ */
+export const updateCategory = async (req, res) => {
+  const { id } = req.params;
+  const { name, description, icon, color } = req.body;
+
+  try {
+    const updatedCategory = await Category.findByIdAndUpdate(id, { name, description, icon, color }, { new: true, runValidators: true });
+
+    if (!updatedCategory) {
+      return res.status(400).json({ error: "No such category" });
+    }
+
+    res.status(200).json({ message: "Category updated successfully", category: updatedCategory });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Delete a specific category by ID.
+ *
+ * @returns {Object} JSON response with success or error.
+ */
+export const deleteCategory = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const category = await Category.findByIdAndDelete(id);
+    if (!category) {
+      return res.status(400).json({ error: "No such category" });
+    }
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * Delete all categories.
+ *
+ * @returns {Object} JSON response with success or error.
+ */
+export const deleteAllCategories = async (req, res) => {
+  try {
+    await Category.deleteMany();
+    res.status(200).json({ message: "All categories deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
