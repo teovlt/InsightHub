@@ -36,14 +36,12 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
   return (
     <>
       <Card
-        className="relative overflow-hidden group"
-        style={
-          {
-            background: `linear-gradient(135deg, ${color}15 0%, ${color}05 100%)`,
-            borderColor: `${color}40`,
-            ...colorVars,
-          } as React.CSSProperties
-        }
+        className="relative overflow-hidden group border transition-colors dark:border-neutral-700 dark:bg-neutral-900"
+        style={{
+          background: `linear-gradient(135deg, ${color}30 0%, ${color}10 100%)`,
+          borderColor: `${color}40`,
+          ...colorVars,
+        }}
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium pr-2">{stat.name}</CardTitle>
@@ -74,7 +72,7 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold" style={{ color: `hsl(var(--category-color-dark))` }}>
+          <div className="text-2xl font-bold">
             {stat.value}
             {stat.unit && <span className="text-lg ml-1">{stat.unit}</span>}
           </div>

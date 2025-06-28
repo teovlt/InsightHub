@@ -13,7 +13,7 @@ interface CategorySectionProps {
 
 export function CategorySection({ category, refresh }: CategorySectionProps) {
   const IconComponent = (LucideIcons as any)[category.icon] || LucideIcons.Circle;
-  const gradientColors = generateGradientColors(category.color, Math.max(4, category.stats.length));
+  const gradientColors = generateGradientColors(category.color, Math.max(4, category.stats.length)).reverse();
 
   return (
     <div className="space-y-4">
