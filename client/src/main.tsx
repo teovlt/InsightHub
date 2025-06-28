@@ -9,6 +9,8 @@ import { SocketContextProvider } from "./contexts/socketContext.js";
 import { ConfigProvider } from "./contexts/configContext.js";
 import { AppInitializer } from "./initializer.js";
 import "./lib/i18n.js";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 
 if (!import.meta.env.VITE_API_URL) {
   throw new Error("VITE_API_URL is not defined in the environment file");
@@ -28,6 +30,8 @@ if (!rootElement) {
                 <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
                   <App />
                   <Toaster />
+                  <SpeedInsights />
+                  <Analytics />
                 </ThemeProvider>
               </BrowserRouter>
             </SocketContextProvider>
