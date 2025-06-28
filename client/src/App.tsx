@@ -10,7 +10,7 @@ function App() {
     return <Loading />;
   }
 
-  return <Loading />;
+  return <Router />;
 }
 
 export default App;
