@@ -1,43 +1,45 @@
 import https from "https";
-import fs from "fs";
-import path from "path";
+import { bucket } from "../lib/firebase.js";
 
 /**
- * Downloads an image from a given URL and saves it to the server's filesystem.
- * @param {string} photoURL - The URL of the image to download.
- * @param {string} userId - The ID of the user, used to create a unique filename.
- * @return {Promise<string>} - A promise that resolves to the path of the saved image.
+ * Télécharge une image à partir d'une URL et l'upload direct sur Firebase Storage.
+ * @param {string} photoURL - L'URL de l'image.
+ * @param {string} userId - L'ID de l'utilisateur pour nom unique.
+ * @param {string} extension - Extension du fichier (default jpg).
+ * @return {Promise<string>} - L'URL publique Firebase.
  */
 export const saveAvatarFromUrl = (photoURL, userId, extension = "jpg") => {
   return new Promise((resolve, reject) => {
-    const filename = `avatar_${userId}_${Date.now()}.${extension}`;
-    const folderPath = path.join(process.cwd(), "uploads", "users", "avatars");
-    const fullPath = path.join(folderPath, filename);
-
-    fs.mkdirSync(folderPath, { recursive: true });
-
-    const file = fs.createWriteStream(fullPath);
+    const filename = `avatars/avatar_${userId}_${Date.now()}.${extension}`;
+    const file = bucket.file(filename);
 
     https
       .get(photoURL, (response) => {
-        try {
-          new URL(photoURL);
-        } catch {
-          return reject(new Error("Invalid URL"));
-        }
-
         if (response.statusCode !== 200) {
           return reject(new Error(`Failed to get image, status code: ${response.statusCode}`));
         }
-        response.pipe(file);
-        file.on("finish", () => {
-          file.close();
-          resolve(`/uploads/users/avatars/${filename}`);
+
+        const writeStream = file.createWriteStream({
+          resumable: false,
+          metadata: {
+            contentType: response.headers["content-type"] || "image/jpeg",
+          },
+        });
+
+        response.pipe(writeStream);
+
+        writeStream.on("error", (err) => reject(err));
+
+        writeStream.on("finish", async () => {
+          try {
+            await file.makePublic();
+            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+            resolve(publicUrl);
+          } catch (err) {
+            reject(err);
+          }
         });
       })
-      .on("error", (err) => {
-        fs.unlink(fullPath, () => {});
-        reject(err);
-      });
+      .on("error", (err) => reject(err));
   });
 };

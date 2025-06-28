@@ -1,16 +1,7 @@
 import { User } from "../models/userModel.js";
-import fs from "fs";
-import path from "path";
 import { Constants } from "../../constants/constants.js";
+import { bucket } from "../lib/firebase.js";
 
-/**
- * @function updateUserAvatar
- * @description Updates the avatar of a user by uploading a new file, validating the file type and size,
- * and replacing the old avatar if it exists.
- * @param {string} req.params.id - The ID of the user whose avatar is being updated.
- * @param {Object} req.file - The uploaded file containing the user's new avatar.
- * @returns {Object} JSON response with success or error message.
- */
 export const updateUserAvatar = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -30,22 +21,47 @@ export const updateUserAvatar = async (req, res) => {
     }
 
     if (user.avatar) {
-      const oldAvatarPath = path.join(process.cwd(), "uploads", "users", "avatars", path.basename(user.avatar));
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath);
-      }
+      const oldFileName = user.avatar.split("/").pop();
+      const oldFile = bucket.file(`avatars/${oldFileName}`);
+      await oldFile.delete().catch(() => {});
     }
 
-    const newAvatarUrl = `${req.protocol}://${req.get("host")}/uploads/users/avatars/${req.file.filename}`;
+    // Nouveau nom unique
+    let extension = req.file.mimetype.split("/")[1];
+    if (extension.includes("+")) extension = extension.split("+")[0]; // svg+xml → svg
 
-    user.avatar = newAvatarUrl;
-    await user.save();
+    const filename = `avatars/${userId}_${Date.now()}.${extension}`;
 
-    res.status(200).json({
-      message: "server.upload.messages.avatar_success",
-      user,
+    const blob = bucket.file(filename);
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+      metadata: {
+        contentType: req.file.mimetype,
+      },
     });
+
+    blobStream.on("error", (err) => {
+      console.error(err);
+      res.status(500).json({ error: "Upload error", details: err.message });
+    });
+
+    blobStream.on("finish", async () => {
+      await blob.makePublic();
+
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+
+      user.avatar = publicUrl;
+      await user.save();
+
+      res.status(200).json({
+        message: "server.upload.messages.avatar_success",
+        user,
+      });
+    });
+
+    blobStream.end(req.file.buffer);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "An unexpected error occurred during file upload" });
   }
 };

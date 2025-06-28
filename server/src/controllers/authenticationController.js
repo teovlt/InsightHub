@@ -8,6 +8,7 @@ import { userRoles } from "../utils/enums/userRoles.js";
 import { authTypes } from "../utils/enums/authTypes.js";
 import { saveAvatarFromUrl } from "../utils/saveAvatarFromUrl.js";
 import { generateRandomAvatar } from "../utils/generateRandomAvatar.js";
+import { bucket } from "../lib/firebase.js";
 
 /**
  * Registers a new user.
@@ -54,21 +55,19 @@ export const register = async (req, res) => {
 
     if (photoURL) {
       try {
-        const avatarPath = await saveAvatarFromUrl(photoURL, user._id);
-        if (avatarPath) {
-          user.avatar = `${req.protocol}://${req.get("host")}${avatarPath}`;
+        const firebaseAvatarUrl = await saveAvatarFromUrl(photoURL, user._id);
+        if (firebaseAvatarUrl) {
+          user.avatar = firebaseAvatarUrl;
           await user.save();
         }
       } catch (err) {
-        console.error("Failed to download avatar:", err.message);
+        console.error("Failed to upload avatar to Firebase:", err.message);
       }
     } else {
-      // If no photoURL is provided, generate a random avatar
-      const avatarPath = await saveAvatarFromUrl(generateRandomAvatar(user.username), user._id, "svg");
-      if (avatarPath) {
-        user.avatar = `${req.protocol}://${req.get("host")}${avatarPath}`;
-        await user.save();
-      }
+      const avatarUrl = generateRandomAvatar(user.username);
+      const publicUrl = await saveAvatarFromUrl(avatarUrl, user._id, "svg");
+      user.avatar = publicUrl;
+      await user.save();
     }
 
     const userCount = await User.countDocuments();

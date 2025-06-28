@@ -11,6 +11,7 @@ import { Constants } from "../../constants/constants.js";
 import { authTypes } from "../utils/enums/authTypes.js";
 import { saveAvatarFromUrl } from "../utils/saveAvatarFromUrl.js";
 import { generateRandomAvatar } from "../utils/generateRandomAvatar.js";
+import { bucket } from "../lib/firebase.js";
 
 /**
  * @function getUser
@@ -87,11 +88,10 @@ export const createUser = async (req, res) => {
       forename,
     });
 
-    const avatarPath = await saveAvatarFromUrl(generateRandomAvatar(user.username), user._id, "svg");
-    if (avatarPath) {
-      user.avatar = `${req.protocol}://${req.get("host")}${avatarPath}`;
-      await user.save();
-    }
+    const avatarUrl = generateRandomAvatar(user.username);
+    const publicUrl = await saveAvatarFromUrl(avatarUrl, user._id, "svg");
+    user.avatar = publicUrl;
+    await user.save();
 
     const { password: userPassword, ...userWithoutPassword } = user._doc;
 
@@ -182,10 +182,9 @@ export const deleteUser = async (req, res) => {
     if (!user) return res.status(400).json({ error: "No such user" });
 
     if (user.avatar) {
-      const oldAvatarPath = path.join(process.cwd(), "uploads", "users", "avatars", path.basename(user.avatar));
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath);
-      }
+      const oldFileName = user.avatar.split("/").pop();
+      const oldFile = bucket.file(`avatars/${oldFileName}`);
+      await oldFile.delete().catch(() => {});
     }
 
     createLog({
