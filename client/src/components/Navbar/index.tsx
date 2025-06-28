@@ -3,7 +3,7 @@ import { ThemeChanger } from "./themeChanger";
 import { LanguageChanger } from "./languageChanger";
 import { useTranslation } from "react-i18next";
 import { Separator } from "../ui/separator";
-import { ChartBar, House, LogIn, LogOut, Menu, Presentation, User, Wrench, WrenchIcon, X } from "lucide-react";
+import { ChartBar, ChartBarStacked, House, LogIn, LogOut, Menu, Presentation, User, Wrench, WrenchIcon, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -85,7 +85,7 @@ export const Navbar = () => {
                       {t("navbar.dashboard")}
                     </Button>
                   )}
-                  <DropdownMenu>
+                  <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild className="hover:cursor-pointer">
                       <span className="hover:cursor-pointer">
                         <AvatarWithStatusCell user={authUser} />
@@ -99,6 +99,12 @@ export const Navbar = () => {
                           {t("navbar.home")}
                           <DropdownMenuShortcut>
                             <Presentation className="w-4 h-4" />
+                          </DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/statistics ")}>
+                          {t("navbar.statistics")}
+                          <DropdownMenuShortcut>
+                            <ChartBarStacked className="w-4 h-4" />
                           </DropdownMenuShortcut>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/account")}>
