@@ -24,6 +24,17 @@ export const Loading = () => {
       </div>
 
       <p className="text-xs text-muted-foreground animate-pulse">Fun fact: you just made my server wake up from a nap 💤</p>
+      <div className="absolute bottom-4 text-xs text-muted-foreground">
+        Built with ❤️ by{" "}
+        <a
+          href="https://teovillet.fr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-2 hover:text-primary transition-colors"
+        >
+          Téo Villet
+        </a>
+      </div>
     </div>
   );
 };
