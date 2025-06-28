@@ -92,23 +92,35 @@ export const updateStat = async (req, res) => {
       return res.status(404).json({ error: "No such current stat" });
     }
 
-    oldStat.current = false;
-    await oldStat.save();
+    // if the value is the same, no need to create a new stat
+    if (oldStat.value !== value) {
+      oldStat.current = false;
+      await oldStat.save();
 
-    const newStat = await Stat.create({
-      userId: oldStat.userId,
-      categoryId: oldStat.categoryId,
-      name: oldStat.name,
-      description: description || oldStat.description,
-      value: value !== undefined ? value : oldStat.value,
-      unit: unit || oldStat.unit,
-      current: true,
-    });
+      const newStat = await Stat.create({
+        userId: oldStat.userId,
+        categoryId: oldStat.categoryId,
+        name: oldStat.name,
+        description: description || oldStat.description,
+        value: value !== undefined ? value : oldStat.value,
+        unit: unit || oldStat.unit,
+        current: true,
+      });
+      res.status(200).json({
+        message: "Stat updated with history kept",
+        stat: newStat,
+      });
+    } else {
+      await oldStat.updateOne({
+        description: description || oldStat.description,
+        unit: unit || oldStat.unit,
+      });
 
-    res.status(200).json({
-      message: "Stat updated with history kept",
-      stat: newStat,
-    });
+      res.status(200).json({
+        message: "Stat updated successfully",
+        stat: oldStat,
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
