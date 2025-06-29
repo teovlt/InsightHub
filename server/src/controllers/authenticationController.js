@@ -8,7 +8,6 @@ import { userRoles } from "../utils/enums/userRoles.js";
 import { authTypes } from "../utils/enums/authTypes.js";
 import { saveAvatarFromUrl } from "../utils/saveAvatarFromUrl.js";
 import { generateRandomAvatar } from "../utils/generateRandomAvatar.js";
-import { bucket } from "../lib/firebase.js";
 
 /**
  * Registers a new user.
@@ -205,8 +204,8 @@ export const signInWithGoogle = async (req, res) => {
     res.cookie("__access__token", accessToken, {
       maxAge: Constants.MAX_AGE,
       httpOnly: true,
-      sameSite: "None", // cross-origin = None obligatoire
-      secure: true, // None => Secure obligatoire
+      sameSite: "None",
+      secure: true,
     });
 
     return res.status(201).json({ user, message: "server.auth.messages.login_success" });
