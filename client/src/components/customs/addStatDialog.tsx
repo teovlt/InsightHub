@@ -49,7 +49,17 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => {
+            setName("");
+            setValue("");
+            setUnit("");
+            setDescription("");
+          }}
+        >
           <Plus className="h-3 w-3" />
           Add Stat
         </Button>
