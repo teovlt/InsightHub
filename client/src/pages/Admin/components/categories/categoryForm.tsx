@@ -33,6 +33,7 @@ export const CategoryForm = ({ dialog, refresh, action, category }: CategoryForm
     { value: "Gamepad2", label: "🎮 Hobbies" },
     { value: "Users", label: "👥 Social" },
     { value: "Target", label: "🎯 Goals" },
+    { value: "CookingPot", label: "🍳 Cooking" },
   ];
 
   const createForm = useForm<z.infer<typeof createCategorySchema>>({
