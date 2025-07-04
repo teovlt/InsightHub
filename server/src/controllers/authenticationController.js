@@ -77,12 +77,12 @@ export const register = async (req, res) => {
 
     const accessToken = generateAccessToken(user._id);
 
-    res.cookie("__access__token", accessToken, {
-      maxAge: Constants.MAX_AGE,
-      httpOnly: true,
-      sameSite: "None",
-      secure: true,
-    });
+    // res.cookie("__access__token", accessToken, {
+    //   maxAge: Constants.MAX_AGE,
+    //   httpOnly: true,
+    //   sameSite: "None",
+    //   secure: true,
+    // });
 
     createLog({
       message: `New user ${user.username} registered successfully`,
@@ -92,7 +92,7 @@ export const register = async (req, res) => {
 
     const { password: userPassword, ...userWithoutPassword } = user._doc;
 
-    res.status(201).json({ user: userWithoutPassword, message: "server.auth.messages.register_success" });
+    res.status(201).json({ user: userWithoutPassword, message: "server.auth.messages.register_success", accessToken });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -133,16 +133,16 @@ export const login = async (req, res) => {
     }
 
     const accessToken = generateAccessToken(user._id);
-    res.cookie("__access__token", accessToken, {
-      maxAge: Constants.MAX_AGE,
-      httpOnly: true,
-      sameSite: "None",
-      secure: true,
-    });
+    // res.cookie("__access__token", accessToken, {
+    //   maxAge: Constants.MAX_AGE,
+    //   httpOnly: true,
+    //   sameSite: "None",
+    //   secure: true,
+    // });
 
     const { password: userPassword, ...userWithoutPassword } = user._doc;
 
-    res.status(201).json({ user: userWithoutPassword, message: "server.auth.messages.login_success" });
+    res.status(201).json({ user: userWithoutPassword, message: "server.auth.messages.login_success", accessToken });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -201,14 +201,14 @@ export const signInWithGoogle = async (req, res) => {
     }
 
     const accessToken = generateAccessToken(user._id);
-    res.cookie("__access__token", accessToken, {
-      maxAge: Constants.MAX_AGE,
-      httpOnly: true,
-      sameSite: "None",
-      secure: true,
-    });
+    // res.cookie("__access__token", accessToken, {
+    //   maxAge: Constants.MAX_AGE,
+    //   httpOnly: true,
+    //   sameSite: "None",
+    //   secure: true,
+    // });
 
-    return res.status(201).json({ user, message: "server.auth.messages.login_success" });
+    return res.status(201).json({ user, message: "server.auth.messages.login_success", accessToken });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

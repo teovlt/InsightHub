@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
 import { createLog } from "../controllers/logController.js";
 import { logLevels } from "../utils/enums/logLevel.js";
-import { logout } from "../controllers/authenticationController.js";
 
 /**
  * Middleware to verify JWT token and, if specified, check the user's role.
@@ -14,11 +13,10 @@ import { logout } from "../controllers/authenticationController.js";
  */
 export const verifyToken = ({ role } = {}) => {
   return async (req, res, next) => {
-    const token = req.cookies["__access__token"];
-    if (!token) {
-      return res.status(401).json({ error: "Not Authenticated" });
-    }
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "Not Authenticated" });
 
+    const token = authHeader.split(" ")[1];
     jwt.verify(token, process.env.SECRET_ACCESS_TOKEN, async (err, payload) => {
       if (err) return res.status(403).json({ error: "Access Token is invalid" });
 
