@@ -39,5 +39,5 @@ setInterval(
       console.error("Self-ping failed:", err);
     }
   },
-  29 * 60 * 1000,
+  2 * 60 * 1000,
 );
