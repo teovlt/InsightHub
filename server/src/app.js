@@ -28,3 +28,16 @@ app.use(cookieParser());
 
 // Register main application routes
 app.use(router);
+
+// Self-ping toutes les 29 minutes
+setInterval(
+  async () => {
+    try {
+      const res = await fetch(process.env.SELF_URL + "/api/ping");
+      console.log(`Self-ping status: ${res.status}`);
+    } catch (err) {
+      console.error("Self-ping failed:", err);
+    }
+  },
+  29 * 60 * 1000,
+);
