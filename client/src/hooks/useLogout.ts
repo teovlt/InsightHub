@@ -16,9 +16,9 @@ export const useLogout = () => {
     setLoading(true);
     try {
       const response = await axiosConfig.get("/auth/logout");
-
-      toast.success(t(response.data.message));
+      localStorage.removeItem("accessToken");
       setAuthUser(null);
+      toast.success(t(response.data.message));
       navigate("/login");
     } catch (error: any) {
       toast.error(error.response.data.error);

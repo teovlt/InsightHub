@@ -155,7 +155,6 @@ export const login = async (req, res) => {
  */
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("__access__token");
     res.status(200).json({ message: "server.auth.messages.logout_success" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
