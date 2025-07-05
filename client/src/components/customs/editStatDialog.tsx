@@ -37,6 +37,7 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
 
     const updatedStat = {
       ...stat,
+      name: name.trim(),
       value: value.trim(),
       unit: unit.trim() || undefined,
       description: description.trim() || undefined,
@@ -73,7 +74,6 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Weight, Net Worth, Books Read"
                 required
-                disabled={true}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">

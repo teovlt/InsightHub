@@ -80,7 +80,7 @@ export const deleteStat = async (req, res) => {
  */
 export const updateStat = async (req, res) => {
   const { id } = req.params;
-  const { description, value, unit, categoryId, hided } = req.body;
+  const { name, description, value, unit, categoryId, hided } = req.body;
 
   if (!value || !categoryId) {
     return res.status(400).json({ error: "Missing fields" });
@@ -93,7 +93,33 @@ export const updateStat = async (req, res) => {
       return res.status(404).json({ error: "No such current stat" });
     }
 
-    // if the value is the same, no need to create a new stat
+    // Si on veut changer le nom :
+    if (name && name !== oldStat.name) {
+      // Check que le nom n’existe pas déjà pour ce user + category
+      const nameExists = await Stat.findOne({
+        userId: oldStat.userId,
+        categoryId: oldStat.categoryId,
+        name: name,
+      });
+
+      if (nameExists) {
+        return res.status(400).json({ error: "A stat with this new name already exists" });
+      }
+
+      // Update toutes les versions
+      await Stat.updateMany(
+        {
+          userId: oldStat.userId,
+          categoryId: oldStat.categoryId,
+          name: oldStat.name,
+        },
+        {
+          $set: { name },
+        },
+      );
+    }
+
+    // Si la value change => versionning
     if (oldStat.value !== value) {
       oldStat.current = false;
       await oldStat.save();
@@ -101,25 +127,27 @@ export const updateStat = async (req, res) => {
       const newStat = await Stat.create({
         userId: oldStat.userId,
         categoryId: oldStat.categoryId,
-        name: oldStat.name,
+        name: name || oldStat.name,
         description: description || oldStat.description,
-        value: value !== undefined ? value : oldStat.value,
+        value,
         unit: unit || oldStat.unit,
         hided: typeof hided === "boolean" ? hided : oldStat.hided,
         current: true,
       });
-      res.status(200).json({
+
+      return res.status(200).json({
         message: "Stat updated with history kept",
         stat: newStat,
       });
     } else {
-      await oldStat.updateOne({
-        description: description || oldStat.description,
-        unit: unit || oldStat.unit,
-        hided: typeof hided === "boolean" ? hided : oldStat.hided,
-      });
+      // Pas de nouvelle value => simple maj
+      oldStat.description = description || oldStat.description;
+      oldStat.unit = unit || oldStat.unit;
+      oldStat.hided = typeof hided === "boolean" ? hided : oldStat.hided;
 
-      res.status(200).json({
+      await oldStat.save();
+
+      return res.status(200).json({
         message: "Stat updated successfully",
         stat: oldStat,
       });
