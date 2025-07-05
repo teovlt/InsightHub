@@ -37,10 +37,7 @@ export const Home = () => {
         </div>
 
         <div className="space-y-8">
-          {categories.map((category) => (
-            <CategorySection key={category._id} category={category} refresh={fetchAllCategories} />
-          ))}
-          {loading && (
+          {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:mt-32">
               {Array.from({ length: 9 }).map((_, index) => (
                 <div key={index} className="space-y-4">
@@ -53,9 +50,13 @@ export const Home = () => {
                 </div>
               ))}
             </div>
-          )}
-
-          {categories.length === 0 && !loading && (
+          ) : categories.length > 0 ? (
+            <>
+              {categories.map((category) => (
+                <CategorySection key={category._id} category={category} refresh={fetchAllCategories} />
+              ))}
+            </>
+          ) : (
             <div className="text-center py-12">
               <div className="text-muted-foreground space-y-2">
                 <p className="text-lg">No categories yet!</p>
