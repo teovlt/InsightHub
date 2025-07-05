@@ -23,7 +23,7 @@ export const Home = () => {
     } catch (error: any) {
       toast.error(error.response?.data?.error);
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
   }
   return (
