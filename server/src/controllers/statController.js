@@ -8,7 +8,7 @@ import { Stat } from "../models/statModel.js";
  * @returns {Object} JSON response with created stat or error.
  */
 export const createStat = async (req, res) => {
-  const { name, description, value, unit, categoryId } = req.body;
+  const { name, description, value, unit, categoryId, hided } = req.body;
   const userId = req.userId;
 
   if (!name || !value || !categoryId) {
@@ -35,6 +35,7 @@ export const createStat = async (req, res) => {
       value,
       unit,
       current: true,
+      hided,
     });
 
     res.status(201).json({ stat, message: "Stat created successfully" });
@@ -79,7 +80,7 @@ export const deleteStat = async (req, res) => {
  */
 export const updateStat = async (req, res) => {
   const { id } = req.params;
-  const { description, value, unit, categoryId } = req.body;
+  const { description, value, unit, categoryId, hided } = req.body;
 
   if (!value || !categoryId) {
     return res.status(400).json({ error: "Missing fields" });
@@ -104,6 +105,7 @@ export const updateStat = async (req, res) => {
         description: description || oldStat.description,
         value: value !== undefined ? value : oldStat.value,
         unit: unit || oldStat.unit,
+        hided: typeof hided === "boolean" ? hided : oldStat.hided,
         current: true,
       });
       res.status(200).json({
@@ -114,6 +116,7 @@ export const updateStat = async (req, res) => {
       await oldStat.updateOne({
         description: description || oldStat.description,
         unit: unit || oldStat.unit,
+        hided: typeof hided === "boolean" ? hided : oldStat.hided,
       });
 
       res.status(200).json({

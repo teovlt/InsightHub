@@ -30,6 +30,10 @@ const statSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    hided: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
