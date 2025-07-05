@@ -29,7 +29,7 @@ app.use(cookieParser());
 // Register main application routes
 app.use(router);
 
-// Self-ping toutes les 29 minutes
+// Self-ping toutes les 14 minutes (render-proof)
 setInterval(
   async () => {
     try {
@@ -39,5 +39,5 @@ setInterval(
       console.error("Self-ping failed:", err);
     }
   },
-  2 * 60 * 1000,
+  14 * 60 * 1000,
 );
