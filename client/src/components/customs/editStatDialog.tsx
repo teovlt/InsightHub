@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { StatInterface } from "@/interfaces/Stat";
 import { toast } from "sonner";
 import { axiosConfig } from "@/config/axiosConfig";
-import { FormDescription } from "../ui/form";
 
 interface EditStatDialogProps {
   stat: StatInterface | null;
@@ -19,6 +18,7 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
   const [name, setName] = useState("");
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState("");
+  const [hided, setHided] = useState(false);
   const [description, setDescription] = useState("");
 
   useEffect(() => {
@@ -27,6 +27,7 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
       setValue(stat.value.toString());
       setUnit(stat.unit || "");
       setDescription(stat.description || "");
+      setHided(stat.hided);
     }
   }, [stat]);
 
@@ -40,6 +41,7 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
       unit: unit.trim() || undefined,
       description: description.trim() || undefined,
       categoryId: stat.categoryId,
+      hided,
     };
 
     try {
@@ -56,7 +58,7 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent key={stat?._id} className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Edit Stat</DialogTitle>
@@ -89,6 +91,16 @@ export function EditStatDialog({ stat, open, onOpenChange, refresh }: EditStatDi
                 <Label htmlFor="edit-stat-unit">Unit (Optional)</Label>
                 <Input id="edit-stat-unit" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g., kg, $, books" />
               </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit-stat-hided"
+                checked={hided}
+                onChange={(e) => setHided(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-accent"
+              />
+              <Label htmlFor="edit-stat-hided">Hide the value of this stat</Label>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-stat-description">Description (Optional)</Label>

@@ -17,6 +17,7 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
   const [name, setName] = useState("");
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState("");
+  const [hided, setHided] = useState(false);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,6 +32,7 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
       description: description.trim() || undefined,
       categoryId,
       createdAt: new Date(),
+      hided: hided,
     };
 
     try {
@@ -58,6 +60,7 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
             setValue("");
             setUnit("");
             setDescription("");
+            setHided(false);
           }}
         >
           <Plus className="h-3 w-3" />
@@ -100,6 +103,16 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
                 <Label htmlFor="stat-unit">Unit (Optional)</Label>
                 <Input id="stat-unit" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g., kg, $, books" />
               </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="stat-hided"
+                checked={hided}
+                onChange={(e) => setHided(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <Label htmlFor="stat-hided">Hide the value of this stat</Label>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="stat-description">Description (Optional)</Label>

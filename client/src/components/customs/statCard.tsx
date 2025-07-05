@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, RotateCcw } from "lucide-react";
+import { Edit, Trash2, RotateCcw, EllipsisVertical } from "lucide-react";
 import { StatInterface } from "@/interfaces/Stat";
 import { EditStatDialog } from "./editStatDialog";
 import { DeleteConfirmationDialog } from "./deleteConfirmationDialog";
@@ -50,7 +50,7 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-6 w-6 ">
-                  <MoreHorizontal className="h-3 w-3" />
+                  <EllipsisVertical className="h-3 w-3" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -72,11 +72,13 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {stat.value}
-            {stat.unit && <span className="text-lg ml-1">{stat.unit}</span>}
+          <div className="flex items-baseline max-w-full overflow-hidden">
+            <span className="text-2xl font-bold truncate max-w-full mr-2">
+              {stat.hided ? <span className="text-muted-foreground">************</span> : stat.value}
+            </span>
+            {stat.unit && <span className="text-lg ml-1 whitespace-nowrap text-muted-foreground">{stat.unit}</span>}
           </div>
-          {stat.description && <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>}
+          {stat.description && <p className="text-xs text-muted-foreground mt-1 break-words">{stat.description}</p>}
         </CardContent>
       </Card>
 
