@@ -1,5 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import * as LucideIcons from "lucide-react";
 import { CategoryInterface } from "@/interfaces/Category";
 import { generateGradientColors, getColorVariables } from "@/utils/colors";
