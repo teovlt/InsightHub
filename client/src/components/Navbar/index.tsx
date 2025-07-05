@@ -145,7 +145,7 @@ export const Navbar = () => {
             </div>
             <Separator orientation="vertical" className="h-8" />
             <div className="flex items-center justify-between gap-4">
-              <LanguageChanger />
+              {/* <LanguageChanger /> */}
               <ThemeChanger />
             </div>
           </div>
@@ -210,7 +210,7 @@ export const Navbar = () => {
               </>
             )}
             <div className="flex items-center justify-center gap-4 ">
-              <LanguageChanger />
+              {/* <LanguageChanger /> */}
               <ThemeChanger />
             </div>
           </div>

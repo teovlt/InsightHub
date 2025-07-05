@@ -8,7 +8,7 @@ i18n.use(initReactI18next).init({
     en: { translation: en },
     fr: { translation: fr },
   },
-  lng: localStorage.getItem("i18nextLng") || "en",
+  lng: "en",
 });
 
 export const listOfLocales = ["en", "fr"];
