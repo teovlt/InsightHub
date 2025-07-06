@@ -31,6 +31,11 @@ const adminMenus = {
       url: "/admin/categories",
     },
     {
+      title: "Integrations",
+      icon: ChartBarStacked,
+      url: "/admin/integrations",
+    },
+    {
       title: "Settings",
       icon: Settings,
       url: "/admin/settings",
