@@ -1,0 +1,31 @@
+import express from "express";
+import { verifyToken } from "../middlewares/verifyToken";
+import { getIntegrations } from "../controllers/integrationController";
+
+export const integrationRouter = new express.Router();
+
+/**
+ * GET /api/integrations
+ * Liste toutes les intégrations (pour admin ou public, tu peux filtrer)
+ */
+integrationRouter.get("/", verifyToken({ role: "admin" }), getIntegrations);
+
+/**
+ * GET /api/integrations/enabled
+ * Liste uniquement les intégrations activées
+ */
+
+/**
+ * POST /api/integrations
+ * Crée une nouvelle intégration
+ */
+
+/**
+ * PUT /api/integrations/:key
+ * Met à jour une intégration existante
+ */
+
+/**
+ * DELETE /api/integrations/:key
+ * Supprime une intégration (optionnel, dépend de ton besoin)
+ */
