@@ -27,10 +27,6 @@ const IntegrationSchema = new Schema(
     category: {
       type: String,
     },
-    isEnabled: {
-      type: Boolean,
-      default: true,
-    },
     status: {
       type: String,
       enum: ["available", "disabled", "deprecated"],
