@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { getIntegrations } from "../controllers/integrationController.js";
+import { createIntegration, getIntegrations } from "../controllers/integrationController.js";
 
 export const integrationRouter = new express.Router();
 
@@ -19,6 +19,7 @@ integrationRouter.get("/", verifyToken({ role: "admin" }), getIntegrations);
  * POST /api/integrations
  * Crée une nouvelle intégration
  */
+integrationRouter.post("/", verifyToken({ role: "admin" }), createIntegration);
 
 /**
  * PUT /api/integrations/:key

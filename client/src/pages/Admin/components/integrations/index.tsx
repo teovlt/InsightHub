@@ -1,10 +1,11 @@
 import { axiosConfig } from "@/config/axiosConfig";
 import { useState } from "react";
 import { toast } from "sonner";
-// import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { DataTable } from "@/components/customs/dataTable";
 import { getColumns } from "./columns";
 import { IntegrationInterface } from "@/interfaces/Integration";
+import { IntegrationForm } from "./integrationForm";
 
 export const Integrations = () => {
   const [integrations, setIntegrations] = useState<IntegrationInterface[]>([]);
@@ -30,10 +31,10 @@ export const Integrations = () => {
   function callback(action: string, data: any) {
     setSelectedIntegration(undefined);
     switch (action) {
-      //   case "create":
-      //     setAction("create");
-      //     setOpenDialog(true);
-      //     break;
+      case "create":
+        setAction("create");
+        setOpenDialog(true);
+        break;
       //   case "update":
       //     setSelectedUser(integrations.find((user) => user._id === data));
       //     setAction("update");
@@ -60,20 +61,19 @@ export const Integrations = () => {
           callback={callback}
           searchElement="name"
           searchPlaceholder="Filter by name"
-          //   actions={["create"]}
+          actions={["create"]}
         />
       </div>
-      {/* {openDialog && (
+      {openDialog && (
         <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
           <DialogContent className="sm:max-w-[625px]">
             <DialogHeader>
-              <DialogTitle>{action.charAt(0).toUpperCase() + action.slice(1)} a user</DialogTitle>
-              {action === "create" && <DialogDescription>Here you can give life to a new user</DialogDescription>}
+              <DialogTitle>{action.charAt(0).toUpperCase() + action.slice(1)} an integration</DialogTitle>
             </DialogHeader>
-            <UserForm dialog={setOpenDialog} refresh={fetchintegrations} action={action} user={selectedUser} />
+            <IntegrationForm dialog={setOpenDialog} refresh={fetchIntegrations} action={action} integration={selectedIntegration} />
           </DialogContent>
         </Dialog>
-      )} */}
+      )}
     </div>
   );
 };
