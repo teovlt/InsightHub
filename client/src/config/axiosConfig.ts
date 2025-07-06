@@ -10,7 +10,7 @@ export const axiosConfig = axios.create({
 
 axiosConfig.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessTokenInsightHub");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
