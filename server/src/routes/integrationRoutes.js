@@ -1,6 +1,6 @@
 import express from "express";
-import { verifyToken } from "../middlewares/verifyToken";
-import { getIntegrations } from "../controllers/integrationController";
+import { verifyToken } from "../middlewares/verifyToken.js";
+import { getIntegrations } from "../controllers/integrationController.js";
 
 export const integrationRouter = new express.Router();
 

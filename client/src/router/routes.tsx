@@ -14,6 +14,7 @@ import { Config } from "@/pages/Admin/components/config";
 import { RegisterGoogleForm } from "@/pages/Authentication/registerGoogleForm";
 import { Categories } from "@/pages/Admin/components/categories";
 import { Statistics } from "@/pages/Statistics";
+import { Integrations } from "@/pages/Admin/components/integrations";
 
 export const Router = () => {
   return (
@@ -58,6 +59,7 @@ export const Router = () => {
           <Route path="users" element={<Users />} />
           <Route path="logs" element={<Logs />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="integrations" element={<Integrations />} />
           <Route path="settings" element={<Config />} />
         </Route>
       </Route>
