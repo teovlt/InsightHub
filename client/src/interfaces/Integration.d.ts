@@ -2,13 +2,12 @@ export interface IntegrationInterface {
   _id: string;
   key: string;
   name: string;
-  description?: string;
-  icon?: string;
-  color?: string;
-  category?: string;
-  isEnabled: boolean;
+  description: string;
+  icon: string;
+  color: string;
+  category: string;
   status: "available" | "disabled" | "deprecated";
-  availableStats: IntegrationStat[];
+  availableStats?: IntegrationStat[];
   config?: {
     authUrl?: string;
     docsUrl?: string;
