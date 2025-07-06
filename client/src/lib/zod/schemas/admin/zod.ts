@@ -70,3 +70,36 @@ export const updateCategorySchema = z.object({
   icon: z.string().min(1, { message: "Icon is required" }),
   color: z.string().min(1, { message: "Color is required" }),
 });
+
+export const createIntegrationSchema = z.object({
+  key: z.string().toLowerCase().min(1, { message: "Key is required" }),
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters long" })
+    .max(100, { message: "Name must be at most 100 characters long" }),
+  description: z.string(),
+  icon: z.string(),
+  color: z.string(),
+  category: z.string(),
+  status: z.enum(["available", "disabled", "deprecated"]),
+  availableStats: z
+    .array(
+      z.object({
+        id: z.string().min(1, { message: "ID is required" }),
+        name: z.string().min(1, { message: "Name is required" }),
+        description: z.string().optional(),
+        unit: z.string().optional(),
+        category: z.string().optional(),
+        updateFrequency: z.enum(["real-time", "hourly", "daily", "weekly"]),
+        dataType: z.enum(["number", "string", "boolean"]),
+        icon: z.string().optional(),
+      }),
+    )
+    .optional(),
+  config: z
+    .object({
+      authUrl: z.string(),
+      docsUrl: z.string(),
+    })
+    .optional(),
+});
