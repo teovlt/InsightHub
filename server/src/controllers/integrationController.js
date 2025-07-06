@@ -1,4 +1,4 @@
-import { Integration } from "../models/integrationModel";
+import { Integration } from "../models/integrationModel.js";
 
 export const getIntegrations = async (req, res) => {
   const size = parseInt(req.query.size);
