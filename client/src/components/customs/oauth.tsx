@@ -33,7 +33,7 @@ export function OAuth({ message }: OauthProps) {
 
       try {
         const res = await axiosConfig.post("/auth/login/google", userData);
-        localStorage.setItem("accessTokenInsightHub", response.data.accessToken);
+        localStorage.setItem("accessTokenInsightHub", res.data.accessToken);
         toast.success(t(res.data.message));
         setAuthUser(res.data.user);
         navigate("/");
