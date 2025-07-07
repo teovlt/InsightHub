@@ -172,7 +172,7 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
   if (action === "create") {
     return (
       <Form {...createForm}>
-        <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-6">
+        <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-6 overflow-y-auto max-h-[70vh] px-1">
           {/* --- GENERAL INFO --- */}
           <Separator className="by-6" />
           <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">1 - General Information</h2>
@@ -352,7 +352,7 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
   if (action === "update") {
     return (
       <Form {...updateForm}>
-        <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-8">
+        <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-6 overflow-y-auto max-h-[70vh] px-1">
           <Separator className="by-6" />
           <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">1 - General Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -530,7 +530,7 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
   if (action === "delete") {
     return (
       <Form {...deleteForm}>
-        <form onSubmit={deleteForm.handleSubmit(onDeleteSubmit)} className="space-y-8">
+        <form onSubmit={deleteForm.handleSubmit(onDeleteSubmit)} className="space-y-6 overflow-y-auto max-h-[70vh] px-1">
           <FormField
             control={deleteForm.control}
             name="confirmDelete"
