@@ -40,10 +40,10 @@ export const Integrations = () => {
       //     setAction("update");
       //     setOpenDialog(true);
       //     break;
-      //   case "delete":
-      //     setSelectedUser(integrations.find((user) => user._id === data));
-      //     setAction("delete");
-      //     setOpenDialog(true);
+      case "delete":
+        setSelectedIntegration(integrations.find((int) => int._id === data));
+        setAction("delete");
+        setOpenDialog(true);
       default:
         break;
     }

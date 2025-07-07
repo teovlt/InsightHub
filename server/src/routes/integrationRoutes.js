@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { createIntegration, getIntegrations } from "../controllers/integrationController.js";
+import { createIntegration, deleteIntegration, getIntegrations } from "../controllers/integrationController.js";
 
 export const integrationRouter = new express.Router();
 
@@ -28,5 +28,6 @@ integrationRouter.post("/", verifyToken({ role: "admin" }), createIntegration);
 
 /**
  * DELETE /api/integrations/:key
- * Supprime une intégration (optionnel, dépend de ton besoin)
+ * Supprime une intégration
  */
+integrationRouter.delete("/:id", verifyToken({ role: "admin" }), deleteIntegration);

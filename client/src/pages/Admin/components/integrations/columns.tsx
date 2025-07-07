@@ -84,6 +84,12 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
             >
               <Copy className="w-4 h-4" /> Copy integration ID
             </DropdownMenuItem>
+            <DropdownMenuItem
+              className="flex gap-4 text-destructive hover:text-destructive!"
+              onClick={() => callback("delete", integration._id)}
+            >
+              <LucideIcons.Trash className="w-4 h-4" /> Delete this integration
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

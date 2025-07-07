@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { IntegrationInterface } from "@/interfaces/Integration";
-import { createIntegrationSchema } from "@/lib/zod/schemas/admin/zod";
+import { createIntegrationSchema, deleteInfoSchema } from "@/lib/zod/schemas/admin/zod";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -126,12 +126,12 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
   //   },
   // });
 
-  // const deleteForm = useForm<z.infer<typeof deleteInfoSchema>>({
-  //   resolver: zodResolver(deleteInfoSchema),
-  //   defaultValues: {
-  //     confirmDelete: "",
-  //   },
-  // });
+  const deleteForm = useForm<z.infer<typeof deleteInfoSchema>>({
+    resolver: zodResolver(deleteInfoSchema),
+    defaultValues: {
+      confirmDelete: "",
+    },
+  });
 
   const onCreateSubmit: SubmitHandler<z.infer<typeof createIntegrationSchema>> = async (values) => {
     try {
@@ -163,23 +163,23 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
   //   }
   // };
 
-  // const onDeleteSubmit: SubmitHandler<z.infer<typeof deleteInfoSchema>> = async (values) => {
-  //   if (values.confirmDelete.toLowerCase() === "delete") {
-  //     try {
-  //       setLoading(true);
-  //       const response = await axiosConfig.delete(`/users/${user?._id}`);
-  //       toast.success(response.data.message);
-  //       dialog(false);
-  //       refresh();
-  //     } catch (error: any) {
-  //       toast.error(error.response.data.error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   } else {
-  //     toast.error("Confirmation text is incorrect");
-  //   }
-  // };
+  const onDeleteSubmit: SubmitHandler<z.infer<typeof deleteInfoSchema>> = async (values) => {
+    if (values.confirmDelete.toLowerCase() === "delete") {
+      try {
+        setLoading(true);
+        const response = await axiosConfig.delete(`/integrations/${integration?._id}`);
+        toast.success(response.data.message);
+        dialog(false);
+        refresh();
+      } catch (error: any) {
+        toast.error(error.response.data.error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      toast.error("Confirmation text is incorrect");
+    }
+  };
 
   if (action === "create") {
     return (
@@ -410,30 +410,30 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
   //   );
   // }
 
-  // if (action === "delete") {
-  //   return (
-  //     <Form {...deleteForm}>
-  //       <form onSubmit={deleteForm.handleSubmit(onDeleteSubmit)} className="space-y-8">
-  //         <FormField
-  //           control={deleteForm.control}
-  //           name="confirmDelete"
-  //           render={({ field }) => (
-  //             <FormItem>
-  //               <FormLabel>Type "DELETE" to confirm</FormLabel>
-  //               <FormControl>
-  //                 <Input placeholder="DELETE" {...field} />
-  //               </FormControl>
-  //               <FormMessage />
-  //             </FormItem>
-  //           )}
-  //         />
-  //         <Button type="submit" disabled={loading}>
-  //           Delete
-  //         </Button>
-  //       </form>
-  //     </Form>
-  //   );
-  // }
+  if (action === "delete") {
+    return (
+      <Form {...deleteForm}>
+        <form onSubmit={deleteForm.handleSubmit(onDeleteSubmit)} className="space-y-8">
+          <FormField
+            control={deleteForm.control}
+            name="confirmDelete"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type "DELETE" to confirm</FormLabel>
+                <FormControl>
+                  <Input placeholder="DELETE" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={loading}>
+            Delete
+          </Button>
+        </form>
+      </Form>
+    );
+  }
 
   return (
     <>
