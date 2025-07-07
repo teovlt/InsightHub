@@ -15,6 +15,7 @@ import { RegisterGoogleForm } from "@/pages/Authentication/registerGoogleForm";
 import { Categories } from "@/pages/Admin/components/categories";
 import { Statistics } from "@/pages/Statistics";
 import { Integrations } from "@/pages/Admin/components/integrations";
+import { IntegrationsPage } from "@/pages/Integrations";
 
 export const Router = () => {
   return (
@@ -86,6 +87,14 @@ export const Router = () => {
           element={
             <ProtectedRoute authRequired={true}>
               <Statistics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/integrations"
+          element={
+            <ProtectedRoute authRequired={true}>
+              <IntegrationsPage />
             </ProtectedRoute>
           }
         />

@@ -3,7 +3,7 @@ import { ThemeChanger } from "./themeChanger";
 import { LanguageChanger } from "./languageChanger";
 import { useTranslation } from "react-i18next";
 import { Separator } from "../ui/separator";
-import { ChartBar, ChartBarStacked, House, LogIn, LogOut, Menu, Presentation, User, Wrench, WrenchIcon, X } from "lucide-react";
+import { ChartBar, ChartBarStacked, House, Link2, LogIn, LogOut, Menu, Presentation, User, Wrench, WrenchIcon, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -77,8 +77,11 @@ export const Navbar = () => {
                   <Button onClick={() => navigate("/statistics")} variant="link">
                     {t("navbar.statistics")}
                   </Button>
+                  <Button onClick={() => navigate("/integrations")} variant="link">
+                    Integrations
+                  </Button>
                   <Button onClick={() => navigate("/account")} variant="link">
-                    {t("navbar.account")}
+                    {t("navbar.profile")}
                   </Button>
                   {authUser?.role === "admin" && (
                     <Button onClick={() => navigate("/admin/dashboard")} variant="link">
@@ -105,6 +108,15 @@ export const Navbar = () => {
                           {t("navbar.statistics")}
                           <DropdownMenuShortcut>
                             <ChartBarStacked className="w-4 h-4" />
+                          </DropdownMenuShortcut>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="flex items-center gap-2 hover:cursor-pointer"
+                          onClick={() => navigate("/integrations")}
+                        >
+                          Integrations
+                          <DropdownMenuShortcut>
+                            <Link2 className="w-4 h-4" />
                           </DropdownMenuShortcut>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/account")}>
@@ -169,20 +181,33 @@ export const Navbar = () => {
             <X onClick={() => setIsOpen(!isOpen)} className="m-4 cursor-pointer" />
           </div>
           <div className="flex flex-col gap-4 p-8 pt-2">
-            <Button onClick={() => closeDialogAndNavigate("/")} variant="link" className="flex items-center justify-start gap-4">
-              <House className="w-4 h-4" />
-              {t("navbar.home")}
-            </Button>
-            <Button onClick={() => closeDialogAndNavigate("/statistics")} variant="link" className="flex items-center justify-start gap-4">
-              <ChartBar className="w-4 h-4" />
-              {t("navbar.statistics")}
-            </Button>
-
             {authUser ? (
-              <Button onClick={() => closeDialogAndNavigate("/account")} variant="link" className="flex items-center justify-start gap-4">
-                <User className="w-4 h-4" />
-                {t("navbar.account")}
-              </Button>
+              <>
+                <Button onClick={() => closeDialogAndNavigate("/")} variant="link" className="flex items-center justify-start gap-4">
+                  <House className="w-4 h-4" />
+                  {t("navbar.home")}
+                </Button>
+                <Button
+                  onClick={() => closeDialogAndNavigate("/statistics")}
+                  variant="link"
+                  className="flex items-center justify-start gap-4"
+                >
+                  <ChartBar className="w-4 h-4" />
+                  {t("navbar.statistics")}
+                </Button>
+                <Button
+                  onClick={() => closeDialogAndNavigate("/integrations")}
+                  variant="link"
+                  className="flex items-center justify-start gap-4"
+                >
+                  <Link2 className="w-4 h-4" />
+                  Integrations
+                </Button>
+                <Button onClick={() => closeDialogAndNavigate("/account")} variant="link" className="flex items-center justify-start gap-4">
+                  <User className="w-4 h-4" />
+                  {t("navbar.account")}
+                </Button>
+              </>
             ) : (
               <Button onClick={() => closeDialogAndNavigate("/login")} variant="link" className="flex items-center justify-start gap-4">
                 <LogIn className="w-4 h-4" />
