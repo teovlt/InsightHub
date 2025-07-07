@@ -72,7 +72,6 @@ export const updateCategorySchema = z.object({
 });
 
 export const createIntegrationSchema = z.object({
-  key: z.string().toLowerCase().min(1, { message: "Key is required" }),
   name: z
     .string()
     .min(2, { message: "Name must be at least 2 characters long" })

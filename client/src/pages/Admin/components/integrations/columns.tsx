@@ -26,12 +26,6 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
       );
     },
   },
-
-  {
-    accessorKey: "key",
-    header: "Key",
-    cell: ({ row }) => <code className="text-xs bg-muted px-2 py-0.5 rounded">{row.getValue("key")}</code>,
-  },
   {
     accessorKey: "color",
     header: "Color",

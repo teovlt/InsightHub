@@ -21,7 +21,6 @@ export const getIntegrations = async (req, res) => {
 export const createIntegration = async (req, res) => {
   try {
     const {
-      key,
       name,
       description = "",
       icon = "",
@@ -32,14 +31,7 @@ export const createIntegration = async (req, res) => {
       config = {},
     } = req.body;
 
-    // Vérifier clé unique
-    const exists = await Integration.findOne({ key });
-    if (exists) {
-      return res.status(400).json({ error: "Integration key already exists." });
-    }
-
     const newIntegration = new Integration({
-      key,
       name,
       description,
       icon,
@@ -57,8 +49,7 @@ export const createIntegration = async (req, res) => {
       integration: newIntegration,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error: " + err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -73,7 +64,6 @@ export const deleteIntegration = async (req, res) => {
 
     res.status(200).json({ message: "Integration deleted successfully." });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };

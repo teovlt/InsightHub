@@ -4,12 +4,6 @@ const { Schema, model } = mongoose;
 
 const IntegrationSchema = new Schema(
   {
-    key: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
     name: {
       type: String,
       required: true,

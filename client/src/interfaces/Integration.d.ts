@@ -1,6 +1,5 @@
 export interface IntegrationInterface {
   _id: string;
-  key: string;
   name: string;
   description: string;
   icon: string;

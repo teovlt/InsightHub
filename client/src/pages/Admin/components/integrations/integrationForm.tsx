@@ -25,34 +25,18 @@ import {
   Calendar,
   Cloud,
   Code,
-  Database,
   Settings,
   User,
   Users,
   Lock,
-  Search,
   Star,
   Heart,
   ShoppingCart,
   CreditCard,
-  Bell,
-  Globe,
   MapPin,
-  Edit,
-  Check,
-  X,
-  RefreshCcw,
-  Download,
-  Upload,
-  Camera,
   Video,
   Music,
   Bookmark,
-  Archive,
-  Flag,
-  Wifi,
-  BatteryCharging,
-  AlertTriangle,
   Footprints,
 } from "lucide-react";
 import ColorPicker from "@/components/customs/colorPicker";
@@ -99,7 +83,6 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
   const createForm = useForm<z.infer<typeof createIntegrationSchema>>({
     resolver: zodResolver(createIntegrationSchema),
     defaultValues: {
-      key: "",
       name: "",
       description: "",
       icon: "",
@@ -205,63 +188,39 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
 
             <FormField
               control={createForm.control}
-              name="key"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Key</FormLabel>
-                  <FormControl>
-                    <Input placeholder="github | google | slack ..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={createForm.control}
               name="icon"
               render={({ field }) => {
                 const selectedIcon = icons.find((i) => i.name === field.value);
 
                 return (
-                  <FormField
-                    control={createForm.control}
-                    name="icon"
-                    render={({ field }) => {
-                      const selectedIcon = icons.find((i) => i.name === field.value);
-
-                      return (
-                        <FormItem>
-                          <FormLabel>Choose an Icon</FormLabel>
-                          <FormControl>
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
-                              <SelectTrigger className="w-full flex items-center justify-between">
-                                {selectedIcon ? (
-                                  <div className="flex items-center gap-2">
-                                    <selectedIcon.Icon className="w-4 h-4 text-gray-600" />
-                                    <span className="text-sm text-gray-800">{selectedIcon.name}</span>
-                                  </div>
-                                ) : (
-                                  <SelectValue placeholder="Select an icon" />
-                                )}
-                              </SelectTrigger>
-                              <SelectContent>
-                                {icons.map(({ name, Icon }) => (
-                                  <SelectItem key={name} value={name} className="flex items-center gap-2">
-                                    <div className="flex items-center gap-2">
-                                      <Icon className="w-4 h-4 text-gray-600" />
-                                      <span className="text-sm">{name}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
+                  <FormItem>
+                    <FormLabel>Choose an Icon</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <SelectTrigger className="w-full flex items-center justify-between">
+                          {selectedIcon ? (
+                            <div className="flex items-center gap-2">
+                              <selectedIcon.Icon className="w-4 h-4 text-gray-600" />
+                              <span className="text-sm text-gray-800">{selectedIcon.name}</span>
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Select an icon" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {icons.map(({ name, Icon }) => (
+                            <SelectItem key={name} value={name} className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
+                                <Icon className="w-4 h-4 text-gray-600" />
+                                <span className="text-sm">{name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 );
               }}
             />
