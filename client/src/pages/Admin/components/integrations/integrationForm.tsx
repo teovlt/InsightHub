@@ -53,6 +53,7 @@ import {
   Wifi,
   BatteryCharging,
   AlertTriangle,
+  Footprints,
 } from "lucide-react";
 import ColorPicker from "@/components/customs/colorPicker";
 
@@ -70,34 +71,19 @@ const icons = [
   { name: "Calendar", Icon: Calendar },
   { name: "Cloud", Icon: Cloud },
   { name: "Code", Icon: Code },
-  { name: "Database", Icon: Database },
   { name: "Settings", Icon: Settings },
   { name: "User", Icon: User },
   { name: "Users", Icon: Users },
   { name: "Lock", Icon: Lock },
-  { name: "Search", Icon: Search },
   { name: "Star", Icon: Star },
   { name: "Heart", Icon: Heart },
   { name: "ShoppingCart", Icon: ShoppingCart },
   { name: "CreditCard", Icon: CreditCard },
-  { name: "Bell", Icon: Bell },
-  { name: "Globe", Icon: Globe },
   { name: "MapPin", Icon: MapPin },
-  { name: "Edit", Icon: Edit },
-  { name: "Check", Icon: Check },
-  { name: "X", Icon: X },
-  { name: "Refresh", Icon: RefreshCcw },
-  { name: "Download", Icon: Download },
-  { name: "Upload", Icon: Upload },
-  { name: "Camera", Icon: Camera },
   { name: "Video", Icon: Video },
   { name: "Music", Icon: Music },
   { name: "Bookmark", Icon: Bookmark },
-  { name: "Archive", Icon: Archive },
-  { name: "Flag", Icon: Flag },
-  { name: "Wifi", Icon: Wifi },
-  { name: "BatteryCharging", Icon: BatteryCharging },
-  { name: "AlertTriangle", Icon: AlertTriangle },
+  { name: "Footprints", Icon: Footprints },
 ];
 
 interface IntegrationFormProps {
