@@ -9,7 +9,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ColorInput } from "@/components/customs/colorInput";
+import ColorPicker from "@/components/customs/colorPicker";
 
 const configurationFormSchema = z.object({
   APP_NAME: z.string().trim(),
@@ -83,7 +83,7 @@ export const Config = () => {
                   <FormItem>
                     <FormLabel>Couleur d'accentutation</FormLabel>
                     <FormControl>
-                      <ColorInput {...field} placeholder="Couleur d'accentuation" />
+                      <ColorPicker {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

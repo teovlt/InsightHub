@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { ColorInput } from "@/components/customs/colorInput";
 import { IntegrationInterface } from "@/interfaces/Integration";
 import { createIntegrationSchema } from "@/lib/zod/schemas/admin/zod";
 import { Input } from "@/components/ui/input";
@@ -55,6 +54,7 @@ import {
   BatteryCharging,
   AlertTriangle,
 } from "lucide-react";
+import ColorPicker from "@/components/customs/colorPicker";
 
 const icons = [
   { name: "Github", Icon: Github },
@@ -287,7 +287,7 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
                 <FormItem>
                   <FormLabel>Color</FormLabel>
                   <FormControl>
-                    <ColorInput value={field.value} onChange={field.onChange} />
+                    <ColorPicker value={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

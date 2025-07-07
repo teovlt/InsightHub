@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { createCategorySchema, deleteInfoSchema, updateCategorySchema } from "@/lib/zod/schemas/admin/zod";
 import { CategoryInterface } from "@/interfaces/Category";
-import { ColorInput } from "@/components/customs/colorInput";
+import ColorPicker from "@/components/customs/colorPicker";
 
 interface CategoryFormProps {
   dialog: (isOpen: boolean) => void;
@@ -175,7 +175,7 @@ export const CategoryForm = ({ dialog, refresh, action, category }: CategoryForm
               <FormItem>
                 <FormLabel>Color</FormLabel>
                 <FormControl>
-                  <ColorInput {...field} />
+                  <ColorPicker {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -253,7 +253,7 @@ export const CategoryForm = ({ dialog, refresh, action, category }: CategoryForm
               <FormItem>
                 <FormLabel>Color</FormLabel>
                 <FormControl>
-                  <ColorInput {...field} />
+                  <ColorPicker {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
