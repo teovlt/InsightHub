@@ -7,7 +7,7 @@ admin.initializeApp({
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
   }),
-  storageBucket: "insighthub-a285a.firebasestorage.app",
+  storageBucket: process.env.FIREBASE_BUCKET_NAME,
 });
 
 export const bucket = getStorage().bucket();
