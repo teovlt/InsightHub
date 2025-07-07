@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { createIntegration, deleteIntegration, getIntegrations } from "../controllers/integrationController.js";
+import { createIntegration, deleteIntegration, getIntegrations, updateIntegration } from "../controllers/integrationController.js";
 
 export const integrationRouter = new express.Router();
 
@@ -25,6 +25,7 @@ integrationRouter.post("/", verifyToken({ role: "admin" }), createIntegration);
  * PUT /api/integrations/:key
  * Met à jour une intégration existante
  */
+integrationRouter.put("/:id", verifyToken({ role: "admin" }), updateIntegration);
 
 /**
  * DELETE /api/integrations/:key

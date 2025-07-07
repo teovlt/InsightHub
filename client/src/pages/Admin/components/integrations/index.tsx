@@ -35,11 +35,11 @@ export const Integrations = () => {
         setAction("create");
         setOpenDialog(true);
         break;
-      //   case "update":
-      //     setSelectedUser(integrations.find((user) => user._id === data));
-      //     setAction("update");
-      //     setOpenDialog(true);
-      //     break;
+      case "update":
+        setSelectedIntegration(integrations.find((int) => int._id === data));
+        setAction("update");
+        setOpenDialog(true);
+        break;
       case "delete":
         setSelectedIntegration(integrations.find((int) => int._id === data));
         setAction("delete");

@@ -53,6 +53,37 @@ export const createIntegration = async (req, res) => {
   }
 };
 
+export const updateIntegration = async (req, res) => {
+  const { id } = req.params;
+  const { name, description, icon, color, category, status, availableStats, config } = req.body;
+
+  try {
+    const integration = await Integration.findByIdAndUpdate(
+      id,
+      {
+        name,
+        description,
+        icon,
+        color,
+        category,
+        status,
+        availableStats,
+        config,
+      },
+      { new: true, runValidators: true },
+    );
+    if (!integration) {
+      return res.status(404).json({ error: "Integration not found." });
+    }
+    res.status(200).json({
+      message: "Integration updated successfully.",
+      integration,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const deleteIntegration = async (req, res) => {
   const { id } = req.params;
 

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { IntegrationInterface } from "@/interfaces/Integration";
-import { createIntegrationSchema, deleteInfoSchema } from "@/lib/zod/schemas/admin/zod";
+import { integrationSchema, deleteInfoSchema } from "@/lib/zod/schemas/admin/zod";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -80,8 +80,8 @@ interface IntegrationFormProps {
 export const IntegrationForm = ({ dialog, refresh, action, integration }: IntegrationFormProps) => {
   const [loading, setLoading] = useState(false);
 
-  const createForm = useForm<z.infer<typeof createIntegrationSchema>>({
-    resolver: zodResolver(createIntegrationSchema),
+  const createForm = useForm<z.infer<typeof integrationSchema>>({
+    resolver: zodResolver(integrationSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -97,17 +97,22 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
     },
   });
 
-  // const updateForm = useForm<z.infer<typeof updatePlayerSchema>>({
-  //   resolver: zodResolver(updatePlayerSchema),
-  //   defaultValues: {
-  //     name: user?.name,
-  //     forename: user?.forename,
-  //     username: user?.username,
-  //     email: user?.email,
-  //     role: user?.role,
-  //     password: user?.password ?? "",
-  //   },
-  // });
+  const updateForm = useForm<z.infer<typeof integrationSchema>>({
+    resolver: zodResolver(integrationSchema),
+    defaultValues: {
+      name: integration?.name || "",
+      description: integration?.description || "",
+      icon: integration?.icon || "",
+      color: integration?.color || "",
+      category: integration?.category || "",
+      status: integration?.status || "available",
+      availableStats: integration?.availableStats || [],
+      config: {
+        authUrl: integration?.config?.authUrl || "",
+        docsUrl: integration?.config?.docsUrl || "",
+      },
+    },
+  });
 
   const deleteForm = useForm<z.infer<typeof deleteInfoSchema>>({
     resolver: zodResolver(deleteInfoSchema),
@@ -116,7 +121,7 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
     },
   });
 
-  const onCreateSubmit: SubmitHandler<z.infer<typeof createIntegrationSchema>> = async (values) => {
+  const onCreateSubmit: SubmitHandler<z.infer<typeof integrationSchema>> = async (values) => {
     try {
       setLoading(true);
       const response = await axiosConfig.post("/integrations", values);
@@ -131,20 +136,20 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
     }
   };
 
-  // const onUpdateSubmit: SubmitHandler<z.infer<typeof updatePlayerSchema>> = async (values) => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await axiosConfig.put(`/users/${user?._id}`, values);
-  //     toast.success(response.data.message);
-  //     dialog(false);
-  //     refresh();
-  //     updateForm.reset();
-  //   } catch (error: any) {
-  //     toast.error(error.response.data.error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const onUpdateSubmit: SubmitHandler<z.infer<typeof integrationSchema>> = async (values) => {
+    try {
+      setLoading(true);
+      const response = await axiosConfig.put(`/integrations/${integration?._id}`, values);
+      toast.success(response.data.message);
+      dialog(false);
+      refresh();
+      updateForm.reset();
+    } catch (error: any) {
+      toast.error(error.response.data.error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onDeleteSubmit: SubmitHandler<z.infer<typeof deleteInfoSchema>> = async (values) => {
     if (values.confirmDelete.toLowerCase() === "delete") {
@@ -344,30 +349,183 @@ export const IntegrationForm = ({ dialog, refresh, action, integration }: Integr
     );
   }
 
-  // if (action === "update") {
-  //   return (
-  //     <Form {...updateForm}>
-  //       <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-8">
-  //         <FormField
-  //           control={updateForm.control}
-  //           name="name"
-  //           render={({ field }) => (
-  //             <FormItem className="flex-1">
-  //               <FormLabel>Name</FormLabel>
-  //               <FormControl>
-  //                 <Input placeholder="Google | Github ..." {...field} className="w-full" />
-  //               </FormControl>
-  //               <FormMessage />
-  //             </FormItem>
-  //           )}
-  //         />
-  //         <Button type="submit" disabled={loading}>
-  //           Update
-  //         </Button>
-  //       </form>
-  //     </Form>
-  //   );
-  // }
+  if (action === "update") {
+    return (
+      <Form {...updateForm}>
+        <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-8">
+          <Separator className="by-6" />
+          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">1 - General Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={updateForm.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Github, Google..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={updateForm.control}
+              name="icon"
+              render={({ field }) => {
+                const selectedIcon = icons.find((i) => i.name === field.value);
+
+                return (
+                  <FormItem>
+                    <FormLabel>Choose an Icon</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <SelectTrigger className="w-full flex items-center justify-between">
+                          {selectedIcon ? (
+                            <div className="flex items-center gap-2">
+                              <selectedIcon.Icon className="w-4 h-4 text-gray-600" />
+                              <span className="text-sm text-gray-800">{selectedIcon.name}</span>
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Select an icon" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {icons.map(({ name, Icon }) => (
+                            <SelectItem key={name} value={name} className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
+                                <Icon className="w-4 h-4 text-gray-600" />
+                                <span className="text-sm">{name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+
+            <FormField
+              control={updateForm.control}
+              name="color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Color</FormLabel>
+                  <FormControl>
+                    <ColorPicker value={field.value} onChange={field.onChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={updateForm.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Input placeholder="DevOps | Marketing | Social ..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={updateForm.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="available">Available</SelectItem>
+                        <SelectItem value="disabled">Disabled</SelectItem>
+                        <SelectItem value="deprecated">Deprecated</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={updateForm.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <textarea
+                      {...field}
+                      placeholder="Describe what this integration does..."
+                      className="w-full border rounded-md p-2"
+                      rows={4}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Separator general / config */}
+          <Separator className="my-6" />
+          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">2 - Configuration</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={updateForm.control}
+              name="config.authUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Auth URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://auth.url" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={updateForm.control}
+              name="config.docsUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Docs URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://docs.url" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Separator config / availableStats */}
+          <Separator className="my-6" />
+          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">3 - Available stats</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <span className="text-destructive"> Not available for the moment</span>
+          </div>
+          <Button type="submit" disabled={loading}>
+            Update
+          </Button>
+        </form>
+      </Form>
+    );
+  }
 
   if (action === "delete") {
     return (

@@ -71,7 +71,7 @@ export const updateCategorySchema = z.object({
   color: z.string().min(1, { message: "Color is required" }),
 });
 
-export const createIntegrationSchema = z.object({
+export const integrationSchema = z.object({
   name: z
     .string()
     .min(2, { message: "Name must be at least 2 characters long" })
