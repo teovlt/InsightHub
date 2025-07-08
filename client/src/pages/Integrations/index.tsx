@@ -290,9 +290,11 @@ export function IntegrationsPage() {
         </div>
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full md:w-auto">
           <TabsList className="flex flex-wrap">
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger className="cursor-pointer" value="all">
+              All
+            </TabsTrigger>
             {availableCategories.map((category) => (
-              <TabsTrigger key={category} value={category}>
+              <TabsTrigger className="cursor-pointer" key={category} value={category}>
                 {category}
               </TabsTrigger>
             ))}
@@ -322,13 +324,13 @@ export function IntegrationsPage() {
       </div>
 
       {/* Help Section */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-700">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-start gap-4">
-            <AlertTriangle className="h-6 w-6 text-blue-600" />
+            <AlertTriangle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             <div>
-              <h4 className="font-medium text-blue-900">How Integrations Work</h4>
-              <p className="text-sm text-blue-800 mt-1">
+              <h4 className="font-medium text-blue-900 dark:text-blue-200">How Integrations Work</h4>
+              <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
                 When you connect an app, we'll automatically create relevant stats in your dashboard. You can configure which stats to track
                 and they'll update automatically based on each app's sync schedule.
               </p>
