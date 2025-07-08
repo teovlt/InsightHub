@@ -57,6 +57,7 @@ export const getGithubUser = async (req, res) => {
   const { code, state } = req.query;
 
   const expectedState = req.cookies.github_oauth_state;
+  console.log(expectedState);
   const userId = req.cookies.github_oauth_user;
   const integrationId = req.cookies.github_oauth_integration;
 
