@@ -35,7 +35,7 @@ export const redirectToGithub = (req, res) => {
       secure: secureToken,
     });
 
-    const redirectUri = `http://localhost:3000/api/integrations/auth/github/callback`;
+    const redirectUri = `${process.env.SELF_URL}/api/integrations/auth/github/callback`;
 
     const githubAuthUrl =
       `https://github.com/login/oauth/authorize` +
