@@ -18,6 +18,16 @@ export const getIntegrations = async (req, res) => {
   }
 };
 
+export const getEnabledIntegrations = async (req, res) => {
+  try {
+    const integrations = await Integration.find({ status: "available" }).sort({ createdAt: -1 });
+
+    res.status(200).json(integrations);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const createIntegration = async (req, res) => {
   try {
     const {

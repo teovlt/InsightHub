@@ -1,6 +1,12 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
-import { createIntegration, deleteIntegration, getIntegrations, updateIntegration } from "../controllers/integrationController.js";
+import {
+  createIntegration,
+  deleteIntegration,
+  getEnabledIntegrations,
+  getIntegrations,
+  updateIntegration,
+} from "../controllers/integrationController.js";
 
 export const integrationRouter = new express.Router();
 
@@ -14,6 +20,7 @@ integrationRouter.get("/", verifyToken({ role: "admin" }), getIntegrations);
  * GET /api/integrations/enabled
  * Liste uniquement les intégrations activées
  */
+integrationRouter.get("/enabled", verifyToken({ role: "admin" }), getEnabledIntegrations);
 
 /**
  * POST /api/integrations
