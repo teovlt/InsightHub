@@ -13,10 +13,13 @@ export interface IntegrationInterface {
   };
   createdAt: string;
   updatedAt: string;
+
+  // Nouveau champ ajouté pour savoir si l'utilisateur est connecté à cette intégration
+  isConnected?: boolean;
 }
 
 export interface IntegrationStat {
-  id: string;
+  _id: string;
   name: string;
   description?: string;
   unit?: string;

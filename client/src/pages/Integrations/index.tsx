@@ -130,7 +130,6 @@ export function IntegrationsPage() {
         setIntegrations(
           response.data.map((integration: IntegrationInterface) => ({
             ...integration,
-            // isConnected: false,
             // status: "available" as const, // Default status
           })),
         );
@@ -228,8 +227,7 @@ export function IntegrationsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  // const connectedCount = integrations.filter((i) => i.isConnected).length;
-  const connectedCount = 0;
+  const connectedCount = integrations.filter((i) => i.isConnected).length;
   const availableCategories = [...new Set(integrations.map((i: IntegrationInterface) => i.category))];
 
   return (
@@ -310,7 +308,21 @@ export function IntegrationsPage() {
             <h3 className="text-xl font-semibold">Connected Apps</h3>
             <Badge variant="secondary">{connectedCount}</Badge>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">{/* Cartes des intégrations connectées */}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Liste des intégrations connectées */}
+            {integrations
+              .filter((i) => i.isConnected)
+              .map((integration) => (
+                <IntegrationCard
+                  key={integration._id}
+                  integration={integration}
+                  onConnect={handleConnect}
+                  onDisconnect={handleDisconnect}
+                  onToggleStat={handleToggleStat}
+                  onSync={handleSync}
+                />
+              ))}
+          </div>
         </div>
       )}
 
@@ -319,8 +331,23 @@ export function IntegrationsPage() {
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-muted-foreground" />
           <h3 className="text-xl font-semibold">Available Integrations</h3>
+          <Badge variant="outline">{filteredIntegrations.filter((i) => !i.isConnected).length}</Badge>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">{/* Cartes des intégrations dispo */}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Liste des intégrations disponibles non connectées */}
+          {filteredIntegrations
+            .filter((i) => !i.isConnected)
+            .map((integration) => (
+              <IntegrationCard
+                key={integration._id}
+                integration={integration}
+                onConnect={handleConnect}
+                onDisconnect={handleDisconnect}
+                onToggleStat={handleToggleStat}
+                onSync={handleSync}
+              />
+            ))}
+        </div>
       </div>
 
       {/* Help Section */}
