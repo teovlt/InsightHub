@@ -65,7 +65,7 @@ export const getGithubUser = async (req, res) => {
   }
 
   if (!state || state !== expectedState) {
-    console.error("Invalid OAuth state:", { received: state, expected: expectedState });
+    console.error("Invalid OAuth state:", state, "Expected:", expectedState);
   }
 
   if (!userId) {
@@ -126,6 +126,9 @@ export const getGithubUser = async (req, res) => {
         connected: true,
         externalUserId: githubUser.id,
         accessToken: encrypt(access_token),
+        config: {
+          githubUser: githubUser,
+        },
       },
       { upsert: true, new: true },
     );
