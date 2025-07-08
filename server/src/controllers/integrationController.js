@@ -1,4 +1,5 @@
 import { Integration } from "../models/integrationModel.js";
+import { IntegrationUser } from "../models/integrationUser.js";
 
 export const getIntegrations = async (req, res) => {
   const size = parseInt(req.query.size);
@@ -20,9 +21,24 @@ export const getIntegrations = async (req, res) => {
 
 export const getEnabledIntegrations = async (req, res) => {
   try {
-    const integrations = await Integration.find({ status: "available" }).sort({ createdAt: -1 });
+    const userId = req.userId;
 
-    res.status(200).json(integrations);
+    // 1. Intégrations disponibles
+    const integrations = await Integration.find({ status: "available" }).sort({ createdAt: -1 }).lean();
+
+    // 2. Connexions de l'utilisateur
+    const userIntegrations = await IntegrationUser.find({ userId, connected: true }).lean();
+
+    // 3. Création d'une map pour lookup rapide
+    const connectedSet = new Set(userIntegrations.map((ui) => ui.integrationId.toString()));
+
+    // 4. Merge: ajoute un champ isConnected
+    const integrationsWithConnection = integrations.map((integration) => ({
+      ...integration,
+      isConnected: connectedSet.has(integration._id.toString()),
+    }));
+
+    res.status(200).json(integrationsWithConnection);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
