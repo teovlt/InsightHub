@@ -15,6 +15,7 @@ export const redirectToGithub = (req, res) => {
     const userId = req.userId;
 
     const state = crypto.randomBytes(16).toString("hex");
+    const isProd = process.env.NODE_ENV === "production";
     const cookieOptions = {
       httpOnly: true,
       sameSite: isProd ? "none" : "lax",
