@@ -6,54 +6,48 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Zap, CheckCircle, Clock, AlertTriangle } from "lucide-react";
-import { StatInterface } from "@/interfaces/Stat";
-import { CategoryInterface } from "@/interfaces/Category";
 import { toast } from "sonner";
 import { IntegrationInterface } from "@/interfaces/Integration";
 import { axiosConfig } from "@/config/axiosConfig";
 import { IntegrationCard } from "./integrationCard";
+import { useAuthContext } from "@/contexts/authContext";
 
 export function IntegrationsPage() {
   const [integrations, setIntegrations] = useState<IntegrationInterface[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(false);
+  const { authUser } = useAuthContext();
 
   const handleConnect = async (integrationId: string) => {
-    // // Simulate connection process
-    // setIntegrations((prev) =>
-    //   prev.map((integration) =>
-    //     integration.id === integrationId
-    //       ? {
-    //           ...integration,
-    //           status: "syncing" as const,
-    //         }
-    //       : integration,
-    //   ),
-    // );
-    // // Simulate API call delay
-    // setTimeout(() => {
-    //   setIntegrations((prev) =>
-    //     prev.map((integration) =>
-    //       integration.id === integrationId
-    //         ? {
-    //             ...integration,
-    //             isConnected: true,
-    //             status: "connected" as const,
-    //             connectedAt: new Date().toISOString(),
-    //             lastSync: new Date().toISOString(),
-    //             // Enable first few stats by default
-    //             enabledStats: integration.availableStats.slice(0, 2).map((stat: any) => stat.id),
-    //           }
-    //         : integration,
-    //     ),
-    //   );
-    //   // Auto-create stats for newly connected integration
-    //   const integration = integrations.find((i) => i.id === integrationId);
-    //   if (integration) {
-    //     // createStatsForIntegration(integration);
-    //   }
-    // }, 2000);
+    setLoading(true);
+    try {
+      // Trouver l'intégration correspondante
+      const integration = integrations.find((i) => i._id === integrationId);
+      if (!integration) {
+        toast.error("Integration not found");
+        return;
+      }
+
+      // Récupérer l'URL d'auth de l'intégration
+      const authUrl = integration.config?.authUrl;
+      if (!authUrl) {
+        toast.error("No auth URL configured for this integration");
+        return;
+      }
+
+      const response = await axiosConfig.get(`/integrations/${authUrl}?integrationId=${integrationId}`);
+      if (response.data.redirectUrl) {
+        window.location.href = response.data.redirectUrl;
+        toast.success(response.data.message);
+      } else {
+        toast.error("Failed to initiate connection");
+      }
+    } catch (error) {
+      toast.error("Failed to initiate connection");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDisconnect = (integrationId: string) => {

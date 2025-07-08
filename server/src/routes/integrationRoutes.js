@@ -7,6 +7,7 @@ import {
   getIntegrations,
   updateIntegration,
 } from "../controllers/integrationController.js";
+import { getGithubUser, redirectToGithub } from "../controllers/integrationUserController.js";
 
 export const integrationRouter = new express.Router();
 
@@ -39,3 +40,7 @@ integrationRouter.put("/:id", verifyToken({ role: "admin" }), updateIntegration)
  * Supprime une intégration
  */
 integrationRouter.delete("/:id", verifyToken({ role: "admin" }), deleteIntegration);
+
+integrationRouter.get("/auth/github", verifyToken(), redirectToGithub);
+
+integrationRouter.get("/auth/github/callback", getGithubUser);
