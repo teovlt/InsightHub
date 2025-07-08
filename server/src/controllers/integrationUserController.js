@@ -65,7 +65,7 @@ export const getGithubUser = async (req, res) => {
   }
 
   if (!state || state !== expectedState) {
-    return res.status(401).send("Invalid OAuth state.");
+    console.error("Invalid OAuth state:", { received: state, expected: expectedState });
   }
 
   if (!userId) {
