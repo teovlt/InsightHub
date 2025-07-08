@@ -40,7 +40,8 @@ export const redirectToGithub = (req, res) => {
       redirectUrl: githubAuthUrl,
     });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred while redirecting to GitHub." });
+    console.log(error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
