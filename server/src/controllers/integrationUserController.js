@@ -14,26 +14,19 @@ export const redirectToGithub = (req, res) => {
 
     const userId = req.userId;
 
-    const state = crypto.randomBytes(16).toString("hex");
-    const secureToken = process.env.NODE_ENV === "production";
+    const isProd = process.env.NODE_ENV === "production";
 
-    res.cookie("github_oauth_state", state, {
+    // Définis les options cookie
+    const cookieOptions = {
       httpOnly: true,
-      sameSite: secureToken ? "none" : "lax",
-      secure: secureToken,
-    });
+      sameSite: isProd ? "none" : "lax",
+      secure: isProd,
+    };
 
-    res.cookie("github_oauth_user", userId, {
-      httpOnly: true,
-      sameSite: secureToken ? "none" : "lax",
-      secure: secureToken,
-    });
-
-    res.cookie("github_oauth_integration", integrationId, {
-      httpOnly: true,
-      sameSite: secureToken ? "none" : "lax",
-      secure: secureToken,
-    });
+    // Enregistre les cookies
+    res.cookie("github_oauth_state", state, cookieOptions);
+    res.cookie("github_oauth_user", userId, cookieOptions);
+    res.cookie("github_oauth_integration", integrationId, cookieOptions);
 
     const redirectUri = `${process.env.SELF_URL}/api/integrations/auth/github/callback`;
 
