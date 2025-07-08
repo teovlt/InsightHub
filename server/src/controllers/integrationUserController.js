@@ -15,24 +15,24 @@ export const redirectToGithub = (req, res) => {
     const userId = req.userId;
 
     const state = crypto.randomBytes(16).toString("hex");
-    const secure = process.env.NODE_ENV === "production";
+    const secureToken = process.env.NODE_ENV === "production";
 
     res.cookie("github_oauth_state", state, {
       httpOnly: true,
-      sameSite: "none",
-      secure,
+      sameSite: secureToken ? "none" : "lax",
+      secure: secureToken,
     });
 
     res.cookie("github_oauth_user", userId, {
       httpOnly: true,
-      sameSite: "none",
-      secure,
+      sameSite: secureToken ? "none" : "lax",
+      secure: secureToken,
     });
 
     res.cookie("github_oauth_integration", integrationId, {
       httpOnly: true,
-      sameSite: "none",
-      secure,
+      sameSite: secureToken ? "none" : "lax",
+      secure: secureToken,
     });
 
     const redirectUri = `http://localhost:3000/api/integrations/auth/github/callback`;
