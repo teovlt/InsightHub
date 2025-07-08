@@ -19,19 +19,19 @@ export const redirectToGithub = (req, res) => {
 
     res.cookie("github_oauth_state", state, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure,
     });
 
     res.cookie("github_oauth_user", userId, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure,
     });
 
     res.cookie("github_oauth_integration", integrationId, {
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
       secure,
     });
 
