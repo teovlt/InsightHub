@@ -111,7 +111,7 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
                       </div>
                     </div>
                     <Switch
-                      checked={integration.integrationUser?.activedStat?.includes(stat._id)}
+                      checked={integration.integrationUser?.activedStat?.some((id) => id.toString() === stat._id.toString()) ?? false}
                       onCheckedChange={() => onToggleStat(integration._id, stat._id)}
                     />
                   </div>

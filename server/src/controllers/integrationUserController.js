@@ -48,7 +48,6 @@ export const redirectToGithub = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 export const getGithubUser = async (req, res) => {
   const { code, state } = req.query;
 
@@ -56,34 +55,18 @@ export const getGithubUser = async (req, res) => {
   const integrationId = req.session.github_oauth_integration;
   const userId = req.session.github_oauth_user;
 
-  if (!code) {
-    return res.status(400).send("No code provided for GitHub OAuth.");
-  }
-
-  if (!state || state !== expectedState) {
-    return res.status(400).send("Invalid OAuth state.");
-  }
-
-  if (!userId) {
-    return res.status(401).send("No user context");
-  }
-
-  if (!integrationId) {
-    return res.status(400).send("No integration context");
-  }
-
-  if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+  if (!code) return res.status(400).send("No code provided for GitHub OAuth.");
+  if (!state || state !== expectedState) return res.status(400).send("Invalid OAuth state.");
+  if (!userId) return res.status(401).send("No user context");
+  if (!integrationId) return res.status(400).send("No integration context");
+  if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET)
     return res.status(500).json({ error: "Missing GitHub OAuth env variables." });
-  }
 
   try {
-    // Échange le code contre un access token
+    // 1️⃣ Échange le code contre un access token GitHub
     const response = await fetch("https://github.com/login/oauth/access_token", {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
       body: JSON.stringify({
         client_id: process.env.GITHUB_CLIENT_ID,
         client_secret: process.env.GITHUB_CLIENT_SECRET,
@@ -92,28 +75,18 @@ export const getGithubUser = async (req, res) => {
     });
 
     const data = await response.json();
-
-    if (!data.access_token) {
-      console.error("No access_token received:", data);
-      return res.status(500).json({ error: "No access token received from GitHub." });
-    }
+    if (!data.access_token) return res.status(500).json({ error: "No access token received from GitHub." });
 
     const access_token = data.access_token;
 
-    // Récupère l'utilisateur GitHub
+    // 2️⃣ Récupère l'user GitHub
     const userResponse = await fetch("https://api.github.com/user", {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-        Accept: "application/vnd.github+json",
-      },
+      headers: { Authorization: `Bearer ${access_token}`, Accept: "application/vnd.github+json" },
     });
-
     const githubUser = await userResponse.json();
+    if (!githubUser?.id) return res.status(500).json({ error: "Failed to fetch GitHub user." });
 
-    if (!githubUser || !githubUser.id) {
-      return res.status(500).json({ error: "Failed to fetch GitHub user." });
-    }
-
+    // 3️⃣ Mets à jour l'IntegrationUser de base
     await IntegrationUser.findOneAndUpdate(
       { userId, integrationId },
       {
@@ -121,26 +94,26 @@ export const getGithubUser = async (req, res) => {
         integrationId,
         connected: true,
         accessToken: encrypt(access_token),
-        config: {
-          githubUser: githubUser,
-        },
+        config: { githubUser },
       },
       { upsert: true, new: true },
     );
 
-    // Supprime les données de session liées à l'OAuth GitHub
+    // 4️⃣ Supprime les valeurs de session
     delete req.session.github_oauth_state;
     delete req.session.github_oauth_integration;
     delete req.session.github_oauth_user;
 
-    const totalCommits = await getTotalCommits(access_token);
+    // 5️⃣ Récupère les valeurs GitHub
+    const totalCommits = await getTotalCommits(access_token, githubUser.created_at);
     const maxStreak = await getMaxStreak(access_token);
 
-    //Modifier l'intégration en ajoutant des stats disponibles
+    // 6️⃣ Supprime les stats doublons côté Integration
     await Integration.findByIdAndUpdate(integrationId, {
-      $pull: { availableStats: { name: "Total Commits" } },
-      $pull: { availableStats: { name: "Max Streak" } },
+      $pull: { availableStats: { name: { $in: ["Total Commits", "Max Streak"] } } },
     });
+
+    // 7️⃣ Ajoute les nouvelles
     await Integration.findByIdAndUpdate(integrationId, {
       $push: {
         availableStats: [
@@ -161,12 +134,18 @@ export const getGithubUser = async (req, res) => {
       },
     });
 
-    // Assure la catégorie GitHub
+    // 8️⃣ Récupère l’intégration mise à jour pour choper les `_id`
+    const integration = await Integration.findById(integrationId).lean();
+    const statIdsToActivate = integration.availableStats.map((s) => s._id);
+
+    // 9️⃣ Mets à jour IntegrationUser : overwrite complet de `activedStat`
+    await IntegrationUser.findOneAndUpdate({ userId, integrationId }, { $set: { activedStat: statIdsToActivate } }, { upsert: true });
+
+    // 🔟 Assure la catégorie côté Stat
     let githubCategory = await Category.findOne({
       name: "GitHub",
       description: "Stats fetched from your GitHub account",
     });
-
     if (!githubCategory) {
       githubCategory = await Category.create({
         name: "GitHub",
@@ -176,14 +155,9 @@ export const getGithubUser = async (req, res) => {
       });
     }
 
-    // Upsert des stats
+    // 1️⃣1️⃣ Upsert des Stat personnelles
     const statsData = [
-      {
-        name: "Total Commits",
-        description: "Total number of commits made by the user on GitHub.",
-        value: totalCommits,
-        unit: "commits",
-      },
+      { name: "Total Commits", description: "Total number of commits made by the user on GitHub.", value: totalCommits, unit: "commits" },
       {
         name: "Max Streak",
         description: "Maximum consecutive days of commits made by the user on GitHub.",
@@ -194,11 +168,7 @@ export const getGithubUser = async (req, res) => {
 
     for (const stat of statsData) {
       await Stat.findOneAndUpdate(
-        {
-          userId,
-          categoryId: githubCategory._id,
-          name: stat.name,
-        },
+        { userId, categoryId: githubCategory._id, name: stat.name },
         {
           $set: {
             description: stat.description,
@@ -212,9 +182,9 @@ export const getGithubUser = async (req, res) => {
       );
     }
 
-    // Redirige vers le tableau de bord des intégrations
     res.redirect(`${process.env.CORS_ORIGIN}/integrations`);
   } catch (err) {
+    console.error(err);
     res.status(500).send(err.message);
   }
 };
