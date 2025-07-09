@@ -46,7 +46,6 @@ export const getGithubUser = async (req, res) => {
   const integrationId = req.session.github_oauth_integration;
   const userId = req.session.github_oauth_user;
 
-  console.log(req.headers.cookie);
   console.log(req.session);
 
   if (!code) {
