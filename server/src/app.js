@@ -8,6 +8,7 @@ import { corsOptions } from "./configuration/corsOptions.js";
 import { router } from "./routes/router.js";
 
 import session from "express-session";
+import MongoStore from "connect-mongo"; // ou Redis, pareil
 
 // Create the Express application instance
 export const app = express();
@@ -28,15 +29,34 @@ app.use(cors(corsOptions));
 // Parse cookies from incoming requests
 app.use(cookieParser());
 
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET,
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: {
+//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+//       secure: process.env.NODE_ENV === "production",
+//       domain: process.env.SELF_URL,
+//     },
+//   }),
+// );
+
 app.use(
   session({
+    name: "sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONG_URI,
+      collectionName: "sessions",
+    }),
     cookie: {
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      secure: process.env.NODE_ENV === "production",
-      domain: process.env.SELF_URL,
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24, // 1 jour
     },
   }),
 );
