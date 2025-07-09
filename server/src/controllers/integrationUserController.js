@@ -45,11 +45,15 @@ export const getGithubUser = async (req, res) => {
   const integrationId = req.session.github_oauth_integration;
   const userId = req.session.github_oauth_user;
 
+  console.log(req.headers.cookie);
+  console.log(req.session);
+
   if (!code) {
     return res.status(400).send("No code provided for GitHub OAuth.");
   }
 
   if (!state || state !== expectedState) {
+    console.error("Invalid OAuth state:", { received: state, expected: expectedState });
     return res.status(400).send("Invalid OAuth state.");
   }
 
