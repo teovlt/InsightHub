@@ -22,7 +22,7 @@ integrationRouter.get("/", verifyToken({ role: "admin" }), getIntegrations);
  * GET /api/integrations/enabled
  * Liste uniquement les intégrations activées
  */
-integrationRouter.get("/enabled", verifyToken({ role: "admin" }), getEnabledIntegrations);
+integrationRouter.get("/enabled", verifyToken(), getEnabledIntegrations);
 
 /**
  * POST /api/integrations
