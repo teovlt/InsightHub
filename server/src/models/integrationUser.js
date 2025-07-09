@@ -20,8 +20,15 @@ const IntegrationUserSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    activedStat: [
+      {
+        type: Types.ObjectId,
+        ref: "IntegrationStat",
+        required: true,
+      },
+    ],
     config: {
-      type: Schema.Types.Mixed, // Jetons, clés OAuth, etc.
+      type: Schema.Types.Mixed,
       default: {},
     },
   },

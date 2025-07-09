@@ -3,6 +3,7 @@ import { encrypt } from "../utils/crypto.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { User } from "../models/userModel.js";
 import { Integration } from "../models/integrationModel.js";
+import { getMaxStreak, getTotalCommits } from "../utils/github/stats.js";
 
 export const redirectToGithub = async (req, res) => {
   const { integrationId, userId } = req.query;
@@ -138,9 +139,69 @@ export const getGithubUser = async (req, res) => {
     delete req.session.github_oauth_integration;
     delete req.session.github_oauth_user;
 
+    const totalCommits = await getTotalCommits(access_token);
+    const maxStreak = await getMaxStreak(access_token);
+
+    //Modifier l'intégration en ajoutant des stats disponibles
+    await Integration.findByIdAndUpdate(integrationId, {
+      $pull: { availableStats: { name: "Total Commits" } },
+      $pull: { availableStats: { name: "Max Streak" } },
+    });
+    await Integration.findByIdAndUpdate(integrationId, {
+      $push: {
+        availableStats: [
+          {
+            name: "Total Commits",
+            value: totalCommits,
+            dataType: "number",
+            description: "Total number of commits made by the user on GitHub.",
+          },
+          {
+            name: "Max Streak",
+            value: maxStreak,
+            dataType: "number",
+            description: "Maximum consecutive days of commits made by the user on GitHub.",
+            unit: "days",
+          },
+        ],
+      },
+    });
+
     // Redirige vers le tableau de bord des intégrations
     res.redirect(`${process.env.CORS_ORIGIN}/integrations`);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+};
+
+export const toggleActivedStat = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { integrationId, statId } = req.params;
+
+    if (!integrationId || !statId) {
+      return res.status(400).json({ error: "Missing integrationId or statId" });
+    }
+
+    // Récupérer l’instance IntegrationUser
+    const integrationUser = await IntegrationUser.findOne({ userId, integrationId });
+
+    if (!integrationUser) {
+      return res.status(404).json({ error: "IntegrationUser not found" });
+    }
+
+    const isActive = integrationUser.activedStat.some((id) => id.toString() === statId);
+
+    if (isActive) {
+      integrationUser.activedStat.pull(statId);
+    } else {
+      integrationUser.activedStat.push(statId);
+    }
+
+    await integrationUser.save();
+
+    return res.status(200).json({ integrationUser, message: isActive ? "Stat deactivated successfully." : "Stat activated successfully." });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };

@@ -18,7 +18,6 @@ export const getIntegrations = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 export const getEnabledIntegrations = async (req, res) => {
   try {
     const userId = req.userId;
@@ -32,11 +31,18 @@ export const getEnabledIntegrations = async (req, res) => {
     // 3. Création d'une map pour lookup rapide
     const connectedSet = new Set(userIntegrations.map((ui) => ui.integrationId.toString()));
 
-    // 4. Merge: ajoute un champ isConnected
-    const integrationsWithConnection = integrations.map((integration) => ({
-      ...integration,
-      isConnected: connectedSet.has(integration._id.toString()),
-    }));
+    // 4. Merge: ajoute un champ isConnected et fallback activedStat
+    const integrationsWithConnection = integrations.map((integration) => {
+      const integrationUser = userIntegrations.find(
+        (ui) => ui.integrationId.toString() === integration._id.toString() && ui.userId.toString() === userId,
+      ) || { activedStat: [] };
+
+      return {
+        ...integration,
+        isConnected: connectedSet.has(integration._id.toString()),
+        integrationUser,
+      };
+    });
 
     res.status(200).json(integrationsWithConnection);
   } catch (err) {

@@ -14,8 +14,10 @@ export interface IntegrationInterface {
   createdAt: string;
   updatedAt: string;
 
-  // Nouveau champ ajouté pour savoir si l'utilisateur est connecté à cette intégration
   isConnected?: boolean;
+  integrationUser: {
+    activedStat: string[];
+  };
 }
 
 export interface IntegrationStat {

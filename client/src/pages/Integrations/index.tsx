@@ -60,73 +60,37 @@ export function IntegrationsPage() {
     }
   };
 
-  const handleToggleStat = (integrationId: string, statId: string) => {
-    // setIntegrations((prev) =>
-    //   prev.map((integration) =>
-    //     integration.id === integrationId
-    //       ? {
-    //           ...integration,
-    //           enabledStats: integration.enabledStats.includes(statId)
-    //             ? integration.enabledStats.filter((id: any) => id !== statId)
-    //             : [...integration.enabledStats, statId],
-    //         }
-    //       : integration,
-    //   ),
-    // );
-    // // Create or remove stat from dashboard
-    // const integration = integrations.find((i) => i.id === integrationId);
-    // const stat = integration?.availableStats.find((s: any) => s.id === statId);
-    // if (integration && stat) {
-    //   if (!integration.enabledStats.includes(statId)) {
-    //     // createStatFromIntegration(integration, stat);
-    //   }
-    // }
+  const handleToggleStat = async (integrationId: string, statId: string) => {
+    setLoading(true);
+    try {
+      const response = await axiosConfig.patch(`/integrations/${integrationId}/stat/${statId}/toggle`);
+      handleSync();
+      toast.success(response.data.message);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSync = (integrationId: string) => {
-    // setIntegrations((prev) =>
-    //   prev.map((integration) =>
-    //     integration.id === integrationId
-    //       ? {
-    //           ...integration,
-    //           status: "syncing" as const,
-    //         }
-    //       : integration,
-    //   ),
-    // );
-    // setTimeout(() => {
-    //   setIntegrations((prev) =>
-    //     prev.map((integration) =>
-    //       integration.id === integrationId
-    //         ? {
-    //             ...integration,
-    //             status: "connected" as const,
-    //             lastSync: new Date().toISOString(),
-    //           }
-    //         : integration,
-    //     ),
-    //   );
-    // }, 1500);
-  };
-
-  useEffect(() => {
+  const handleSync = async () => {
     try {
       setLoading(true);
-      const fetchIntegrations = async () => {
-        const response = await axiosConfig.get("/integrations/enabled");
-        setIntegrations(
-          response.data.map((integration: IntegrationInterface) => ({
-            ...integration,
-            // status: "available" as const, // Default status
-          })),
-        );
-      };
-      fetchIntegrations();
+      const response = await axiosConfig.get("/integrations/enabled");
+      setIntegrations(
+        response.data.map((integration: IntegrationInterface) => ({
+          ...integration,
+        })),
+      );
     } catch (error) {
       toast.error("Failed to load integrations");
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    handleSync();
   }, []);
 
   //   const createStatsForIntegration = (integration: any) => {
@@ -243,7 +207,9 @@ export function IntegrationsPage() {
             <div className="flex items-center gap-3">
               <Zap className="h-6 w-6 text-blue-600" />
               <div>
-                <p className="text-2xl font-bold">{integrations.reduce((sum, i) => sum + (i.availableStats?.length || 0), 0)}</p>
+                <p className="text-2xl font-bold">
+                  {integrations.reduce((sum, i) => sum + (i.integrationUser?.activedStat?.length || 0), 0)}
+                </p>
                 <p className="text-sm text-muted-foreground">Active Stats</p>
               </div>
             </div>
@@ -299,7 +265,7 @@ export function IntegrationsPage() {
             {/* Liste des intégrations connectées */}
             {integrations
               .filter((i) => i.isConnected)
-              .map((integration) => (
+              .map((integration: IntegrationInterface) => (
                 <IntegrationCard
                   key={integration._id}
                   integration={integration}
@@ -307,6 +273,7 @@ export function IntegrationsPage() {
                   onDisconnect={handleDisconnect}
                   onToggleStat={handleToggleStat}
                   onSync={handleSync}
+                  integrationUser={integration.integrationUser}
                 />
               ))}
           </div>
@@ -324,7 +291,7 @@ export function IntegrationsPage() {
           {/* Liste des intégrations disponibles non connectées */}
           {filteredIntegrations
             .filter((i) => !i.isConnected)
-            .map((integration) => (
+            .map((integration: IntegrationInterface) => (
               <IntegrationCard
                 key={integration._id}
                 integration={integration}
@@ -332,6 +299,7 @@ export function IntegrationsPage() {
                 onDisconnect={handleDisconnect}
                 onToggleStat={handleToggleStat}
                 onSync={handleSync}
+                integrationUser={integration.integrationUser}
               />
             ))}
         </div>

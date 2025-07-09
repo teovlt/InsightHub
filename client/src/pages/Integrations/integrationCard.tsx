@@ -13,16 +13,17 @@ import * as LucideIcons from "lucide-react";
 import { LucideProps } from "lucide-react";
 
 interface IntegrationCardProps {
-  integration: IntegrationInterface & {
-    enabledStats?: string[];
-  };
   onConnect: (integrationId: string) => void;
   onDisconnect: (integrationId: string) => void;
   onToggleStat: (integrationId: string, statId: string) => void;
   onSync: (integrationId: string) => void;
+  integration: IntegrationInterface;
+  integrationUser?: {
+    activedStat: string[];
+  };
 }
 
-export function IntegrationCard({ integration, onConnect, onDisconnect, onToggleStat, onSync }: IntegrationCardProps) {
+export function IntegrationCard({ integration, onConnect, onDisconnect, onToggleStat, onSync, integrationUser }: IntegrationCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const iconName = integration.icon;
@@ -94,7 +95,7 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
             <div>
               <h4 className="font-medium mb-3">Available Statistics</h4>
               <div className="space-y-3">
-                {integration.availableStats?.map((stat: IntegrationStat & { _id: string }) => (
+                {integration.availableStats?.map((stat: IntegrationStat) => (
                   <div key={stat._id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <span className="text-lg">{stat.icon}</span>
@@ -110,7 +111,7 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
                       </div>
                     </div>
                     <Switch
-                      checked={integration.enabledStats ? integration.enabledStats.includes(stat._id) : false}
+                      checked={integration.integrationUser?.activedStat?.includes(stat._id)}
                       onCheckedChange={() => onToggleStat(integration._id, stat._id)}
                     />
                   </div>
@@ -118,11 +119,10 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
               </div>
             </div>
 
-            {/* Affichage conditionnel si au moins une stat est activée */}
-            {integration.enabledStats && integration.enabledStats.length > 0 && (
+            {integration.integrationUser?.activedStat?.length > 0 && (
               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-800">
-                  ✅ <strong>{integration.enabledStats.length}</strong> stats enabled and syncing to your dashboard
+                  ✅ <strong>{integration.integrationUser.activedStat.length}</strong> stats enabled and syncing to your dashboard
                 </p>
               </div>
             )}
