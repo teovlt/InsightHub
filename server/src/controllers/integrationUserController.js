@@ -18,6 +18,7 @@ export const redirectToGithub = (req, res) => {
     req.session.github_oauth_state = state;
     req.session.github_oauth_integration = integrationId;
     req.session.github_oauth_user = userId;
+    req.session.save();
 
     const redirectUri = `${process.env.SELF_URL}/api/integrations/auth/github/callback`;
 

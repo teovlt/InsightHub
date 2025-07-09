@@ -17,7 +17,6 @@ export function IntegrationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(false);
-  const { authUser } = useAuthContext();
 
   const handleConnect = async (integrationId: string) => {
     setLoading(true);
@@ -41,10 +40,10 @@ export function IntegrationsPage() {
         window.location.href = response.data.redirectUrl;
         toast.success(response.data.message);
       } else {
-        toast.error("Failed to initiate connection");
+        toast.error("Failed to initiate connection" + (response.data.error ? `: ${response.data.error}` : ""));
       }
     } catch (error) {
-      toast.error("Failed to initiate connection");
+      toast.error("Failed to initiate connection : " + (error as Error).message);
     } finally {
       setLoading(false);
     }
