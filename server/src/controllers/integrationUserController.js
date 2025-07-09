@@ -13,19 +13,11 @@ export const redirectToGithub = (req, res) => {
     }
 
     const userId = req.userId;
-
     const state = crypto.randomBytes(16).toString("hex");
-    const isProd = process.env.NODE_ENV === "production";
-    const cookieOptions = {
-      httpOnly: true,
-      sameSite: isProd ? "none" : "lax",
-      secure: isProd,
-    };
 
-    // Enregistre les cookies
-    res.cookie("github_oauth_state", state, cookieOptions);
-    res.cookie("github_oauth_user", userId, cookieOptions);
-    res.cookie("github_oauth_integration", integrationId, cookieOptions);
+    req.session.github_oauth_state = state;
+    req.session.github_oauth_integration = integrationId;
+    req.session.github_oauth_user = userId;
 
     const redirectUri = `${process.env.SELF_URL}/api/integrations/auth/github/callback`;
 
@@ -49,17 +41,15 @@ export const redirectToGithub = (req, res) => {
 export const getGithubUser = async (req, res) => {
   const { code, state } = req.query;
 
-  const expectedState = req.cookies.github_oauth_state;
-  console.log(expectedState);
-  const userId = req.cookies.github_oauth_user;
-  const integrationId = req.cookies.github_oauth_integration;
+  const expectedState = req.session.github_oauth_state;
+  const integrationId = req.session.github_oauth_integration;
+  const userId = req.session.github_oauth_user;
 
   if (!code) {
     return res.status(400).send("No code provided for GitHub OAuth.");
   }
 
   if (!state || state !== expectedState) {
-    console.error("Invalid OAuth state:", state, "Expected:", expectedState);
     return res.status(400).send("Invalid OAuth state.");
   }
 
@@ -119,7 +109,6 @@ export const getGithubUser = async (req, res) => {
         userId,
         integrationId,
         connected: true,
-        externalUserId: githubUser.id,
         accessToken: encrypt(access_token),
         config: {
           githubUser: githubUser,
@@ -128,9 +117,10 @@ export const getGithubUser = async (req, res) => {
       { upsert: true, new: true },
     );
 
-    // Supprime le cookie state pour éviter la réutilisation
-    res.clearCookie("github_oauth_state");
-    res.clearCookie("github_oauth_user");
+    // Supprime les données de session liées à l'OAuth GitHub
+    delete req.session.github_oauth_state;
+    delete req.session.github_oauth_integration;
+    delete req.session.github_oauth_user;
 
     // Redirige vers le tableau de bord des intégrations
     res.redirect(`${process.env.CORS_ORIGIN}/integrations`);

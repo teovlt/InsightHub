@@ -7,6 +7,8 @@ import cookieParser from "cookie-parser";
 import { corsOptions } from "./configuration/corsOptions.js";
 import { router } from "./routes/router.js";
 
+import session from "express-session";
+
 // Create the Express application instance
 export const app = express();
 
@@ -26,9 +28,20 @@ app.use(cors(corsOptions));
 // Parse cookies from incoming requests
 app.use(cookieParser());
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
+  }),
+);
+
 // Register main application routes
 app.use(router);
-
 // Self-ping toutes les 14 minutes (render-proof)
 setInterval(
   async () => {
