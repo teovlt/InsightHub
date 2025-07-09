@@ -4,6 +4,8 @@ import { IntegrationUser } from "../models/integrationUser.js";
 import { User } from "../models/userModel.js";
 import { Integration } from "../models/integrationModel.js";
 import { getMaxStreak, getTotalCommits } from "../utils/github/stats.js";
+import { Stat } from "../models/statModel.js";
+import { Category } from "../models/categoryModel.js";
 
 export const redirectToGithub = async (req, res) => {
   const { integrationId, userId } = req.query;
@@ -41,13 +43,8 @@ export const redirectToGithub = async (req, res) => {
       `&scope=read:user repo` +
       `&state=${state}`;
 
-    // res.status(200).json({
-    //   message: "Redirecting to GitHub for OAuth.",
-    //   redirectUrl: githubAuthUrl,
-    // });
     res.redirect(githubAuthUrl);
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -59,14 +56,11 @@ export const getGithubUser = async (req, res) => {
   const integrationId = req.session.github_oauth_integration;
   const userId = req.session.github_oauth_user;
 
-  console.log(req.session);
-
   if (!code) {
     return res.status(400).send("No code provided for GitHub OAuth.");
   }
 
   if (!state || state !== expectedState) {
-    console.error("Invalid OAuth state:", { received: state, expected: expectedState });
     return res.status(400).send("Invalid OAuth state.");
   }
 
@@ -166,6 +160,57 @@ export const getGithubUser = async (req, res) => {
         ],
       },
     });
+
+    // Assure la catégorie GitHub
+    let githubCategory = await Category.findOne({
+      name: "GitHub",
+      description: "Stats fetched from your GitHub account",
+    });
+
+    if (!githubCategory) {
+      githubCategory = await Category.create({
+        name: "GitHub",
+        description: "Stats fetched from your GitHub account",
+        icon: "Github",
+        color: "#24292e",
+      });
+    }
+
+    // Upsert des stats
+    const statsData = [
+      {
+        name: "Total Commits",
+        description: "Total number of commits made by the user on GitHub.",
+        value: totalCommits,
+        unit: "commits",
+      },
+      {
+        name: "Max Streak",
+        description: "Maximum consecutive days of commits made by the user on GitHub.",
+        value: maxStreak,
+        unit: "days",
+      },
+    ];
+
+    for (const stat of statsData) {
+      await Stat.findOneAndUpdate(
+        {
+          userId,
+          categoryId: githubCategory._id,
+          name: stat.name,
+        },
+        {
+          $set: {
+            description: stat.description,
+            value: stat.value,
+            unit: stat.unit,
+            current: true,
+            hided: false,
+          },
+        },
+        { upsert: true, new: true },
+      );
+    }
 
     // Redirige vers le tableau de bord des intégrations
     res.redirect(`${process.env.CORS_ORIGIN}/integrations`);
