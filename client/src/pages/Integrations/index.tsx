@@ -17,6 +17,7 @@ export function IntegrationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(false);
+  const { authUser } = useAuthContext();
 
   const handleConnect = async (integrationId: string) => {
     setLoading(true);
@@ -35,13 +36,8 @@ export function IntegrationsPage() {
         return;
       }
 
-      const response = await axiosConfig.get(`/integrations/${authUrl}?integrationId=${integrationId}`);
-      if (response.data.redirectUrl) {
-        window.location.href = response.data.redirectUrl;
-        toast.success(response.data.message);
-      } else {
-        toast.error("Failed to initiate connection" + (response.data.error ? `: ${response.data.error}` : ""));
-      }
+      window.location.href = `${import.meta.env.VITE_API_URL}/api/integrations/${authUrl}?integrationId=${integrationId}&userId=${authUser?._id}`;
+      toast.success(`Redirecting to ${integration.name} for authentication...`);
     } catch (error) {
       toast.error("Failed to initiate connection : " + (error as Error).message);
     } finally {
@@ -49,21 +45,19 @@ export function IntegrationsPage() {
     }
   };
 
-  const handleDisconnect = (integrationId: string) => {
-    // setIntegrations((prev) =>
-    //   prev.map((integration) =>
-    //     integration.id === integrationId
-    //       ? {
-    //           ...integration,
-    //           isConnected: false,
-    //           status: "available" as const,
-    //           connectedAt: undefined,
-    //           lastSync: undefined,
-    //           enabledStats: [],
-    //         }
-    //       : integration,
-    //   ),
-    // );
+  const handleDisconnect = async (integrationId: string) => {
+    try {
+      const response = await axiosConfig.delete(`/integrations/${authUser?._id}/${integrationId}`);
+      toast.success(response.data.message);
+
+      setIntegrations((prev) =>
+        prev.map((integration) =>
+          integration._id === integrationId ? { ...integration, isConnected: false, status: "available" } : integration,
+        ),
+      );
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   const handleToggleStat = (integrationId: string, statId: string) => {

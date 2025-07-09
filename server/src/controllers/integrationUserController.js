@@ -1,9 +1,11 @@
 import crypto from "crypto";
 import { encrypt } from "../utils/crypto.js";
 import { IntegrationUser } from "../models/integrationUser.js";
+import { User } from "../models/userModel.js";
+import { Integration } from "../models/integrationModel.js";
 
-export const redirectToGithub = (req, res) => {
-  const { integrationId } = req.query;
+export const redirectToGithub = async (req, res) => {
+  const { integrationId, userId } = req.query;
 
   try {
     const { GITHUB_CLIENT_ID, SELF_URL } = process.env;
@@ -12,7 +14,16 @@ export const redirectToGithub = (req, res) => {
       return res.status(500).json({ error: "Missing env variables for GitHub OAuth." });
     }
 
-    const userId = req.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const integration = await Integration.findById(integrationId);
+    if (!integration) {
+      return res.status(404).json({ error: "Integration not found." });
+    }
+
     const state = crypto.randomBytes(16).toString("hex");
 
     req.session.github_oauth_state = state;
@@ -29,10 +40,11 @@ export const redirectToGithub = (req, res) => {
       `&scope=read:user repo` +
       `&state=${state}`;
 
-    res.status(200).json({
-      message: "Redirecting to GitHub for OAuth.",
-      redirectUrl: githubAuthUrl,
-    });
+    // res.status(200).json({
+    //   message: "Redirecting to GitHub for OAuth.",
+    //   redirectUrl: githubAuthUrl,
+    // });
+    res.redirect(githubAuthUrl);
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ error: error.message });

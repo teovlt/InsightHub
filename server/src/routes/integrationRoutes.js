@@ -3,6 +3,7 @@ import { verifyToken } from "../middlewares/verifyToken.js";
 import {
   createIntegration,
   deleteIntegration,
+  disconnect,
   getEnabledIntegrations,
   getIntegrations,
   updateIntegration,
@@ -41,6 +42,8 @@ integrationRouter.put("/:id", verifyToken({ role: "admin" }), updateIntegration)
  */
 integrationRouter.delete("/:id", verifyToken({ role: "admin" }), deleteIntegration);
 
-integrationRouter.get("/auth/github", verifyToken(), redirectToGithub);
+integrationRouter.get("/auth/github", redirectToGithub);
 
 integrationRouter.get("/auth/github/callback", getGithubUser);
+
+integrationRouter.delete("/:userId/:integrationId", verifyToken(), disconnect);

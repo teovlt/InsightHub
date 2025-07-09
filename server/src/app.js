@@ -29,35 +29,21 @@ app.use(cors(corsOptions));
 // Parse cookies from incoming requests
 app.use(cookieParser());
 
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie: {
-//       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-//       secure: process.env.NODE_ENV === "production",
-//       domain: process.env.SELF_URL,
-//     },
-//   }),
-// );
-
 app.use(
   session({
-    name: "sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
     store: MongoStore.create({
       mongoUrl: process.env.MONG_URI,
       collectionName: "sessions",
     }),
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 1000 * 60 * 60 * 24, // 1 jour
-    },
   }),
 );
 

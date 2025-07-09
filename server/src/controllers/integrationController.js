@@ -124,3 +124,17 @@ export const deleteIntegration = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const disconnect = async (req, res) => {
+  const { userId, integrationId } = req.params;
+
+  try {
+    const integrationUser = await IntegrationUser.findOneAndUpdate({ userId, integrationId }, { connected: false }, { new: true });
+    if (!integrationUser) {
+      return res.status(404).json({ error: "Integration connection not found." });
+    }
+    res.status(200).json({ message: "Integration disconnected successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
