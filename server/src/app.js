@@ -29,21 +29,19 @@ app.use(cors(corsOptions));
 // Parse cookies from incoming requests
 app.use(cookieParser());
 
+app.set("trust proxy", 1);
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.MONG_URI }),
     cookie: {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      secure: true,
     },
-    store: MongoStore.create({
-      mongoUrl: process.env.MONG_URI,
-      collectionName: "sessions",
-    }),
   }),
 );
 
