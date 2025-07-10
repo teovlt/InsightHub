@@ -28,14 +28,17 @@ export const Home = () => {
   }
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="container mx-auto p-6 space-y-12">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="text-center space-y-4 flex-1">
-            <p className="text-muted-foreground text-lg">Track your progress, celebrate your wins, optimize your life</p>
-          </div>
-        </div>
+        <header className="text-center space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight">Take Control of Your Habits and Goals</h1>
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+            Your personal dashboard to track habits, measure progress, and stay accountable. Organize your life with clear categories and
+            celebrate your growth, one step at a time.
+          </p>
+        </header>
 
+        {/* Content */}
         <div className="space-y-8">
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:mt-32">

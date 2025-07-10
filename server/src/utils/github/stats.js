@@ -35,8 +35,6 @@ export const getTotalCommits = async (accessToken, createdAt) => {
 
     const yearCommits = result.data.viewer.contributionsCollection.totalCommitContributions;
     totalCommits += yearCommits;
-
-    console.log(`Year ${year}: ${yearCommits} commits`);
   }
 
   return totalCommits;
