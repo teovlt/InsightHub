@@ -3,7 +3,7 @@ import { decrypt, encrypt } from "../utils/crypto.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { User } from "../models/userModel.js";
 import { Integration } from "../models/integrationModel.js";
-import { getMaxStreak, getTotalCommits } from "../utils/github/stats.js";
+import { getMaxStreak, getTotalCommits, getTotalStars } from "../utils/github/stats.js";
 import { Stat } from "../models/statModel.js";
 import { Category } from "../models/categoryModel.js";
 
@@ -109,10 +109,11 @@ export const getGithubUser = async (req, res) => {
     // 5️⃣ Récupère les valeurs GitHub
     const totalCommits = await getTotalCommits(access_token, githubUser.created_at);
     const maxStreak = await getMaxStreak(access_token);
+    const totalStars = await getTotalStars(access_token);
 
     // 6️⃣ Supprime les stats doublons côté Integration
     await Integration.findByIdAndUpdate(integrationId, {
-      $pull: { availableStats: { name: { $in: ["Total Commits", "Max Streak"] } } },
+      $pull: { availableStats: { name: { $in: ["Total Commits", "Max Streak", "Total Stars"] } } },
     });
 
     // 7️⃣ Ajoute les nouvelles
@@ -131,6 +132,12 @@ export const getGithubUser = async (req, res) => {
             dataType: "number",
             description: "Maximum consecutive days of commits made by the user on GitHub.",
             unit: "days",
+          },
+          {
+            name: "Total Stars",
+            value: totalStars,
+            dataType: "number",
+            description: "Total number of stars received by the user on GitHub.",
           },
         ],
       },
@@ -164,12 +171,23 @@ export const getGithubUser = async (req, res) => {
 
     // 1️⃣1️⃣ Upsert des Stat personnelles avec lien vers availableStat
     const statsData = [
-      { name: "Total Commits", description: "Total number of commits made by the user on GitHub.", value: totalCommits, unit: "commits" },
+      {
+        name: "Total Commits",
+        description: "Total number of commits made by the user on GitHub.",
+        value: totalCommits.toString(),
+        unit: "",
+      },
       {
         name: "Max Streak",
         description: "Maximum consecutive days of commits made by the user on GitHub.",
-        value: maxStreak,
+        value: maxStreak.toString(),
         unit: "days",
+      },
+      {
+        name: "Total Stars",
+        description: "Total number of stars received by the user on GitHub.",
+        value: totalStars.toString(),
+        unit: "",
       },
     ];
 
@@ -260,16 +278,20 @@ export const syncStatistics = async (req, res) => {
     // Récupère les données GitHub une fois pour toutes
     let totalCommits = null;
     let maxStreak = null;
-
+    let totalStars = null;
     // Vérifie que les stats sont activées
     const hasTotalCommits = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Total Commits");
     const hasMaxStreak = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Max Streak");
+    const hasTotalStars = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Total Stars");
 
     if (hasTotalCommits) {
       totalCommits = await getTotalCommits(decrypt(integrationUser.accessToken), integrationUser.config.githubUser.created_at);
     }
     if (hasMaxStreak) {
       maxStreak = await getMaxStreak(decrypt(integrationUser.accessToken));
+    }
+    if (hasTotalStars) {
+      totalStars = await getTotalStars(decrypt(integrationUser.accessToken));
     }
 
     // Mets à jour les stats en base
@@ -282,6 +304,8 @@ export const syncStatistics = async (req, res) => {
         valueToSet = totalCommits;
       } else if (availableStat.name === "Max Streak") {
         valueToSet = maxStreak;
+      } else if (availableStat.name === "Total Stars") {
+        valueToSet = totalStars;
       } else {
         // Ici tu peux gérer d'autres stats, par défaut null ou skip
         return null;

@@ -98,3 +98,54 @@ export const getMaxStreak = async (accessToken) => {
 
   return maxStreak;
 };
+
+export const getTotalStars = async (accessToken) => {
+  let totalStars = 0;
+  let hasNextPage = true;
+  let endCursor = null;
+
+  while (hasNextPage) {
+    const query = `
+      query {
+        viewer {
+          repositories(first: 100, ownerAffiliations: OWNER ${endCursor ? `, after: "${endCursor}"` : ""}) {
+            nodes {
+              stargazerCount
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      }
+    `;
+
+    const response = await fetch("https://api.github.com/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const result = await response.json();
+
+    if (result.errors) {
+      console.error(result.errors);
+      throw new Error("GraphQL error while fetching stars");
+    }
+
+    const { nodes, pageInfo } = result.data.viewer.repositories;
+    for (const repo of nodes) {
+      totalStars += repo.stargazerCount;
+    }
+
+    hasNextPage = pageInfo.hasNextPage;
+    endCursor = pageInfo.endCursor;
+  }
+
+  console.log(totalStars);
+  return totalStars;
+};
