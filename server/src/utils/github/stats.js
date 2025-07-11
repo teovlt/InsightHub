@@ -30,7 +30,13 @@ export const getTotalCommits = async (accessToken, createdAt) => {
     const result = await response.json();
 
     if (result.errors) {
+      console.error("GitHub GraphQL returned errors:", result.errors);
       throw new Error("GitHub GraphQL error: " + JSON.stringify(result.errors));
+    }
+
+    if (!result.data || !result.data.viewer) {
+      console.error("GitHub GraphQL returned invalid data:", result);
+      throw new Error(`Invalid GitHub GraphQL response: ${JSON.stringify(result)}`);
     }
 
     const yearCommits = result.data.viewer.contributionsCollection.totalCommitContributions;

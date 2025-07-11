@@ -8,7 +8,7 @@ import {
   getIntegrations,
   updateIntegration,
 } from "../controllers/integrationController.js";
-import { getGithubUser, redirectToGithub, toggleActivedStat } from "../controllers/integrationUserController.js";
+import { getGithubUser, redirectToGithub, syncStatistics, toggleActivedStat } from "../controllers/integrationUserController.js";
 
 export const integrationRouter = new express.Router();
 
@@ -49,3 +49,5 @@ integrationRouter.get("/auth/github/callback", getGithubUser);
 integrationRouter.delete("/:userId/:integrationId", verifyToken(), disconnect);
 
 integrationRouter.patch("/:integrationId/stat/:statId/toggle", verifyToken(), toggleActivedStat);
+
+integrationRouter.get("/:integrationId/sync", verifyToken(), syncStatistics);

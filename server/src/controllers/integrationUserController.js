@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { encrypt } from "../utils/crypto.js";
+import { decrypt, encrypt } from "../utils/crypto.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { User } from "../models/userModel.js";
 import { Integration } from "../models/integrationModel.js";
@@ -230,52 +230,90 @@ export const toggleActivedStat = async (req, res) => {
   }
 };
 
-// export const syncStatistics = async (req, res) => {
-//   // Récupérer l'id de l'user via middleware
-//   //récupérer l'id de l'intégration via les params
-//   // Récupérer l'instance IntegrationUser
-//   // Pour chaque activatedStat, récupérer la valeur de l'API
-//   // Mettre à jour la valeur de la Stat correspondante activatedStat -> stat.integrationStatId
+export const syncStatistics = async (req, res) => {
+  const userId = req.userId;
+  const { integrationId } = req.params;
+  if (!integrationId) {
+    return res.status(400).json({ error: "Missing integrationId" });
+  }
 
-//   const userId = req.userId;
-//   const { integrationId } = req.params;
-//   if (!integrationId) {
-//     return res.status(400).json({ error: "Missing integrationId" });
-//   }
-//   try {
-//     const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
-//     if (!integrationUser) {
-//       return res.status(404).json({ error: "IntegrationUser not found" });
-//     }
-//     if (!integrationUser.activedStat || integrationUser.activedStat.length === 0) {
-//       return res.status(400).json({ error: "No activated stats to sync" });
-//     }
-//     const integration = await Integration.findById(integrationId).lean();
-//     if (!integration) {
-//       return res.status(404).json({ error: "Integration not found" });
-//     }
+  try {
+    const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
+    if (!integrationUser) {
+      return res.status(404).json({ error: "IntegrationUser not found" });
+    }
+    if (!integrationUser.activedStat || integrationUser.activedStat.length === 0) {
+      return res.status(400).json({ error: "No activated stats to sync" });
+    }
 
-//     const updatedStats = [];
-//     for (const stat of integrationUser.activedStat) {
-//       const availableStat = integration.availableStats.find((s) => s._id.toString() === stat.toString());
-//       if (!availableStat) continue;
+    const integration = await Integration.findById(integrationId).lean();
+    if (!integration) {
+      return res.status(404).json({ error: "Integration not found" });
+    }
 
-//       // Appeler l'API pour récupérer la valeur actuelle de la Stat
-//       const apiValue = await fetch(availableStat.apiEndpoint, {
-//         headers: { Authorization: `Bearer ${integrationUser.accessToken}` },
-//       }).then((res) => res.json());
+    // Map availableStats par _id pour accès rapide
+    const availableStatsMap = {};
+    integration.availableStats.forEach((stat) => {
+      availableStatsMap[stat._id.toString()] = stat;
+    });
 
-//       // Mettre à jour la Stat correspondante
-//       const updatedStat = await Stat.findOneAndUpdate(
-//         { userId, integrationId, integrationStatId: availableStat._id },
-//         { value: apiValue.value, updatedAt: new Date() },
-//         { new: true, upsert: true },
-//       );
+    // Récupère les données GitHub une fois pour toutes
+    let totalCommits = null;
+    let maxStreak = null;
 
-//       updatedStats.push(updatedStat);
-//     }
-//     res.status(200).json({ message: "Statistics synced successfully", updatedStats });
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to sync statistics" });
-//   }
-// };
+    // Vérifie que les stats sont activées
+    const hasTotalCommits = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Total Commits");
+    const hasMaxStreak = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Max Streak");
+
+    if (hasTotalCommits) {
+      totalCommits = await getTotalCommits(decrypt(integrationUser.accessToken), integrationUser.createdAt || new Date());
+    }
+    if (hasMaxStreak) {
+      maxStreak = await getMaxStreak(decrypt(integrationUser.accessToken));
+    }
+
+    // Mets à jour les stats en base
+    const updatePromises = integrationUser.activedStat.map(async (statId) => {
+      const availableStat = availableStatsMap[statId.toString()];
+      if (!availableStat) return null;
+
+      let valueToSet = null;
+      if (availableStat.name === "Total Commits") {
+        valueToSet = totalCommits;
+      } else if (availableStat.name === "Max Streak") {
+        valueToSet = maxStreak;
+      } else {
+        // Ici tu peux gérer d'autres stats, par défaut null ou skip
+        return null;
+      }
+
+      if (valueToSet === null) return null;
+
+      // Update ou création de la stat
+      return Stat.findOneAndUpdate(
+        {
+          userId,
+          integrationId,
+          integrationStatId: availableStat._id,
+        },
+        {
+          value: valueToSet.toString(),
+          updatedAt: new Date(),
+          current: true,
+          auto: true,
+          name: availableStat.name,
+        },
+        { new: true, upsert: true },
+      ).lean();
+    });
+
+    const updatedStats = (await Promise.all(updatePromises)).filter(Boolean);
+
+    return res.status(200).json({
+      message: "Statistics synced successfully",
+      updatedStats,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};

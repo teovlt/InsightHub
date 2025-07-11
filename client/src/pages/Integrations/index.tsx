@@ -64,7 +64,7 @@ export function IntegrationsPage() {
     setLoading(true);
     try {
       const response = await axiosConfig.patch(`/integrations/${integrationId}/stat/${statId}/toggle`);
-      handleSync();
+      fetchIntegrations();
       toast.success(response.data.message);
     } catch (error: any) {
       toast.error(error.message);
@@ -73,7 +73,19 @@ export function IntegrationsPage() {
     }
   };
 
-  const handleSync = async () => {
+  const handleSync = async (integrationId: string) => {
+    try {
+      setLoading(true);
+      const response = await axiosConfig.get(`/integrations/${integrationId}/sync`);
+      toast.success(response.data.message);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchIntegrations = async () => {
     try {
       setLoading(true);
       const response = await axiosConfig.get("/integrations/enabled");
@@ -88,9 +100,8 @@ export function IntegrationsPage() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    handleSync();
+    fetchIntegrations();
   }, []);
 
   const filteredIntegrations = integrations.filter((integration) => {
