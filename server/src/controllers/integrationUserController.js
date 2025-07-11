@@ -176,6 +176,7 @@ export const getGithubUser = async (req, res) => {
             unit: stat.unit,
             current: true,
             hided: false,
+            auto: true, // Indique que c'est une stat auto-générée
           },
         },
         { upsert: true, new: true },

@@ -36,6 +36,7 @@ export const createStat = async (req, res) => {
       unit,
       current: true,
       hided,
+      auto: false,
     });
 
     res.status(201).json({ stat, message: "Stat created successfully" });

@@ -9,6 +9,7 @@ import { DeleteConfirmationDialog } from "./deleteConfirmationDialog";
 import { axiosConfig } from "@/config/axiosConfig";
 import { toast } from "sonner";
 import { RollbackStatDialog } from "./rollbackDialog";
+import { Badge } from "../ui/badge";
 
 interface StatCardProps {
   stat: StatInterface;
@@ -47,28 +48,34 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
           <CardTitle className="text-sm font-medium pr-2">{stat.name}</CardTitle>
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 rounded-full opacity-60" style={{ backgroundColor: color }} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 ">
-                  <EllipsisVertical className="h-3 w-3" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setRollbackDialog(true)}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Rollback
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {stat.auto ? (
+              <Badge variant="secondary" className="text-xs">
+                Automatic
+              </Badge>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6">
+                    <EllipsisVertical className="h-3 w-3" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setRollbackDialog(true)}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Rollback
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </CardHeader>
         <CardContent>

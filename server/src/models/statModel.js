@@ -34,6 +34,10 @@ const statSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    auto: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

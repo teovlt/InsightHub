@@ -5,6 +5,7 @@ export interface StatInterface {
   value: string;
   unit?: string;
   hided: boolean;
+  auto: boolean;
   categoryId: string; // Category ID
   user: string; // User ID
   createdAt: Date;
