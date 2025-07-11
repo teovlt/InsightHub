@@ -74,9 +74,9 @@ export const Navbar = () => {
                   <Button onClick={() => navigate("/")} variant="link">
                     {t("navbar.home")}
                   </Button>
-                  <Button onClick={() => navigate("/statistics")} variant="link">
+                  {/* <Button onClick={() => navigate("/statistics")} variant="link">
                     {t("navbar.statistics")}
-                  </Button>
+                  </Button> */}
                   <Button onClick={() => navigate("/integrations")} variant="link">
                     Integrations
                   </Button>
@@ -104,12 +104,12 @@ export const Navbar = () => {
                             <Presentation className="w-4 h-4" />
                           </DropdownMenuShortcut>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/statistics ")}>
+                        {/* <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/statistics ")}>
                           {t("navbar.statistics")}
                           <DropdownMenuShortcut>
                             <ChartBarStacked className="w-4 h-4" />
                           </DropdownMenuShortcut>
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem
                           className="flex items-center gap-2 hover:cursor-pointer"
                           onClick={() => navigate("/integrations")}
@@ -187,14 +187,14 @@ export const Navbar = () => {
                   <House className="w-4 h-4" />
                   {t("navbar.home")}
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => closeDialogAndNavigate("/statistics")}
                   variant="link"
                   className="flex items-center justify-start gap-4"
                 >
                   <ChartBar className="w-4 h-4" />
                   {t("navbar.statistics")}
-                </Button>
+                </Button> */}
                 <Button
                   onClick={() => closeDialogAndNavigate("/integrations")}
                   variant="link"
