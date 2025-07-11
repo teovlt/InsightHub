@@ -266,7 +266,7 @@ export const syncStatistics = async (req, res) => {
     const hasMaxStreak = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Max Streak");
 
     if (hasTotalCommits) {
-      totalCommits = await getTotalCommits(decrypt(integrationUser.accessToken), integrationUser.createdAt || new Date());
+      totalCommits = await getTotalCommits(decrypt(integrationUser.accessToken), integrationUser.config.githubUser.created_at);
     }
     if (hasMaxStreak) {
       maxStreak = await getMaxStreak(decrypt(integrationUser.accessToken));
