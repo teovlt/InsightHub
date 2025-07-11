@@ -53,6 +53,7 @@ export const CategoryForm = ({ dialog, refresh, action, category }: CategoryForm
       description: category?.description,
       icon: category?.icon,
       color: category?.color,
+      order: category?.order,
     },
   });
 
@@ -259,6 +260,21 @@ export const CategoryForm = ({ dialog, refresh, action, category }: CategoryForm
               </FormItem>
             )}
           />
+
+          <FormField
+            control={updateForm.control}
+            name="order"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Order</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <Button type="submit" disabled={loading}>
             Update
           </Button>

@@ -73,6 +73,17 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
     meta: { label: "Icon" },
   },
   {
+    accessorKey: "order",
+    header: ({ column }) => (
+      <Button variant="ghost" className="font-bold" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        Order
+        <ArrowUpDown className="w-4 h-4 ml-2" />
+      </Button>
+    ),
+    cell: ({ row }) => <div>{row.getValue("order")}</div>,
+    meta: { label: "Order" },
+  },
+  {
     accessorKey: "createdAt",
     header: ({ column }) => (
       <Button variant="ghost" className="font-bold" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>

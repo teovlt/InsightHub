@@ -15,7 +15,7 @@ export const getCategories = async (req, res) => {
   try {
     // 1️⃣ Récupère les catégories paginées
     const categories = await Category.find({})
-      .sort({ createdAt: 1 })
+      .sort({ order: 1, createdAt: 1 })
       .skip(page * size)
       .limit(size)
       .lean();
@@ -78,11 +78,14 @@ export const createCategory = async (req, res) => {
   }
 
   try {
+    const categories = await Category.find({}).sort({ order: 1 });
+
     const category = await Category.create({
       name,
       description,
       icon,
       color,
+      order: categories.length > 0 ? categories[categories.length - 1].order + 1 : 0,
     });
 
     res.status(201).json({ category, message: "Category created successfully" });
@@ -98,10 +101,14 @@ export const createCategory = async (req, res) => {
  */
 export const updateCategory = async (req, res) => {
   const { id } = req.params;
-  const { name, description, icon, color } = req.body;
+  const { name, description, icon, color, order } = req.body;
 
   try {
-    const updatedCategory = await Category.findByIdAndUpdate(id, { name, description, icon, color }, { new: true, runValidators: true });
+    const updatedCategory = await Category.findByIdAndUpdate(
+      id,
+      { name, description, icon, color, order },
+      { new: true, runValidators: true },
+    );
 
     if (!updatedCategory) {
       return res.status(400).json({ error: "No such category" });

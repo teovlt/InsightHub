@@ -69,6 +69,7 @@ export const updateCategorySchema = z.object({
     .max(500, { message: "Description must be at most 500 characters long" }),
   icon: z.string().min(1, { message: "Icon is required" }),
   color: z.string().min(1, { message: "Color is required" }),
+  order: z.number().optional().describe("Order of the category, used for sorting"),
 });
 
 export const integrationSchema = z.object({
