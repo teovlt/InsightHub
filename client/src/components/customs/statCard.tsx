@@ -48,7 +48,7 @@ export function StatCard({ stat, color, colorVars, refresh }: StatCardProps) {
           <CardTitle className="text-sm font-medium pr-2">{stat.name}</CardTitle>
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 rounded-full opacity-60" style={{ backgroundColor: color }} />
-            {stat.auto ? (
+            {stat.integrationId ? (
               <Badge variant="secondary" className="text-xs">
                 Automatic
               </Badge>

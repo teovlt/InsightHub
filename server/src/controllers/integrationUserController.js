@@ -48,6 +48,7 @@ export const redirectToGithub = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 export const getGithubUser = async (req, res) => {
   const { code, state } = req.query;
 
@@ -99,10 +100,11 @@ export const getGithubUser = async (req, res) => {
       { upsert: true, new: true },
     );
 
-    // 4️⃣ Supprime les valeurs de session
-    delete req.session.github_oauth_state;
-    delete req.session.github_oauth_integration;
-    delete req.session.github_oauth_user;
+    // 4️⃣ Supprime les valeurs de session de mongoStore
+    req.session.github_oauth_state = null;
+    req.session.github_oauth_integration = null;
+    req.session.github_oauth_user = null;
+    req.session.save();
 
     // 5️⃣ Récupère les valeurs GitHub
     const totalCommits = await getTotalCommits(access_token, githubUser.created_at);
@@ -136,10 +138,15 @@ export const getGithubUser = async (req, res) => {
 
     // 8️⃣ Récupère l’intégration mise à jour pour choper les `_id`
     const integration = await Integration.findById(integrationId).lean();
-    const statIdsToActivate = integration.availableStats.map((s) => s._id);
 
-    // 9️⃣ Mets à jour IntegrationUser : overwrite complet de `activedStat`
-    await IntegrationUser.findOneAndUpdate({ userId, integrationId }, { $set: { activedStat: statIdsToActivate } }, { upsert: true });
+    // ➜ Map nom stat -> _id du availableStat correspondant
+    const availableStatsMap = {};
+    integration.availableStats.forEach((s) => {
+      availableStatsMap[s.name] = s._id;
+    });
+
+    //Les mettre dans integrationUser
+    await IntegrationUser.findOneAndUpdate({ userId, integrationId }, { activedStat: integration.availableStats });
 
     // 🔟 Assure la catégorie côté Stat
     let githubCategory = await Category.findOne({
@@ -155,7 +162,7 @@ export const getGithubUser = async (req, res) => {
       });
     }
 
-    // 1️⃣1️⃣ Upsert des Stat personnelles
+    // 1️⃣1️⃣ Upsert des Stat personnelles avec lien vers availableStat
     const statsData = [
       { name: "Total Commits", description: "Total number of commits made by the user on GitHub.", value: totalCommits, unit: "commits" },
       {
@@ -176,7 +183,8 @@ export const getGithubUser = async (req, res) => {
             unit: stat.unit,
             current: true,
             hided: false,
-            auto: true, // Indique que c'est une stat auto-générée
+            integrationId: integrationId,
+            integrationStatId: availableStatsMap[stat.name],
           },
         },
         { upsert: true, new: true },
@@ -221,3 +229,53 @@ export const toggleActivedStat = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+// export const syncStatistics = async (req, res) => {
+//   // Récupérer l'id de l'user via middleware
+//   //récupérer l'id de l'intégration via les params
+//   // Récupérer l'instance IntegrationUser
+//   // Pour chaque activatedStat, récupérer la valeur de l'API
+//   // Mettre à jour la valeur de la Stat correspondante activatedStat -> stat.integrationStatId
+
+//   const userId = req.userId;
+//   const { integrationId } = req.params;
+//   if (!integrationId) {
+//     return res.status(400).json({ error: "Missing integrationId" });
+//   }
+//   try {
+//     const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
+//     if (!integrationUser) {
+//       return res.status(404).json({ error: "IntegrationUser not found" });
+//     }
+//     if (!integrationUser.activedStat || integrationUser.activedStat.length === 0) {
+//       return res.status(400).json({ error: "No activated stats to sync" });
+//     }
+//     const integration = await Integration.findById(integrationId).lean();
+//     if (!integration) {
+//       return res.status(404).json({ error: "Integration not found" });
+//     }
+
+//     const updatedStats = [];
+//     for (const stat of integrationUser.activedStat) {
+//       const availableStat = integration.availableStats.find((s) => s._id.toString() === stat.toString());
+//       if (!availableStat) continue;
+
+//       // Appeler l'API pour récupérer la valeur actuelle de la Stat
+//       const apiValue = await fetch(availableStat.apiEndpoint, {
+//         headers: { Authorization: `Bearer ${integrationUser.accessToken}` },
+//       }).then((res) => res.json());
+
+//       // Mettre à jour la Stat correspondante
+//       const updatedStat = await Stat.findOneAndUpdate(
+//         { userId, integrationId, integrationStatId: availableStat._id },
+//         { value: apiValue.value, updatedAt: new Date() },
+//         { new: true, upsert: true },
+//       );
+
+//       updatedStats.push(updatedStat);
+//     }
+//     res.status(200).json({ message: "Statistics synced successfully", updatedStats });
+//   } catch (error) {
+//     res.status(500).json({ error: "Failed to sync statistics" });
+//   }
+// };

@@ -36,7 +36,8 @@ export const createStat = async (req, res) => {
       unit,
       current: true,
       hided,
-      auto: false,
+      integrationId: null,
+      integrationStatId: null,
     });
 
     res.status(201).json({ stat, message: "Stat created successfully" });

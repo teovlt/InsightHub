@@ -31,6 +31,10 @@ const IntegrationUserSchema = new Schema(
       type: Schema.Types.Mixed,
       default: {},
     },
+    accessToken: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,

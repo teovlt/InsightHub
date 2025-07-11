@@ -1,4 +1,5 @@
 import { Category } from "../models/categoryModel.js";
+import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
 
 /**
@@ -12,6 +13,7 @@ export const getCategories = async (req, res) => {
   const userId = req.userId;
 
   try {
+    // 1️⃣ Récupère les catégories paginées
     const categories = await Category.find({})
       .sort({ createdAt: 1 })
       .skip(page * size)
@@ -20,11 +22,26 @@ export const getCategories = async (req, res) => {
 
     const categoryIds = categories.map((cat) => cat._id);
 
-    const stats = await Stat.find({
+    let stats = await Stat.find({
       userId: userId,
       categoryId: { $in: categoryIds },
       current: true,
     }).lean();
+
+    const integrationUsers = await IntegrationUser.find({ userId }).lean();
+
+    const activedStatMap = {};
+    integrationUsers.forEach((iu) => {
+      if (iu.integrationId && Array.isArray(iu.activedStat)) {
+        activedStatMap[iu.integrationId.toString()] = iu.activedStat.map((id) => id.toString());
+      }
+    });
+
+    stats = stats.filter((stat) => {
+      if (!stat.integrationId) return true; // Stat locale, pas concernée
+      const activedIds = activedStatMap[stat.integrationId.toString()] || [];
+      return activedIds.includes(stat.integrationStatId?.toString());
+    });
 
     const statsByCategory = {};
     stats.forEach((stat) => {

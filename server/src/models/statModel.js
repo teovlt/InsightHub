@@ -34,9 +34,13 @@ const statSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    auto: {
-      type: Boolean,
-      default: false,
+    integrationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Integration",
+      required: false,
+    },
+    integrationStatId: {
+      type: mongoose.Schema.Types.ObjectId,
     },
   },
   {
