@@ -8,7 +8,7 @@ import { corsOptions } from "./configuration/corsOptions.js";
 import { router } from "./routes/router.js";
 
 import session from "express-session";
-import MongoStore from "connect-mongo"; // ou Redis, pareil
+import MongoStore from "connect-mongo";
 
 // Create the Express application instance
 export const app = express();

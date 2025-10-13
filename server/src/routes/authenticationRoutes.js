@@ -1,12 +1,5 @@
 import express from "express";
-import {
-  getConnectedUser,
-  login,
-  logout,
-  register,
-  signInWithGoogle,
-  // registerWithGoogle,
-} from "../controllers/authenticationController.js";
+import { getConnectedUser, login, logout, register, signInWithGoogle } from "../controllers/authenticationController.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 export const authRouter = new express.Router();
