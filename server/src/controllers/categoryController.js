@@ -1,6 +1,7 @@
 import { Category } from "../models/categoryModel.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
+import { autoSyncStats } from "../utils/stats.js";
 
 /**
  * Get a paginated list of categories.
@@ -13,7 +14,6 @@ export const getCategories = async (req, res) => {
   const userId = req.userId;
 
   try {
-    // 1️⃣ Récupère les catégories paginées
     const categories = await Category.find({})
       .sort({ order: 1, createdAt: 1 })
       .skip(page * size)
@@ -54,6 +54,10 @@ export const getCategories = async (req, res) => {
       ...cat,
       stats: statsByCategory[cat._id.toString()] || [],
     }));
+
+    integrationUsers.forEach((element) => {
+      autoSyncStats(userId, element.integrationId);
+    });
 
     const count = await Category.countDocuments();
 

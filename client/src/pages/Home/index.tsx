@@ -18,7 +18,9 @@ export const Home = () => {
   async function fetchAllCategories(page: number = 0, size: number = 10) {
     setLoading(true);
     try {
-      const response = await axiosConfig.get("/categories");
+      const response = await axiosConfig.get("/categories", {
+        params: { page, size },
+      });
       setCategories(response.data.categories);
     } catch (error: any) {
       toast.error(error.response?.data?.error);
@@ -26,6 +28,7 @@ export const Home = () => {
       setLoading(false);
     }
   }
+
   return (
     <div className="min-h-screen">
       <div className="container mx-auto p-6 space-y-12">

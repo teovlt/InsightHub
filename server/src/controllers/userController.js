@@ -120,7 +120,6 @@ export const updateUser = async (req, res) => {
   try {
     if (email) {
       const existingUserByEmail = await User.findOne({ email: email.toLowerCase(), _id: { $ne: id } });
-      console.log(email.toLowerCase());
       if (existingUserByEmail) return res.status(409).json({ error: "server.users.errors.email_taken" });
     }
 

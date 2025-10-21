@@ -452,8 +452,6 @@ describe("PUT /api/users/:id/password", () => {
       })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
-    console.log(response.body);
-
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("server.global.errors.no_such_user");
   });
