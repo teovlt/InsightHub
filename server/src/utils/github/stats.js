@@ -146,6 +146,5 @@ export const getTotalStars = async (accessToken) => {
     endCursor = pageInfo.endCursor;
   }
 
-  console.log(totalStars);
   return totalStars;
 };

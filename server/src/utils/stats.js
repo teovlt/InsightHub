@@ -5,7 +5,6 @@ import { decrypt } from "./crypto.js";
 import { getMaxStreak, getTotalCommits, getTotalStars } from "./github/stats.js";
 
 export const autoSyncStats = async (userId, integrationId) => {
-  console.log("je sync les stats combiend de fois ?");
   if (!integrationId) {
     return { error: "integrationId is required" };
   }
@@ -47,7 +46,6 @@ export const autoSyncStats = async (userId, integrationId) => {
     }
     if (hasTotalStars) {
       totalStars = await getTotalStars(decrypt(integrationUser.accessToken));
-      console.log(totalStars);
     }
 
     // Mets à jour les stats en base
