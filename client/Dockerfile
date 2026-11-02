@@ -22,7 +22,7 @@ ARG VITE_FIREBASE_APP_ID=""
 RUN pnpm run build
 
 # Stage 2: Serve with Nginx
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 
 # Templates are rendered by the nginx entrypoint with the container environment (API_URL for the CSP).
 # API_URL defaults to the URL the bundle was built with, so the image works without any runtime variable;
