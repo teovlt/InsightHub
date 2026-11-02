@@ -6,10 +6,12 @@ import { axiosConfig } from "@/config/axiosConfig";
 import { CategoryInterface } from "@/interfaces/Category";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export const Home = () => {
   const [categories, setCategories] = useState<CategoryInterface[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchAllCategories();
@@ -34,11 +36,8 @@ export const Home = () => {
       <div className="container mx-auto p-6 space-y-12">
         {/* Header */}
         <header className="text-center space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight">Take Control of Your Habits and Goals</h1>
-          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-            Your personal dashboard to track habits, measure progress, and stay accountable. Organize your life with clear categories and
-            celebrate your growth, one step at a time.
-          </p>
+          <h1 className="text-4xl font-bold tracking-tight">{t("pages.home.title")}</h1>
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">{t("pages.home.subtitle")}</p>
         </header>
 
         {/* Content */}
@@ -65,8 +64,8 @@ export const Home = () => {
           ) : (
             <div className="text-center py-12">
               <div className="text-muted-foreground space-y-2">
-                <p className="text-lg">No categories yet!</p>
-                <p className="text-sm">Create your first category to start tracking your life metrics.</p>
+                <p className="text-lg">{t("pages.home.empty_title")}</p>
+                <p className="text-sm">{t("pages.home.empty_description")}</p>
               </div>
             </div>
           )}

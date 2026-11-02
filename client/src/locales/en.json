@@ -13,7 +13,10 @@
   },
   "pages": {
     "home": {
-      "welcome_message": "Welcome to this boilerplate!"
+      "title": "Your habits, your progress, all in one place.",
+      "subtitle": "Track what matters to you (sport, reading, studies, side projects) and watch yourself move forward, one day at a time.",
+      "empty_title": "Nothing to track yet.",
+      "empty_description": "Create your first category or connect an integration to get started."
     },
     "account": {
       "errors": {

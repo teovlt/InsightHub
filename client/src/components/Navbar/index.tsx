@@ -21,6 +21,7 @@ import {
 import { useLogout } from "@/hooks/useLogout";
 import { AvatarWithStatusCell } from "@/components/customs/avatarStatusCell";
 import { useConfigContext } from "../../contexts/configContext";
+import { Logo } from "@/components/customs/logo";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,9 +65,9 @@ export const Navbar = () => {
     <>
       <div className="sticky top-0 left-0 right-0 z-50 border-b bg-background">
         <div className="items-center justify-between hidden p-4 px-8 select-none md:flex text-accent">
-          <div className="text-3xl font-extrabold">
-            <Link to="/">{configValues["APP_NAME"]}</Link>
-          </div>
+          <Link to="/">
+            <Logo name={configValues["APP_NAME"]} className="text-2xl" />
+          </Link>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               {authUser ? (
@@ -165,9 +166,9 @@ export const Navbar = () => {
 
         {/* Mobile Navbar with Hamburger Menu */}
         <div className="flex items-center justify-between p-4 md:hidden ">
-          <div className="text-3xl font-extrabold text-accent">
-            <Link to="/">{configValues["APP_NAME"]}</Link>
-          </div>
+          <Link to="/">
+            <Logo name={configValues["APP_NAME"]} className="text-2xl" />
+          </Link>
           <Menu onClick={() => setIsOpen(!isOpen)} className="cursor-pointer" />
         </div>
         <div

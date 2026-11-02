@@ -13,7 +13,10 @@
   },
   "pages": {
     "home": {
-      "welcome_message": "Bienvenue sur ce boilerplate !"
+      "title": "Tes habitudes, ta progression, au même endroit.",
+      "subtitle": "Suis ce qui compte pour toi (sport, lecture, études, side projects) et regarde-toi avancer, un jour après l'autre.",
+      "empty_title": "Rien à suivre pour l'instant.",
+      "empty_description": "Crée ta première catégorie ou connecte une intégration pour commencer."
     },
     "account": {
       "errors": {

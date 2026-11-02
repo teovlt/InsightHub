@@ -1,10 +1,19 @@
 # InsightHub
 
-**InsightHub** is a web platform that centralizes, organizes, and analyzes your activity data to give you a clear, actionable view of your progress.
+**Your habits, your progress, all in one place.**
+
+InsightHub is a personal dashboard for your habits and everyday life (sport, reading, studies, side projects, music…).
+Connect the apps you already use, add what they don't cover, and watch yourself move forward, with progress you can
+easily show off.
 
 ## 🚀 Why InsightHub?
 
-Manage your productivity, visualize key metrics, and connect your favorite tools to automatically generate reliable statistics. InsightHub is built for developers, freelancers, and anyone who wants frictionless performance tracking.
+- **Built for you, not your team**: one account, one person. No manager dashboards.
+- **Data that comes to you**: integrations pull your activity automatically; manual entries fill the gaps.
+- **Progress first**: every screen answers one question, "am I moving forward?"
+- **Web first**: works great on any screen, no app to install.
+
+Brand, audience and tone of voice are documented in [BRAND.md](BRAND.md).
 
 ---
 
@@ -26,7 +35,7 @@ Manage your productivity, visualize key metrics, and connect your favorite tools
 
 - **GitHub**: Sync your public/private contributions.
 - **Google Auth**: Simple sign-in.
-- **(Coming soon)**: Strava, Notion, Spotify...
+- **(Coming soon)**: Strava, Spotify, Goodreads...
 
 ---
 

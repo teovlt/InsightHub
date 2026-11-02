@@ -10,6 +10,7 @@ import { OAuth } from "./oauth";
 import { useConfigContext } from "@/contexts/configContext";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Logo } from "@/components/customs/logo";
 
 type RegisterFormProps = {
   onSubmit: (values: z.infer<any>) => Promise<void>;
@@ -60,8 +61,8 @@ export const RegisterForm = ({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-svh gap-6 px-2 py-4 md:px-10 md:py-10">
-      <div className="flex items-center self-center gap-2 text-2xl font-medium sm:text-4xl text-accent">{configValues["APP_NAME"]}</div>
-      <div className="flex flex-col w-full max-w-2xl gap-6 bg-background p-4 md:p-8 sm:rounded-2xl sm:shadow">
+      <Logo name={configValues["APP_NAME"]} className="self-center text-3xl sm:text-4xl" markClassName="w-10 h-10" />
+      <div className="flex flex-col w-full max-w-2xl gap-6 bg-card p-4 md:p-8 sm:rounded-2xl sm:shadow">
         <div className="text-center">
           <h1 className="text-xl md:text-2xl">{oauth ? t("pages.register.title") : t("pages.register.password_creation")}</h1>
         </div>
@@ -131,7 +132,7 @@ export const RegisterForm = ({
               {import.meta.env.VITE_FIREBASE_API_KEY && oauth && (
                 <>
                   <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                    <span className="relative z-10 bg-background px-2 text-muted-foreground">{t("pages.login.or_continue_with")}</span>
+                    <span className="relative z-10 bg-card px-2 text-muted-foreground">{t("pages.login.or_continue_with")}</span>
                   </div>
                   <OAuth message="pages.register.register" />
                 </>

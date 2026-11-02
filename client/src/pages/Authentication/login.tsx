@@ -13,6 +13,7 @@ import { useConfigContext } from "@/contexts/configContext";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { OAuth } from "@/components/customs/oauth";
+import { Logo } from "@/components/customs/logo";
 
 export const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -65,8 +66,8 @@ export const Login = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-svh gap-6 px-2 py-4 md:px-10 md:py-10">
-      <div className="flex items-center self-center gap-2 text-3xl font-medium sm:text-4xl text-accent">{configValues["APP_NAME"]}</div>
-      <div className="flex flex-col w-full max-w-md gap-6 bg-background p-4 md:p-8 lg:rounded-2xl lg:shadow">
+      <Logo name={configValues["APP_NAME"]} className="self-center text-3xl sm:text-4xl" markClassName="w-10 h-10" />
+      <div className="flex flex-col w-full max-w-md gap-6 bg-card p-4 md:p-8 lg:rounded-2xl lg:shadow">
         <div className="text-center">
           <h1 className="text-xl md:text-2xl font-semibold">{t("pages.login.welcome_back")}</h1>
         </div>
@@ -110,7 +111,7 @@ export const Login = () => {
               {import.meta.env.VITE_FIREBASE_API_KEY && (
                 <>
                   <div className="relative text-sm text-center after:border-border after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                    <span className="relative z-10 px-2 bg-background text-muted-foreground">{t("pages.login.or_continue_with")}</span>
+                    <span className="relative z-10 px-2 bg-card text-muted-foreground">{t("pages.login.or_continue_with")}</span>
                   </div>
                   <OAuth message="pages.login.login_button" />
                 </>
