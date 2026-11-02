@@ -12,8 +12,8 @@ importers:
         specifier: ^3.0.3
         version: 3.0.3
       connect-mongo:
-        specifier: ^5.1.0
-        version: 5.1.0(express-session@1.19.0)(mongodb@6.21.0)
+        specifier: ^6.0.0
+        version: 6.0.0(express-session@1.19.0)(mongodb@6.21.0)
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -346,10 +346,6 @@ packages:
   '@istanbuljs/schema@0.1.6':
     resolution: {integrity: sha512-+Sg6GCR/wy1oSmQDFq4LQDAhm3ETKnorxN+y5nbLULOR3P0c14f2Wurzj3/xqPXtasLFfHd5iRFQ7AJt4KH2cw==}
     engines: {node: '>=8'}
-
-  '@jas-/asn.1@6.0.2':
-    resolution: {integrity: sha512-P0jZznu7XQLzvjvK4DvxIyTKpND/qcvy5s5FaR1A8+DTxzNxc3SfOT1hQwQoqPyQ9YFdE/361KpCAhpKi4mN2A==}
-    engines: {node: '>=18'}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -700,6 +696,9 @@ packages:
   asap@2.0.6:
     resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
 
+  asn1.js@5.4.1:
+    resolution: {integrity: sha512-+I//4cYPccV8LdmBLiX8CYvf9Sp3vQsrqu2QNXRcrbiWvcx/UdlFiqUJJzxRQxgsZmvhXhn4cSKeSmoFjVdupA==}
+
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
@@ -781,6 +780,9 @@ packages:
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
+
+  bn.js@4.12.5:
+    resolution: {integrity: sha512-3aRg6/JxfffFD+OlOjOFR3Vo79l39ooBTFucxx+MT3dhCtzn3EmiUPQo+6/OZuI2jbXi3YKgmiTFBgChQMwIRQ==}
 
   body-parser@2.4.0:
     resolution: {integrity: sha512-Ifk1KcLrxaGt1occQagQNFNNOqRt1LFuehEnHHzB8Z6cRgIxRU1TBaiIsUiCdA+gy5PL7Y1IX31DNKkRmxtXjQ==}
@@ -867,12 +869,12 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  connect-mongo@5.1.0:
-    resolution: {integrity: sha512-xT0vxQLqyqoUTxPLzlP9a/u+vir0zNkhiy9uAdHjSCcUUf7TS5b55Icw8lVyYFxfemP3Mf9gdwUOgeF3cxCAhw==}
-    engines: {node: '>=12.9.0'}
+  connect-mongo@6.0.0:
+    resolution: {integrity: sha512-mHxfnTiWk7ZtxmHdcrFBKlr7fCtgGoFpx/oe9jFW0yb2NinagsxEeuol78nUWMpnWyYK0nnuXMlU9wrgUjTE6g==}
+    engines: {node: '>=20.8.0'}
     peerDependencies:
       express-session: ^1.17.1
-      mongodb: '>= 5.1.0 < 7'
+      mongodb: '>=5.0.0'
 
   content-disposition@2.0.1:
     resolution: {integrity: sha512-e+H0ZXHSWYrENhQzw1LPuP4oF5MzVKmDU6d3hxlvaPEYLLg62MxtQNPRx4SYSuYJSBUgnQIG4HIN2tEtNv7Dog==}
@@ -1376,9 +1378,9 @@ packages:
     resolution: {integrity: sha512-C3iHfuGUXK2u8/ipq9LfjFfXFxAZMQJJq7vLS45r3D9Y2xQ/m4S8zaR4zMLFWh9AsNPXmcFfUDhTEO8UIC/V6Q==}
     engines: {node: '>=12.0.0'}
 
-  kruptein@3.4.0:
-    resolution: {integrity: sha512-zyzWq5d2RNglua4EIAxAyqPl2043wkpGRUmhTQ+Tjz8uDMnKnGwBqP32Co7vhp7nb7O1R5RI+lS4dzP0XDsdqg==}
-    engines: {node: '>=18'}
+  kruptein@3.0.8:
+    resolution: {integrity: sha512-0CyalFA0Cjp3jnziMp0u1uLZW2/ouhQ0mEMfYlroBXNe86na1RwAuwBcdRAegeWZNMfQy/G5fN47g/Axjtqrfw==}
+    engines: {node: '>8'}
 
   limiter@1.1.5:
     resolution: {integrity: sha512-FWWMIEOxz3GwUI4Ts/IvgVy6LPvoMPgjMdQ185nN6psJyBJ4yOpzqm695/h5umdLJg2vW3GR5iG11MAkR2AzJA==}
@@ -1492,6 +1494,9 @@ packages:
     resolution: {integrity: sha512-jSCU7/VB1loIWBZe14aEYHU/+1UMEHoaO7qxCOVJOw9GgH72VAWppxNcjU+x9a2k3GSIBXNKxXQFqRvvZ7vr3A==}
     engines: {node: '>=10.0.0'}
     hasBin: true
+
+  minimalistic-assert@1.0.1:
+    resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
 
   minimatch@10.2.6:
     resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
@@ -2452,8 +2457,6 @@ snapshots:
 
   '@istanbuljs/schema@0.1.6': {}
 
-  '@jas-/asn.1@6.0.2': {}
-
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -2779,6 +2782,13 @@ snapshots:
 
   asap@2.0.6: {}
 
+  asn1.js@5.4.1:
+    dependencies:
+      bn.js: 4.12.5
+      inherits: 2.0.4
+      minimalistic-assert: 1.0.1
+      safer-buffer: 2.1.2
+
   assertion-error@2.0.1: {}
 
   ast-v8-to-istanbul@0.3.12:
@@ -2840,6 +2850,8 @@ snapshots:
   bignumber.js@9.3.1: {}
 
   binary-extensions@2.3.0: {}
+
+  bn.js@4.12.5: {}
 
   body-parser@2.4.0:
     dependencies:
@@ -2941,11 +2953,11 @@ snapshots:
 
   concat-map@0.0.1: {}
 
-  connect-mongo@5.1.0(express-session@1.19.0)(mongodb@6.21.0):
+  connect-mongo@6.0.0(express-session@1.19.0)(mongodb@6.21.0):
     dependencies:
       debug: 4.4.3(supports-color@5.5.0)
       express-session: 1.19.0
-      kruptein: 3.4.0
+      kruptein: 3.0.8
       mongodb: 6.21.0
     transitivePeerDependencies:
       - supports-color
@@ -3614,9 +3626,9 @@ snapshots:
 
   kareem@2.6.3: {}
 
-  kruptein@3.4.0:
+  kruptein@3.0.8:
     dependencies:
-      '@jas-/asn.1': 6.0.2
+      asn1.js: 5.4.1
 
   limiter@1.1.5: {}
 
@@ -3705,6 +3717,8 @@ snapshots:
 
   mime@3.0.0:
     optional: true
+
+  minimalistic-assert@1.0.1: {}
 
   minimatch@10.2.6:
     dependencies:
