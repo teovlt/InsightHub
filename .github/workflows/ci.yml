@@ -17,7 +17,7 @@ jobs:
       run:
         working-directory: server
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: server/package.json
@@ -38,7 +38,7 @@ jobs:
       run:
         working-directory: client
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: client/package.json
@@ -58,7 +58,7 @@ jobs:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: package.json
