@@ -15,7 +15,6 @@ export async function setup() {
   process.env.MONG_URI_TEST = `${uri}insighthub-test`;
   process.env.PORT = "3999";
   process.env.CORS_ORIGIN = "http://localhost:5173";
-  process.env.SELF_URL = "http://localhost:3999";
   process.env.SECRET_ACCESS_TOKEN = "test-access-token-secret-0123456789abcdef";
   process.env.SESSION_SECRET = "test-session-secret-0123456789abcdef";
   process.env.CRYPTO_SECRET = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";

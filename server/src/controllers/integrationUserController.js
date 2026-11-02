@@ -15,9 +15,9 @@ export const redirectToGithub = async (req, res) => {
   const userId = req.userId;
 
   try {
-    const { GITHUB_CLIENT_ID, SELF_URL } = process.env;
+    const { GITHUB_CLIENT_ID } = process.env;
 
-    if (!GITHUB_CLIENT_ID || !SELF_URL) {
+    if (!GITHUB_CLIENT_ID) {
       return res.status(500).json({ error: "Missing env variables for GitHub OAuth." });
     }
 
@@ -34,7 +34,8 @@ export const redirectToGithub = async (req, res) => {
 
     const params = new URLSearchParams({
       client_id: GITHUB_CLIENT_ID,
-      redirect_uri: `${SELF_URL}/api/integrations/auth/github/callback`,
+      // Built from the incoming request (trust proxy makes protocol/host reflect the public URL)
+      redirect_uri: `${req.protocol}://${req.get("host")}/api/integrations/auth/github/callback`,
       // read:user is enough for contributions and public repositories; "repo" would grant write access to private code
       scope: process.env.GITHUB_OAUTH_SCOPES || "read:user",
       state,

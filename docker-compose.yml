@@ -60,8 +60,6 @@ services:
       TRUST_PROXY: 1
       # Origin allowed by CORS/CSRF checks and where OAuth flows send the user back
       CORS_ORIGIN: ${CLIENT_URL:?CLIENT_URL is required}
-      # Public URL of this server, used for the GitHub OAuth callback
-      SELF_URL: ${API_URL:?API_URL is required}
       MONG_URI: mongodb://${MONGO_USER:-insighthub}:${MONGO_PASSWORD:?MONGO_PASSWORD is required}@mongodb:27017/insighthub?authSource=admin
       SECRET_ACCESS_TOKEN: ${SECRET_ACCESS_TOKEN:?SECRET_ACCESS_TOKEN is required}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
