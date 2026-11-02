@@ -12,11 +12,7 @@ export const getLogs = async (req, res) => {
   const { size, skip } = getPagination(req.query);
 
   try {
-    const logs = await Log.find({})
-      .sort({ createdAt: -1 })
-      .populate("user")
-      .skip(skip)
-      .limit(size);
+    const logs = await Log.find({}).sort({ createdAt: -1 }).populate("user").skip(skip).limit(size);
 
     const count = await Log.countDocuments();
 

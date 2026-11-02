@@ -1,0 +1,19 @@
+{
+  "name": "insighthub",
+  "private": true,
+  "description": "Repository tooling (git hooks, formatting). The apps live in client/ and server/.",
+  "packageManager": "pnpm@10.6.5",
+  "scripts": {
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md,yml,yaml}": "prettier --write"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "3"
+  }
+}

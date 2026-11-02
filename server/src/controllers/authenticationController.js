@@ -153,6 +153,28 @@ export const logout = async (req, res) => {
 };
 
 /**
+ * Logs the user out of every device: bumping tokenVersion revokes all the tokens issued so far.
+ *
+ * @returns {Object} JSON response with success message.
+ */
+export const logoutEverywhere = async (req, res) => {
+  try {
+    await User.updateOne({ _id: req.userId }, { $inc: { tokenVersion: 1 } });
+
+    createLog({
+      message: `User ${req.user.username} logged out of every device`,
+      userId: req.userId,
+      level: logLevels.INFO,
+    });
+
+    clearAccessTokenCookie(res);
+    res.status(200).json({ message: "server.auth.messages.logout_everywhere_success" });
+  } catch (err) {
+    return handleServerError(res, err);
+  }
+};
+
+/**
  * Retrieves the currently connected user's details.
  *
  * @param {string} userId - The ID of the connected user, extracted from the token.

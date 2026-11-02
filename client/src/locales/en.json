@@ -58,7 +58,8 @@
       "change_password": "Change Password",
       "delete_account": "Delete account",
       "deleting_account": "Deleting account...",
-      "actions": "Actions"
+      "actions": "Actions",
+      "logout_everywhere": "Log out of all devices"
     },
     "login": {
       "welcome_back": "Welcome Back",
@@ -150,7 +151,8 @@
       "messages": {
         "register_success": "Registered successfully",
         "login_success": "Logged in successfully",
-        "logout_success": "Logged out successfully"
+        "logout_success": "Logged out successfully",
+        "logout_everywhere_success": "Logged out of all devices"
       }
     },
     "upload": {
@@ -171,7 +173,9 @@
         "actual_password_incorrect": "The current password is incorrect",
         "regex_error": "Password must contain at least 8 characters, including uppercase, lowercase letters, numbers, and special characters.",
         "passwords_do_not_match": "The new password and confirmation do not match",
-        "password_incorrect": "The password is incorrect"
+        "password_incorrect": "The password is incorrect",
+        "last_admin": "The app needs at least one admin: promote another user first.",
+        "cannot_delete_self": "You cannot delete your own account here, use your account page."
       },
       "messages": {
         "user_updated": "User updated successfully",

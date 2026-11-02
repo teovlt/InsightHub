@@ -17,6 +17,14 @@ import { parseBody } from "../middlewares/validate.js";
 import { adminUpdateUserSchema, deleteAccountSchema, selfUpdateUserSchema, updatePasswordSchema } from "../validation/schemas.js";
 
 /**
+ * @function isLastAdmin
+ * @description Tells whether the user is the only admin left, who must not lose the role.
+ * @param {Object} user - User document (with role).
+ * @returns {Promise<boolean>} True if removing this admin would leave the app without one.
+ */
+const isLastAdmin = async (user) => user.role === userRoles.ADMIN && (await User.countDocuments({ role: userRoles.ADMIN })) <= 1;
+
+/**
  * @function getUser
  * @description Retrieves a single user by ID.
  * @returns {Object} JSON response with user details or error message.
@@ -135,6 +143,11 @@ export const updateUser = async (req, res) => {
       if (existingUserByUsername) return res.status(409).json({ error: "server.users.errors.username_taken" });
     }
 
+    if (update.role && update.role !== userRoles.ADMIN) {
+      const target = await User.findById(id);
+      if (target && (await isLastAdmin(target))) return res.status(400).json({ error: "server.users.errors.last_admin" });
+    }
+
     if (update.password) {
       if (!Constants.REGEX_PASSWORD.test(update.password)) {
         return res.status(400).json({ error: "server.users.errors.regex_error" });
@@ -170,7 +183,16 @@ export const updateUser = async (req, res) => {
  */
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
+
+  // Admins delete their own account from the account page, which asks for their password
+  if (id === req.userId) {
+    return res.status(400).json({ error: "server.users.errors.cannot_delete_self" });
+  }
+
   try {
+    const target = await User.findById(id);
+    if (target && (await isLastAdmin(target))) return res.status(400).json({ error: "server.users.errors.last_admin" });
+
     const user = await User.findOneAndDelete({ _id: id });
     if (!user) return res.status(400).json({ error: "No such user" });
 
@@ -235,11 +257,9 @@ export const updatePassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { password: hashedPassword, $inc: { tokenVersion: 1 } },
-      { new: true },
-    ).select("+tokenVersion");
+    const updatedUser = await User.findByIdAndUpdate(id, { password: hashedPassword, $inc: { tokenVersion: 1 } }, { new: true }).select(
+      "+tokenVersion",
+    );
 
     setAccessTokenCookie(res, updatedUser);
 
@@ -266,6 +286,8 @@ export const deleteAccount = async (req, res) => {
 
     const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) return res.status(400).json({ error: "server.users.errors.password_incorrect" });
+
+    if (await isLastAdmin(user)) return res.status(400).json({ error: "server.users.errors.last_admin" });
 
     await User.findByIdAndDelete(userId);
     await deleteUserData(user);

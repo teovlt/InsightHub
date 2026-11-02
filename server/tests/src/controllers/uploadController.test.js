@@ -95,7 +95,10 @@ describe("Tests uploads files", () => {
         throw new Error("Test error");
       });
 
-    const response = await request(app).post(`/api/uploads/avatar/${user._id}`).set("Cookie", cookie).attach("avatar", Buffer.from("fake png"), png);
+    const response = await request(app)
+      .post(`/api/uploads/avatar/${user._id}`)
+      .set("Cookie", cookie)
+      .attach("avatar", Buffer.from("fake png"), png);
 
     expect(response.body.error).toBe("server.global.errors.internal");
     expect(response.statusCode).toBe(500);

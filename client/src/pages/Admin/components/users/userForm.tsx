@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { createPlayerSchema, deleteInfoSchema, updatePlayerSchema } from "@/lib/zod/schemas/admin/zod";
 import { Copy } from "lucide-react";
 import { UserInterface } from "@/interfaces/User";
+import { t } from "i18next";
 
 interface UserFormProps {
   dialog: (isOpen: boolean) => void;
@@ -57,12 +58,12 @@ export const UserForm = ({ dialog, refresh, action, user }: UserFormProps) => {
     try {
       setLoading(true);
       const response = await axiosConfig.post("/users", values);
-      toast.success(response.data.message);
+      toast.success(t(response.data.message));
       dialog(false);
       refresh();
       createForm.reset();
     } catch (error: any) {
-      toast.error(error.response.data.error);
+      toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
     } finally {
       setLoading(false);
     }
@@ -72,12 +73,12 @@ export const UserForm = ({ dialog, refresh, action, user }: UserFormProps) => {
     try {
       setLoading(true);
       const response = await axiosConfig.put(`/users/${user?._id}`, values);
-      toast.success(response.data.message);
+      toast.success(t(response.data.message));
       dialog(false);
       refresh();
       updateForm.reset();
     } catch (error: any) {
-      toast.error(error.response.data.error);
+      toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
     } finally {
       setLoading(false);
     }
@@ -88,11 +89,11 @@ export const UserForm = ({ dialog, refresh, action, user }: UserFormProps) => {
       try {
         setLoading(true);
         const response = await axiosConfig.delete(`/users/${user?._id}`);
-        toast.success(response.data.message);
+        toast.success(t(response.data.message));
         dialog(false);
         refresh();
       } catch (error: any) {
-        toast.error(error.response.data.error);
+        toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
       } finally {
         setLoading(false);
       }
@@ -109,7 +110,7 @@ export const UserForm = ({ dialog, refresh, action, user }: UserFormProps) => {
       if (action === "update") updateForm.setValue("password", response.data.password);
       if (action === "create") createForm.setValue("password", response.data.password);
     } catch (error: any) {
-      toast.error(error.response.data.error);
+      toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
     } finally {
       setLoading(false);
     }

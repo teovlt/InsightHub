@@ -1,5 +1,5 @@
 import express from "express";
-import { getConnectedUser, login, logout, register, signInWithGoogle } from "../controllers/authenticationController.js";
+import { getConnectedUser, login, logout, logoutEverywhere, register, signInWithGoogle } from "../controllers/authenticationController.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { credentialsLimiter, registerLimiter } from "../middlewares/rateLimiters.js";
 
@@ -29,6 +29,13 @@ authRouter.post("/register", registerLimiter, register);
  * @description Logs out the current user by clearing the auth cookie (works even with an expired token).
  */
 authRouter.post("/logout", logout);
+
+/**
+ * @route POST /logout/everywhere
+ * @description Revokes every token of the connected user (all devices) and clears the auth cookie.
+ * @middleware verifyToken() - Ensures the user is authenticated.
+ */
+authRouter.post("/logout/everywhere", verifyToken(), logoutEverywhere);
 
 /**
  * @route GET /me

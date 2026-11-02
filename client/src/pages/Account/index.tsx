@@ -15,7 +15,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { InputFile } from "@/components/customs/inputFile";
 import { UpdatePasswordForm } from "./components/updatePasswordForm";
 import { Dialog } from "@radix-ui/react-dialog";
-import { EllipsisVertical, Trash } from "lucide-react";
+import { EllipsisVertical, LogOut, Trash } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,10 +26,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DeleteAccountForm } from "./components/deleteAccountForm";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 export const Account = () => {
   const { authUser, setAuthUser, loading } = useAuthContext();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const [updateLoading, setUpdateLoading] = useState(false);
   const [openUpdatePasswordDialog, setOpenUpdatePasswordDialog] = useState(false);
@@ -56,6 +58,17 @@ export const Account = () => {
       toast.error(t(error.response.data.error));
     } finally {
       setUpdateLoading(false);
+    }
+  };
+
+  const logoutEverywhere = async () => {
+    try {
+      const response = await axiosConfig.post("/auth/logout/everywhere");
+      toast.success(t(response.data.message));
+      setAuthUser(null);
+      navigate("/login");
+    } catch (error: any) {
+      toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
     }
   };
 
@@ -112,6 +125,10 @@ export const Account = () => {
             <DropdownMenuContent className="w-auto">
               <DropdownMenuLabel>{t("pages.account.actions")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer" onClick={logoutEverywhere}>
+                <LogOut className="w-4 h-4" />
+                <span>{t("pages.account.logout_everywhere")}</span>
+              </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onClick={() => setOpenDeleteAccountDialog(true)}>
                 <Trash className="w-4 h-4 text-destructive" />
                 <span className="text-destructive ">{t("pages.account.delete_account")}</span>

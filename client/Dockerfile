@@ -24,7 +24,10 @@ RUN pnpm run build
 # Stage 2: Serve with Nginx
 FROM nginx:1.27-alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Templates are rendered by the nginx entrypoint with the container environment (API_URL for the CSP)
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx/*.template /etc/nginx/templates/
+COPY --chmod=755 nginx/05-api-ws-url.envsh /docker-entrypoint.d/
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80

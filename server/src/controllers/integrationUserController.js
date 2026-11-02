@@ -163,12 +163,10 @@ export const toggleActivedStat = async (req, res) => {
 
     const { accessToken, ...publicIntegrationUser } = integrationUser.toObject();
 
-    return res
-      .status(200)
-      .json({
-        integrationUser: publicIntegrationUser,
-        message: isActive ? "Stat deactivated successfully." : "Stat activated successfully.",
-      });
+    return res.status(200).json({
+      integrationUser: publicIntegrationUser,
+      message: isActive ? "Stat deactivated successfully." : "Stat activated successfully.",
+    });
   } catch (error) {
     handleServerError(res, error);
   }

@@ -311,6 +311,26 @@ describe("POST /api/auth/logout", () => {
   });
 });
 
+describe("POST /api/auth/logout/everywhere", () => {
+  it("should revoke every token issued before", async () => {
+    const user = await User.create(regularUser);
+    const cookie = authCookie(user);
+
+    const response = await request(app).post("/api/auth/logout/everywhere").set("Cookie", cookie);
+
+    expect(response.status).toBe(200);
+    expect(getAuthSetCookie(response).startsWith("__access__token=;")).toBe(true);
+    const me = await request(app).get("/api/auth/me").set("Cookie", cookie);
+    expect(me.status).toBe(401);
+  });
+
+  it("should require authentication", async () => {
+    const response = await request(app).post("/api/auth/logout/everywhere");
+
+    expect(response.status).toBe(401);
+  });
+});
+
 describe("GET /api/auth/me", () => {
   let user;
   beforeEach(async () => {

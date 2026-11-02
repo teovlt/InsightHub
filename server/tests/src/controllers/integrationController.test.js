@@ -32,7 +32,9 @@ describe("Integrations", () => {
     });
 
     it("should redirect to GitHub with a state and the read-only scope", async () => {
-      const response = await request(app).get(`/api/integrations/auth/github?integrationId=${integration._id}`).set("Cookie", authCookie(user));
+      const response = await request(app)
+        .get(`/api/integrations/auth/github?integrationId=${integration._id}`)
+        .set("Cookie", authCookie(user));
 
       expect(response.status).toBe(302);
       const location = new URL(response.headers.location);
@@ -80,7 +82,9 @@ describe("Integrations", () => {
     it("should toggle a stat that belongs to the integration", async () => {
       const statId = integration.availableStats[0]._id.toString();
 
-      const response = await request(app).patch(`/api/integrations/${integration._id}/stat/${statId}/toggle`).set("Cookie", authCookie(user));
+      const response = await request(app)
+        .patch(`/api/integrations/${integration._id}/stat/${statId}/toggle`)
+        .set("Cookie", authCookie(user));
 
       expect(response.status).toBe(200);
       expect(response.body.integrationUser.activedStat).toEqual([statId]);

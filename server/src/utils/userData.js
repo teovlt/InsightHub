@@ -34,5 +34,9 @@ export const deleteAvatarFile = async (avatarUrl) => {
  * @param {Object} user - The deleted user.
  */
 export const deleteUserData = async (user) => {
-  await Promise.all([Stat.deleteMany({ userId: user._id }), IntegrationUser.deleteMany({ userId: user._id }), deleteAvatarFile(user.avatar)]);
+  await Promise.all([
+    Stat.deleteMany({ userId: user._id }),
+    IntegrationUser.deleteMany({ userId: user._id }),
+    deleteAvatarFile(user.avatar),
+  ]);
 };

@@ -10,7 +10,8 @@ import { handleServerError } from "../utils/httpErrors.js";
  */
 export const getConfig = async (req, res) => {
   // Only whitelisted keys are readable: this route is public
-  const keys = typeof req.query.keys === "string" ? req.query.keys.split(",").filter((key) => Constants.PUBLIC_CONFIG_KEYS.includes(key)) : [];
+  const keys =
+    typeof req.query.keys === "string" ? req.query.keys.split(",").filter((key) => Constants.PUBLIC_CONFIG_KEYS.includes(key)) : [];
 
   try {
     const configItems = await Config.find({ key: { $in: keys } });

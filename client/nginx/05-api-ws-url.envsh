@@ -1,0 +1,4 @@
+#!/bin/sh
+# Sourced by the nginx entrypoint before the templates are rendered:
+# Socket.IO reaches the API over ws(s):// on the same host as API_URL
+export API_WS_URL="$(echo "${API_URL:?API_URL is required}" | sed 's#^http#ws#')"

@@ -58,7 +58,8 @@
       "change_password": "Changer le mot de passe",
       "delete_account": "Supprimer le compte",
       "deleting_account": "Suppression du compte...",
-      "actions": "Actions"
+      "actions": "Actions",
+      "logout_everywhere": "Se déconnecter de tous les appareils"
     },
     "login": {
       "welcome_back": "Content de vous revoir",
@@ -150,7 +151,8 @@
       "messages": {
         "register_success": "Inscription réussie",
         "login_success": "Connexion réussie",
-        "logout_success": "Déconnexion réussie"
+        "logout_success": "Déconnexion réussie",
+        "logout_everywhere_success": "Déconnecté de tous les appareils"
       }
     },
     "upload": {
@@ -171,7 +173,9 @@
         "actual_password_incorrect": "Le mot de passe actuel est incorrect",
         "regex_error": "Le mot de passe doit contenir au moins 8 caractères, incluant des majuscules, des minuscules, des chiffres et des caractères spéciaux.",
         "passwords_do_not_match": "Le nouveau mot de passe et la confirmation ne correspondent pas",
-        "password_incorrect": "Le mot de passe est incorrect"
+        "password_incorrect": "Le mot de passe est incorrect",
+        "last_admin": "L'application doit garder au moins un admin : promouvez d'abord un autre utilisateur.",
+        "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte ici, passez par la page de votre compte."
       },
       "messages": {
         "user_updated": "Utilisateur mis à jour avec succès",

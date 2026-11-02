@@ -306,11 +306,12 @@ describe("PUT /api/users/:id", () => {
 
 describe("DELETE /api/users/:id", () => {
   it("should delete a user", async () => {
+    const admin = await User.create(adminUser);
     const user = await User.create(userAdminWithAvatar);
 
     const response = await request(app)
       .delete(`/api/users/${user._id}`)
-      .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
+      .set("Cookie", `__access__token=${generateAccessToken(admin._id)}`);
 
     expect(bucket.file).toHaveBeenCalledWith("avatars/_test_hello-world.png");
     expect(response.status).toBe(200);
@@ -333,7 +334,8 @@ describe("DELETE /api/users/:id", () => {
   });
 
   it("should return a 500 status if an error occurs", async () => {
-    const user = await User.create(adminUser);
+    const admin = await User.create(adminUser);
+    const user = await User.create(userWithHashPassword);
 
     vi.spyOn(User, "findOneAndDelete").mockImplementationOnce(() => {
       throw new Error("Test error");
@@ -341,9 +343,62 @@ describe("DELETE /api/users/:id", () => {
 
     const response = await request(app)
       .delete(`/api/users/${user._id}`)
-      .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
+      .set("Cookie", `__access__token=${generateAccessToken(admin._id)}`);
     expect(response.status).toBe(500);
     expect(response.body.error).toBe("server.global.errors.internal");
+  });
+
+  it("should not let an admin delete their own account from the admin panel", async () => {
+    const admin = await User.create(adminUser);
+
+    const response = await request(app)
+      .delete(`/api/users/${admin._id}`)
+      .set("Cookie", `__access__token=${generateAccessToken(admin._id)}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("server.users.errors.cannot_delete_self");
+    expect(await User.findById(admin._id)).not.toBeNull();
+  });
+});
+
+describe("Last admin protection", () => {
+  it("should not demote the last admin", async () => {
+    const admin = await User.create(adminUser);
+
+    const response = await request(app)
+      .put(`/api/users/${admin._id}`)
+      .send({ role: "user" })
+      .set("Cookie", `__access__token=${generateAccessToken(admin._id)}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("server.users.errors.last_admin");
+    expect((await User.findById(admin._id)).role).toBe("admin");
+  });
+
+  it("should let an admin be demoted when another admin remains", async () => {
+    const admin = await User.create(adminUser);
+    const other = await User.create({ ...userWithHashPassword, role: "admin" });
+
+    const response = await request(app)
+      .put(`/api/users/${other._id}`)
+      .send({ role: "user" })
+      .set("Cookie", `__access__token=${generateAccessToken(admin._id)}`);
+
+    expect(response.status).toBe(200);
+    expect((await User.findById(other._id)).role).toBe("user");
+  });
+
+  it("should not let the last admin delete their account", async () => {
+    const admin = await User.create({ ...userWithHashPassword, role: "admin" });
+
+    const response = await request(app)
+      .delete("/api/users/delete/account")
+      .send({ password: "Abcdef1@" })
+      .set("Cookie", `__access__token=${generateAccessToken(admin._id)}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("server.users.errors.last_admin");
+    expect(await User.findById(admin._id)).not.toBeNull();
   });
 });
 
@@ -519,8 +574,7 @@ describe("DELETE /api/users/delete/account", () => {
 
     const response = await request(app)
       .delete("/api/users/delete/account")
-      .send({
-      })
+      .send({})
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
     expect(response.status).toBe(422);
@@ -647,10 +701,7 @@ describe("Users security", () => {
     const user = await User.create(regularUser);
     const oldCookie = authCookie(user);
 
-    const response = await request(app)
-      .put(`/api/users/${user._id}`)
-      .send({ password: "NewPassw0rd!" })
-      .set("Cookie", authCookie(admin));
+    const response = await request(app).put(`/api/users/${user._id}`).send({ password: "NewPassw0rd!" }).set("Cookie", authCookie(admin));
     expect(response.status).toBe(200);
 
     const me = await request(app).get("/api/auth/me").set("Cookie", oldCookie);

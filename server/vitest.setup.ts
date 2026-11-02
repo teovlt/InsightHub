@@ -30,7 +30,8 @@ vi.mock("./src/utils/saveAvatarFromUrl.js", async (importOriginal) => {
   return {
     ...original,
     saveAvatarFromUrl: vi.fn(
-      async (_url: string, userId: string, extension = "jpg") => `https://storage.googleapis.com/test-bucket/avatars/avatar_${userId}.${extension}`,
+      async (_url: string, userId: string, extension = "jpg") =>
+        `https://storage.googleapis.com/test-bucket/avatars/avatar_${userId}.${extension}`,
     ),
   };
 });

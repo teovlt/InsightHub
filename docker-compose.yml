@@ -97,6 +97,9 @@ services:
         VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-}
         VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
     restart: unless-stopped
+    environment:
+      # Allowed by the Content-Security-Policy sent with the app
+      API_URL: ${API_URL:?API_URL is required}
     # Attach the app domain to this service on port 80 in Dokploy
     expose:
       - "80"

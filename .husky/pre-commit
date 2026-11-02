@@ -1,9 +1,2 @@
-# Format server code
-cd server
-pnpm format
-cd ..
-
-# Format client code
-cd client
-pnpm format
-cd ..
+# Formats only the staged files and adds the result to the commit
+pnpm exec lint-staged
