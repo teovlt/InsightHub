@@ -13,10 +13,10 @@ importers:
   .:
     dependencies:
       '@fontsource-variable/inter':
-        specifier: 5.2.8
+        specifier: ^5.2.8
         version: 5.2.8
       '@fontsource-variable/space-grotesk':
-        specifier: 5.2.10
+        specifier: ^5.2.10
         version: 5.2.10
       '@hookform/resolvers':
         specifier: 7.0.1
