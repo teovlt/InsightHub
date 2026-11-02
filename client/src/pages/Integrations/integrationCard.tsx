@@ -28,22 +28,32 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
   const IconComponent = getIcon(integration.icon);
 
   return (
-    <Card className="relative overflow-hidden">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <Card
+      className={`relative flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover ${
+        isExpanded ? "md:col-span-2 xl:col-span-3" : ""
+      }`}
+    >
+      {integration.isConnected && <div className="absolute inset-x-0 top-0 h-1 bg-lime" />}
+      <CardHeader className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-4">
             <div
-              className="text-2xl w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold shrink-0"
-              style={{ backgroundColor: integration.color }}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm [&_svg]:size-6"
+              style={{ backgroundColor: integration.color || "var(--accent)" }}
             >
               <IconComponent />
             </div>
-            <div>
-              <CardTitle className="flex items-center gap-2">{integration.name}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">{integration.description}</p>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                {integration.isConnected && <CheckCircle className="text-green-500 h-4 w-4" />}
-                <Badge variant="outline">{integration.category}</Badge>
+            <div className="min-w-0">
+              <CardTitle className="text-lg">{integration.name}</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">{integration.description}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {integration.isConnected && (
+                  <Badge className="border-transparent bg-lime text-[#0f172a]">
+                    <CheckCircle />
+                    Connected
+                  </Badge>
+                )}
+                {integration.category && <Badge variant="secondary">{integration.category}</Badge>}
               </div>
             </div>
           </div>
@@ -75,7 +85,7 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
             )}
 
             {!integration.isConnected && (
-              <Button size="sm" onClick={() => onConnect(integration._id)}>
+              <Button size="sm" className="rounded-full px-4" onClick={() => onConnect(integration._id)}>
                 Connect
               </Button>
             )}
@@ -91,7 +101,10 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
               <h4 className="font-medium mb-3">Available Statistics</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {integration.availableStats?.map((stat: IntegrationStat) => (
-                  <div key={stat._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl gap-4">
+                  <div
+                    key={stat._id}
+                    className="flex flex-col justify-between gap-4 rounded-xl border bg-background/60 p-4 sm:flex-row sm:items-center"
+                  >
                     <div className="flex flex-1 items-start gap-3">
                       <span className="text-xl">{stat.icon}</span>
                       <div className="flex-1">
@@ -117,8 +130,8 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
             </div>
 
             {integration.integrationUser?.activedStat?.length > 0 && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800">
+              <div className="rounded-xl border border-lime/60 bg-lime/15 p-3">
+                <p className="text-sm">
                   ✅ <strong>{integration.integrationUser.activedStat.length}</strong> stats enabled and syncing to your dashboard
                 </p>
               </div>

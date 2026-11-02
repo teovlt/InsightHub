@@ -1,7 +1,7 @@
-import { Card } from "@/components/ui/card";
 import { getIcon } from "@/lib/icons";
 import { CategoryInterface } from "@/interfaces/Category";
 import { generateGradientColors, getColorVariables } from "@/utils/colors";
+import { useTranslation } from "react-i18next";
 import { AddStatDialog } from "./addStatDialog";
 import { StatCard } from "./statCard";
 
@@ -11,22 +11,34 @@ interface CategorySectionProps {
 }
 
 export function CategorySection({ category, refresh }: CategorySectionProps) {
+  const { t } = useTranslation();
   const IconComponent = getIcon(category.icon);
   const gradientColors = generateGradientColors(category.color, Math.max(4, category.stats.length)).reverse();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold flex items-center gap-2">
-          <IconComponent className="h-6 w-6" style={{ color: category.color }} />
-          {category.name}
-        </h2>
+    <section className="space-y-5">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <div
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: `${category.color}1f`, color: category.color }}
+          >
+            <IconComponent className="h-6 w-6" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate text-2xl font-bold tracking-tight">{category.name}</h2>
+              <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                {category.stats.length}
+              </span>
+            </div>
+            {category.description && <p className="truncate text-sm text-muted-foreground">{category.description}</p>}
+          </div>
+        </div>
         <AddStatDialog categoryId={category._id} refrechStats={refresh} />
       </div>
 
-      {category.description && <p className="text-muted-foreground">{category.description}</p>}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {category.stats.map((stat, index) => {
           const statColor = gradientColors[index % gradientColors.length];
           const colorVars = getColorVariables(statColor, index);
@@ -35,14 +47,12 @@ export function CategorySection({ category, refresh }: CategorySectionProps) {
         })}
 
         {category.stats.length === 0 && (
-          <Card className="border-dashed border-2 flex items-center justify-center p-8 col-span-full">
-            <div className="text-center text-muted-foreground">
-              <p className="text-sm">No stats in this category yet.</p>
-              <p className="text-xs mt-1">Click "Add Stat" to get started!</p>
-            </div>
-          </Card>
+          <div className="col-span-full flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border bg-card/50 p-8 text-center">
+            <p className="text-sm font-medium">{t("pages.home.category_empty_title")}</p>
+            <p className="text-xs text-muted-foreground">{t("pages.home.category_empty_description")}</p>
+          </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

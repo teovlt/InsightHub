@@ -10,12 +10,14 @@ interface LayoutWrapperProps {
 
 export const LayoutWrapper = ({ withLayout = true }: LayoutWrapperProps) => {
   return (
-    <>
+    <div className="flex min-h-dvh flex-col">
       {withLayout && <Navbar />}
-      <Suspense fallback={<Loading />}>
-        <Outlet />
-      </Suspense>
-      {/* {withLayout && <Footer />} */}
-    </>
+      <div className="flex-1">
+        <Suspense fallback={<Loading />}>
+          <Outlet />
+        </Suspense>
+      </div>
+      {withLayout && <Footer />}
+    </div>
   );
 };

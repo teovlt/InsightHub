@@ -89,7 +89,7 @@ On garde le bleu actuel pour la continuité, en le rendant plus vif et plus jeun
 | Accent lime    | `#B8F34A` | Succès, séries, objectif atteint, highlights de graphique |
 | Encre          | `#0F172A` | Texte principal (clair), texte sur fond lime              |
 | Neutre         | `#64748B` | Texte secondaire, axes, bordures marquées                 |
-| Fond clair     | `#F7F9FC` | Fond de page en mode clair                                |
+| Fond clair     | `#F3F6FB` | Fond de page en mode clair (les cartes sont blanches)     |
 | Fond sombre    | `#0B1220` | Fond de page en mode sombre                               |
 
 Règles d'accessibilité :
@@ -124,3 +124,20 @@ Les couleurs sont définies uniquement dans `client/src/styles/index.css` (pas d
 - Coins arrondis généreux (cartes 16 px, boutons 10–12 px), ombres légères, beaucoup d'espace.
 - Les cartes de stats mettent le chiffre en avant, avec une mini-courbe et une pastille lime quand ça progresse.
 - Illustrations : formes géométriques simples (barres, points, courbes) dans la palette, pas de stock photos.
+
+### Système de mise en page (implémenté dans le client)
+
+- **Conteneur** : toutes les pages utilisateur passent par `Page` / `PageHeader` / `SectionTitle`
+  (`client/src/components/customs/page.tsx`) : largeur max 1152 px (`max-w-6xl`), gouttières 16 / 24 px,
+  40 px entre sections.
+- **En-tête de page** : sur-titre en bleu majuscule, titre Space Grotesk 30–36 px, description en gris.
+- **Cartes** : fond blanc (`bg-card`), bord `border/70`, `rounded-2xl`, ombre `shadow-card` ; au survol, les cartes
+  cliquables montent de 2 px avec `shadow-card-hover` (halo bleu).
+- **Cartes de stats** : liseré de 4 px en haut dans la couleur de la catégorie, pastille de couleur + libellé gris,
+  valeur en Space Grotesk 30 px, badge lime « Auto » pour les stats synchronisées.
+- **Héros** (accueil) : dégradé `#1489E0 → #0F6FB8`, texte blanc, barres décoratives dont la dernière en lime,
+  tuiles de résumé en verre (`bg-white/10`).
+- **Icônes de section** : tuile 48 px `rounded-2xl` teintée à 12 % de la couleur de la catégorie.
+- **Navbar** : collante, translucide (`backdrop-blur`), liens en pilules, lien actif sur fond bleu à 10 %.
+- **Fond de page** : halo bleu radial très léger en haut de chaque page.
+- **États vides** : bordure pointillée, icône dans une tuile bleue, une phrase + une action.

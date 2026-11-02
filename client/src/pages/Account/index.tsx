@@ -11,19 +11,14 @@ import { getUpdateAccountSchema } from "@/lib/zod/schemas/account/zod";
 import { useState } from "react";
 import { toast } from "sonner";
 import { axiosConfig } from "@/config/axiosConfig";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/components/customs/avatarStatusCell";
+import { Page, PageHeader } from "@/components/customs/page";
+import { Separator } from "@/components/ui/separator";
 import { InputFile } from "@/components/customs/inputFile";
 import { UpdatePasswordForm } from "./components/updatePasswordForm";
 import { Dialog } from "@radix-ui/react-dialog";
-import { EllipsisVertical, LogOut, Trash } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { LogOut, Trash } from "lucide-react";
 import { DeleteAccountForm } from "./components/deleteAccountForm";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -109,124 +104,137 @@ export const Account = () => {
   return loading ? (
     <Loading />
   ) : (
-    <div className="flex justify-center p-8">
-      <Card className="w-full max-w-4xl p-4 shadow-xl rounded-2xl">
-        <CardHeader className="flex flex-row items-center justify-between ">
-          <div>
-            <CardTitle>{t("pages.account.account_settings_title")}</CardTitle>
-            <CardDescription>{t("pages.account.account_settings_description")}</CardDescription>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="cursor-pointer">
-              <Button variant="outline" size="sm">
-                <EllipsisVertical className="w-5 h-5 text-primary" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-auto">
-              <DropdownMenuLabel>{t("pages.account.actions")}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" onClick={logoutEverywhere}>
-                <LogOut className="w-4 h-4" />
-                <span>{t("pages.account.logout_everywhere")}</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => setOpenDeleteAccountDialog(true)}>
-                <Trash className="w-4 h-4 text-destructive" />
-                <span className="text-destructive ">{t("pages.account.delete_account")}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center gap-4 mb-8">
-            <div className="relative">
-              <Avatar className="w-28 h-28 ">
-                <AvatarImage src={authUser?.avatar} alt="User Avatar" className="object-cover object-center w-full h-full rounded-full" />
-              </Avatar>
-            </div>
+    <Page className="max-w-5xl">
+      <PageHeader
+        eyebrow={t("navbar.profile")}
+        title={t("pages.account.account_settings_title")}
+        description={t("pages.account.account_settings_description")}
+      />
+
+      <div className="grid items-start gap-6 lg:grid-cols-[300px_1fr]">
+        {/* Profile card */}
+        <Card className="overflow-hidden">
+          <div className="h-24 bg-gradient-to-br from-accent to-brand-strong" />
+          <div className="-mt-12 flex flex-col items-center gap-3 px-6 pb-6 text-center">
+            <Avatar className="h-24 w-24 ring-4 ring-card">
+              <AvatarImage src={authUser?.avatar} alt="User Avatar" className="object-cover object-center w-full h-full rounded-full" />
+              <AvatarFallback className="bg-accent/15 font-display text-2xl font-bold text-accent">
+                {authUser ? getInitials(authUser) : "?"}
+              </AvatarFallback>
+            </Avatar>
             <div>
-              <InputFile buttonText={t("choose_image")} id="profile-picture" disabled={loading} onChange={updateProfilePic} />
+              <p className="font-display text-lg font-bold">
+                {authUser?.forename} {authUser?.name}
+              </p>
+              <p className="text-sm text-muted-foreground">@{authUser?.username}</p>
             </div>
+            <InputFile buttonText={t("choose_image")} id="profile-picture" disabled={loading} onChange={updateProfilePic} />
           </div>
-          <Form {...updateForm}>
-            <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-6">
-              <div className="flex flex-col gap-4 md:flex-row ">
-                <FormField
-                  control={updateForm.control}
-                  name="forename"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>{t("pages.account.forename_label")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={updateForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>{t("pages.account.name_label")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={updateForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("pages.account.username_label")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder="john_doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={updateForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("pages.account.email_label")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder="john.doe@gmail.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <Separator />
+          <div className="space-y-1 p-3">
+            <Button variant="ghost" className="w-full justify-start" onClick={logoutEverywhere}>
+              <LogOut />
+              {t("pages.account.logout_everywhere")}
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setOpenDeleteAccountDialog(true)}
+            >
+              <Trash />
+              {t("pages.account.delete_account")}
+            </Button>
+          </div>
+        </Card>
 
-              <FormItem>
-                <div className="flex flex-col w-full gap-2">
-                  <FormLabel>{t("pages.account.password_label")}</FormLabel>
-                  <div className="flex items-center justify-between gap-4">
-                    <FormControl>
-                      <Input type="password" placeholder={t("pages.account.password_placeholder")} disabled />
-                    </FormControl>
-                    <Button type="button" variant="outline" onClick={() => setOpenUpdatePasswordDialog(true)} disabled={updateLoading}>
-                      {t("pages.account.change_password")}
-                    </Button>
-                  </div>
+        {/* Details form */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">{t("pages.account.details_title")}</CardTitle>
+            <CardDescription>{t("pages.account.details_description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...updateForm}>
+              <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-6">
+                <div className="flex flex-col gap-4 md:flex-row ">
+                  <FormField
+                    control={updateForm.control}
+                    name="forename"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>{t("pages.account.forename_label")}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={updateForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>{t("pages.account.name_label")}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </FormItem>
+                <FormField
+                  control={updateForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("pages.account.username_label")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="john_doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={updateForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("pages.account.email_label")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="john.doe@gmail.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <CardFooter className="px-0">
-                <Button type="submit" disabled={updateLoading} className="w-full">
-                  {t("global.buttons.update")}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                <FormItem>
+                  <div className="flex flex-col w-full gap-2">
+                    <FormLabel>{t("pages.account.password_label")}</FormLabel>
+                    <div className="flex items-center justify-between gap-4">
+                      <FormControl>
+                        <Input type="password" placeholder={t("pages.account.password_placeholder")} disabled />
+                      </FormControl>
+                      <Button type="button" variant="outline" onClick={() => setOpenUpdatePasswordDialog(true)} disabled={updateLoading}>
+                        {t("pages.account.change_password")}
+                      </Button>
+                    </div>
+                  </div>
+                </FormItem>
+
+                <CardFooter className="justify-end px-0">
+                  <Button type="submit" disabled={updateLoading} className="w-full sm:w-auto sm:px-8">
+                    {t("global.buttons.update")}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
 
       <Dialog open={openUpdatePasswordDialog} onOpenChange={setOpenUpdatePasswordDialog}>
         <UpdatePasswordForm setOpen={setOpenUpdatePasswordDialog} />
@@ -235,6 +243,6 @@ export const Account = () => {
       <Dialog open={openDeleteAccountDialog} onOpenChange={setOpenDeleteAccountDialog}>
         <DeleteAccountForm setOpen={setOpenDeleteAccountDialog} />
       </Dialog>
-    </div>
+    </Page>
   );
 };

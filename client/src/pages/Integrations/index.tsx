@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { Page, PageHeader, SectionTitle } from "@/components/customs/page";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Zap, CheckCircle, Clock, AlertTriangle } from "lucide-react";
+import { Search, Zap, CheckCircle, Clock, Info } from "lucide-react";
 import { toast } from "sonner";
 import { IntegrationInterface } from "@/interfaces/Integration";
 import { axiosConfig } from "@/config/axiosConfig";
@@ -121,64 +122,64 @@ export function IntegrationsPage() {
   });
 
   const connectedCount = integrations.filter((i) => i.isConnected).length;
-  const availableCategories = [...new Set(integrations.map((i: IntegrationInterface) => i.category))];
+  const availableCategories = [...new Set(integrations.map((i: IntegrationInterface) => i.category))].filter(Boolean);
+
+  const overview = [
+    { label: "Connected apps", value: connectedCount, icon: CheckCircle, tone: "bg-lime/25 text-[#3f6212] dark:text-lime" },
+    {
+      label: "Active stats",
+      value: integrations.reduce((sum, i) => sum + (i.integrationUser?.activedStat?.length || 0), 0),
+      icon: Zap,
+      tone: "bg-accent/10 text-accent",
+    },
+    { label: "Available apps", value: integrations.length - connectedCount, icon: Clock, tone: "bg-secondary text-muted-foreground" },
+  ];
+
+  const renderCards = (list: IntegrationInterface[]) =>
+    list.map((integration) => (
+      <IntegrationCard
+        key={integration._id}
+        integration={integration}
+        onConnect={handleConnect}
+        onDisconnect={handleDisconnect}
+        onToggleStat={handleToggleStat}
+        onSync={handleSync}
+        integrationUser={integration.integrationUser}
+      />
+    ));
 
   return (
-    <div className="flex flex-col gap-8 px-4 py-10 md:px-10 lg:px-20">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold">App Integrations</h2>
-        <p className="text-muted-foreground">Connect your favorite apps to automatically track stats and insights</p>
-      </div>
+    <Page>
+      <PageHeader
+        eyebrow="Integrations"
+        title="Connect your apps"
+        description="Plug in the apps you already use and your stats update on their own. No more manual entry."
+      />
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-              <div>
-                <p className="text-2xl font-bold">{connectedCount}</p>
-                <p className="text-sm text-muted-foreground">Connected Apps</p>
-              </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {overview.map((item) => (
+          <Card key={item.label} className="flex items-center gap-4 p-5">
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${item.tone}`}>
+              <item.icon className="h-6 w-6" />
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <Zap className="h-6 w-6 text-blue-600" />
-              <div>
-                <p className="text-2xl font-bold">
-                  {integrations.reduce((sum, i) => sum + (i.integrationUser?.activedStat?.length || 0), 0)}
-                </p>
-                <p className="text-sm text-muted-foreground">Active Stats</p>
-              </div>
+            <div>
+              <p className="font-display text-3xl font-bold leading-none">{item.value}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <Clock className="h-6 w-6 text-orange-600" />
-              <div>
-                <p className="text-2xl font-bold">{integrations.length - connectedCount}</p>
-                <p className="text-sm text-muted-foreground">Available Apps</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </Card>
+        ))}
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search integrations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="h-11 rounded-xl pl-10"
           />
         </div>
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full md:w-auto">
@@ -197,76 +198,42 @@ export function IntegrationsPage() {
 
       {/* Connected Apps Section */}
       {connectedCount > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <h3 className="text-xl font-semibold">Connected Apps</h3>
-            <Badge variant="secondary">{connectedCount}</Badge>
+        <section className="space-y-4">
+          <SectionTitle count={connectedCount}>Connected</SectionTitle>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {renderCards(integrations.filter((i) => i.isConnected))}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {/* Liste des intégrations connectées */}
-            {integrations
-              .filter((i) => i.isConnected)
-              .map((integration: IntegrationInterface) => (
-                <IntegrationCard
-                  key={integration._id}
-                  integration={integration}
-                  onConnect={handleConnect}
-                  onDisconnect={handleDisconnect}
-                  onToggleStat={handleToggleStat}
-                  onSync={handleSync}
-                  integrationUser={integration.integrationUser}
-                />
-              ))}
-          </div>
-        </div>
+        </section>
       )}
 
       {/* Available Apps Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-muted-foreground" />
-          <h3 className="text-xl font-semibold">Available Integrations</h3>
-          <Badge variant="outline">{filteredIntegrations.filter((i) => !i.isConnected).length}</Badge>
+      <section className="space-y-4">
+        <SectionTitle count={filteredIntegrations.filter((i) => !i.isConnected).length}>Available</SectionTitle>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {renderCards(filteredIntegrations.filter((i) => !i.isConnected))}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {/* Liste des intégrations disponibles non connectées */}
-          {filteredIntegrations
-            .filter((i) => !i.isConnected)
-            .map((integration: IntegrationInterface) => (
-              <IntegrationCard
-                key={integration._id}
-                integration={integration}
-                onConnect={handleConnect}
-                onDisconnect={handleDisconnect}
-                onToggleStat={handleToggleStat}
-                onSync={handleSync}
-                integrationUser={integration.integrationUser}
-              />
-            ))}
-        </div>
-      </div>
+      </section>
 
       {/* Help Section */}
-      <Card className="bg-blue-50 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-700">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-start gap-4">
-            <AlertTriangle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <div>
-              <h4 className="font-medium text-blue-900 dark:text-blue-200">How Integrations Work</h4>
-              <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
-                When you connect an app, we'll automatically create relevant stats in your dashboard. You can configure which stats to track
-                and they'll update automatically based on each app's sync schedule.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Badge variant="secondary">Real-time sync</Badge>
-                <Badge variant="secondary">Automatic categorization</Badge>
-                <Badge variant="secondary">Historical data</Badge>
-              </div>
+      <Card className="border-accent/20 bg-accent/5 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-white">
+            <Info className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-semibold">How integrations work</h3>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+              When you connect an app, we automatically create the matching stats in your dashboard. Pick which stats to track and they
+              update on their own, following each app's sync schedule.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Badge variant="secondary">Real-time sync</Badge>
+              <Badge variant="secondary">Automatic categorization</Badge>
+              <Badge variant="secondary">Historical data</Badge>
             </div>
           </div>
-        </CardContent>
+        </div>
       </Card>
-    </div>
+    </Page>
   );
 }

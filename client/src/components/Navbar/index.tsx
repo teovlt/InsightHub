@@ -1,9 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ThemeChanger } from "./themeChanger";
-import { LanguageChanger } from "./languageChanger";
 import { useTranslation } from "react-i18next";
 import { Separator } from "../ui/separator";
-import { ChartBar, ChartBarStacked, House, Link2, LogIn, LogOut, Menu, Presentation, User, Wrench, WrenchIcon, X } from "lucide-react";
+import { House, Link2, LogIn, LogOut, Menu, User, Wrench, X, type LucideIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -22,8 +21,21 @@ import { useLogout } from "@/hooks/useLogout";
 import { AvatarWithStatusCell } from "@/components/customs/avatarStatusCell";
 import { Logo } from "@/components/customs/logo";
 
+interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  cn(
+    "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+    isActive ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+  );
+
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
@@ -31,6 +43,13 @@ export const Navbar = () => {
   const { logout, loading } = useLogout();
 
   const { authUser } = useAuthContext();
+
+  const items: NavItem[] = [
+    { to: "/", label: t("navbar.home"), icon: House },
+    { to: "/integrations", label: t("navbar.integrations"), icon: Link2 },
+    { to: "/account", label: t("navbar.profile"), icon: User },
+    ...(authUser?.role === "admin" ? [{ to: "/admin/dashboard", label: t("navbar.dashboard"), icon: Wrench }] : []),
+  ];
 
   useEffect(() => {
     const handleClickOutside = (event: { target: any }) => {
@@ -50,183 +69,122 @@ export const Navbar = () => {
 
   return (
     <>
-      <div className="sticky top-0 left-0 right-0 z-50 border-b bg-background">
-        <div className="items-center justify-between hidden p-4 px-8 select-none md:flex text-accent">
-          <Link to="/">
-            <Logo className="text-2xl" />
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+          <Link to="/" className="shrink-0">
+            <Logo className="text-xl" />
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              {authUser ? (
-                <>
-                  <Button onClick={() => navigate("/")} variant="link">
-                    {t("navbar.home")}
-                  </Button>
-                  {/* <Button onClick={() => navigate("/statistics")} variant="link">
-                    {t("navbar.statistics")}
-                  </Button> */}
-                  <Button onClick={() => navigate("/integrations")} variant="link">
-                    Integrations
-                  </Button>
-                  <Button onClick={() => navigate("/account")} variant="link">
-                    {t("navbar.profile")}
-                  </Button>
-                  {authUser?.role === "admin" && (
-                    <Button onClick={() => navigate("/admin/dashboard")} variant="link">
-                      {t("navbar.dashboard")}
-                    </Button>
-                  )}
-                  <DropdownMenu modal={false}>
-                    <DropdownMenuTrigger asChild className="hover:cursor-pointer">
-                      <span className="hover:cursor-pointer">
-                        <AvatarWithStatusCell user={authUser} />
-                      </span>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-40">
-                      <DropdownMenuLabel>{t("navbar.account")}</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/")}>
-                          {t("navbar.home")}
-                          <DropdownMenuShortcut>
-                            <Presentation className="w-4 h-4" />
-                          </DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                        {/* <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/statistics ")}>
-                          {t("navbar.statistics")}
-                          <DropdownMenuShortcut>
-                            <ChartBarStacked className="w-4 h-4" />
-                          </DropdownMenuShortcut>
-                        </DropdownMenuItem> */}
-                        <DropdownMenuItem
-                          className="flex items-center gap-2 hover:cursor-pointer"
-                          onClick={() => navigate("/integrations")}
-                        >
-                          Integrations
-                          <DropdownMenuShortcut>
-                            <Link2 className="w-4 h-4" />
-                          </DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="flex items-center gap-2 hover:cursor-pointer" onClick={() => navigate("/account")}>
-                          {t("navbar.profile")}
-                          <DropdownMenuShortcut>
-                            <User className="w-4 h-4" />
-                          </DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                        {authUser?.role === "admin" && (
-                          <DropdownMenuItem
-                            className="flex items-center gap-2 hover:cursor-pointer"
-                            onClick={() => navigate("/admin/dashboard")}
-                          >
-                            {t("navbar.dashboard")}
-                            <DropdownMenuShortcut>
-                              <WrenchIcon className="w-4 h-4" />
-                            </DropdownMenuShortcut>
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuGroup>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem className="hover:cursor-pointer" onClick={() => logout()} disabled={loading}>
-                          {t("navbar.logout")}
-                          <DropdownMenuShortcut>
-                            <LogOut className="w-4 h-4" />
-                          </DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : (
-                <Button onClick={() => navigate("/login")} variant="link">
-                  {t("navbar.login")}
-                </Button>
-              )}
-            </div>
-            <Separator orientation="vertical" className="h-8" />
-            <div className="flex items-center justify-between gap-4">
-              {/* <LanguageChanger /> */}
-              <ThemeChanger />
-            </div>
-          </div>
-        </div>
 
-        {/* Mobile Navbar with Hamburger Menu */}
-        <div className="flex items-center justify-between p-4 md:hidden ">
-          <Link to="/">
-            <Logo className="text-2xl" />
-          </Link>
-          <Menu onClick={() => setIsOpen(!isOpen)} className="cursor-pointer" />
-        </div>
-        <div
-          ref={menuRef}
-          className={cn(
-            "fixed top-0 right-0 w-4/5 h-screen overflow-hidden bg-background transition-transform duration-300 ease-in-out z-20",
-            isOpen ? "translate-x-0" : "translate-x-full",
+          {/* Desktop navigation */}
+          {authUser && (
+            <nav className="hidden items-center gap-1 md:flex">
+              {items.map((item) => (
+                <NavLink key={item.to} to={item.to} end={item.to === "/"} className={navLinkClass}>
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
           )}
-        >
-          <div className="flex justify-end">
-            <X onClick={() => setIsOpen(!isOpen)} className="m-4 cursor-pointer" />
-          </div>
-          <div className="flex flex-col gap-4 p-8 pt-2">
+
+          <div className="hidden items-center gap-3 md:flex">
+            <ThemeChanger />
             {authUser ? (
-              <>
-                <Button onClick={() => closeDialogAndNavigate("/")} variant="link" className="flex items-center justify-start gap-4">
-                  <House className="w-4 h-4" />
-                  {t("navbar.home")}
-                </Button>
-                {/* <Button
-                  onClick={() => closeDialogAndNavigate("/statistics")}
-                  variant="link"
-                  className="flex items-center justify-start gap-4"
-                >
-                  <ChartBar className="w-4 h-4" />
-                  {t("navbar.statistics")}
-                </Button> */}
-                <Button
-                  onClick={() => closeDialogAndNavigate("/integrations")}
-                  variant="link"
-                  className="flex items-center justify-start gap-4"
-                >
-                  <Link2 className="w-4 h-4" />
-                  Integrations
-                </Button>
-                <Button onClick={() => closeDialogAndNavigate("/account")} variant="link" className="flex items-center justify-start gap-4">
-                  <User className="w-4 h-4" />
-                  {t("navbar.account")}
-                </Button>
-              </>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <button className="cursor-pointer rounded-full ring-offset-2 ring-offset-background transition hover:ring-2 hover:ring-accent/40">
+                    <AvatarWithStatusCell user={authUser} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuLabel className="font-normal">
+                    <p className="font-semibold">
+                      {authUser.forename} {authUser.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">@{authUser.username}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    {items.map((item) => (
+                      <DropdownMenuItem key={item.to} className="cursor-pointer" onClick={() => navigate(item.to)}>
+                        {item.label}
+                        <DropdownMenuShortcut>
+                          <item.icon className="w-4 h-4" />
+                        </DropdownMenuShortcut>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => logout()} disabled={loading}>
+                    {t("navbar.logout")}
+                    <DropdownMenuShortcut>
+                      <LogOut className="w-4 h-4" />
+                    </DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <Button onClick={() => closeDialogAndNavigate("/login")} variant="link" className="flex items-center justify-start gap-4">
-                <LogIn className="w-4 h-4" />
-                {t("navbar.login")}
-              </Button>
+              <Button onClick={() => navigate("/login")}>{t("navbar.login")}</Button>
             )}
-            {authUser?.role === "admin" && (
-              <Button
-                onClick={() => closeDialogAndNavigate("/admin/dashboard")}
-                variant="link"
-                className="flex items-center justify-start gap-4"
-              >
-                <Wrench className="w-4 h-4" />
-                {t("navbar.dashboard")}
-              </Button>
-            )}
-            <Separator />
-            {authUser && (
-              <>
-                <Button onClick={() => logout()} variant="link" disabled={loading} className="flex items-center justify-start gap-4">
-                  <LogOut className="w-4 h-4" />
-                  {t("navbar.logout")}
-                </Button>
-                <Separator />
-              </>
-            )}
-            <div className="flex items-center justify-center gap-4 ">
-              {/* <LanguageChanger /> */}
-              <ThemeChanger />
-            </div>
           </div>
+
+          {/* Mobile menu button */}
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(!isOpen)} aria-label="Menu">
+            <Menu className="!size-5" />
+          </Button>
+        </div>
+      </header>
+
+      {/* Mobile drawer */}
+      <div
+        className={cn(
+          "fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm transition-opacity md:hidden",
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
+      <div
+        ref={menuRef}
+        className={cn(
+          "fixed top-0 right-0 z-50 flex h-dvh w-4/5 max-w-sm flex-col border-l bg-card shadow-2xl transition-transform duration-300 ease-in-out md:hidden",
+          isOpen ? "translate-x-0" : "translate-x-full",
+        )}
+      >
+        <div className="flex h-16 items-center justify-between px-4">
+          <Logo className="text-lg" />
+          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Close">
+            <X className="!size-5" />
+          </Button>
+        </div>
+        <Separator />
+        <nav className="flex flex-1 flex-col gap-1 p-4">
+          {authUser ? (
+            items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                onClick={() => setIsOpen(false)}
+                className={(state) => cn(navLinkClass(state), "rounded-xl py-3")}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </NavLink>
+            ))
+          ) : (
+            <Button onClick={() => closeDialogAndNavigate("/login")} className="justify-start">
+              <LogIn className="w-4 h-4" />
+              {t("navbar.login")}
+            </Button>
+          )}
+        </nav>
+        <Separator />
+        <div className="flex items-center justify-between p-4">
+          <ThemeChanger />
+          {authUser && (
+            <Button variant="ghost" onClick={() => logout()} disabled={loading}>
+              <LogOut className="w-4 h-4" />
+              {t("navbar.logout")}
+            </Button>
+          )}
         </div>
       </div>
     </>

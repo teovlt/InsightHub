@@ -44,6 +44,12 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-lime: var(--lime);
+  --color-brand-strong: var(--brand-strong);
+
+  --shadow-card: var(--card-shadow);
+  --shadow-card-hover: var(--card-shadow-hover);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -78,7 +84,7 @@
 @layer base {
   /* Brand palette: see BRAND.md. --accent is the brand blue. */
   :root {
-    --background: #f7f9fc;
+    --background: #f3f6fb;
     --foreground: #0f172a;
     --card: #ffffff;
     --card-foreground: #0f172a;
@@ -86,9 +92,9 @@
     --popover-foreground: #0f172a;
     --primary: #0f172a;
     --primary-foreground: #f7f9fc;
-    --secondary: #eef2f7;
+    --secondary: #e9eef6;
     --secondary-foreground: #0f172a;
-    --muted: #eef2f7;
+    --muted: #e9eef6;
     --muted-foreground: #64748b;
     --accent: #1489e0;
     --accent-foreground: #0f172a;
@@ -105,6 +111,10 @@
     --chart-4: #64748b;
     --chart-5: #7dd3fc;
     --radius: 0.75rem;
+    --lime: #b8f34a;
+    --brand-strong: #0f6fb8;
+    --card-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+    --card-shadow-hover: 0 2px 4px rgb(15 23 42 / 0.05), 0 16px 32px -12px rgb(20 137 224 / 0.25);
     --sidebar-background: #ffffff;
     --sidebar-foreground: #334155;
     --sidebar-primary: #1489e0;
@@ -142,6 +152,10 @@
     --chart-3: #7dd3fc;
     --chart-4: #94a3b8;
     --chart-5: #0f6fb8;
+    --lime: #b8f34a;
+    --brand-strong: #0f6fb8;
+    --card-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+    --card-shadow-hover: 0 2px 4px rgb(0 0 0 / 0.3), 0 16px 32px -12px rgb(20 137 224 / 0.35);
     --sidebar-background: #0f1729;
     --sidebar-foreground: #e2e8f0;
     --sidebar-primary: #1489e0;
@@ -158,7 +172,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
+    /* Soft brand glow at the top of every page */
+    background-image: radial-gradient(1100px 480px at 50% -220px, color-mix(in srgb, var(--accent) 14%, transparent), transparent);
+    background-repeat: no-repeat;
   }
   h1,
   h2,

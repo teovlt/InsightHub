@@ -9,14 +9,24 @@
     "changingLanguage": "Changing language...",
     "logout": "Logout",
     "profile": "Profile",
-    "statistics": "Statistics"
+    "statistics": "Statistics",
+    "integrations": "Integrations"
   },
   "pages": {
     "home": {
       "title": "Your habits, your progress, all in one place.",
       "subtitle": "Track what matters to you (sport, reading, studies, side projects) and watch yourself move forward, one day at a time.",
       "empty_title": "Nothing to track yet.",
-      "empty_description": "Create your first category or connect an integration to get started."
+      "empty_description": "Create your first category or connect an integration to get started.",
+      "greeting": "Hey {{name}}, glad to see you 👋",
+      "summary": {
+        "categories": "Categories",
+        "stats": "Stats tracked",
+        "automatic": "Automatic"
+      },
+      "connect_app": "Connect an app",
+      "category_empty_title": "Nothing here yet.",
+      "category_empty_description": "Add your first stat with the button above."
     },
     "account": {
       "errors": {
@@ -62,7 +72,9 @@
       "delete_account": "Delete account",
       "deleting_account": "Deleting account...",
       "actions": "Actions",
-      "logout_everywhere": "Log out of all devices"
+      "logout_everywhere": "Log out of all devices",
+      "details_title": "Your details",
+      "details_description": "Your name, username and email."
     },
     "login": {
       "welcome_back": "Welcome Back",
@@ -186,5 +198,8 @@
         "user_deleted": "User deleted successfully"
       }
     }
+  },
+  "footer": {
+    "tagline": "Your habits, your progress, all in one place."
   }
 }

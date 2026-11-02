@@ -9,14 +9,24 @@
     "changingLanguage": "Changement de langage...",
     "logout": "Se déconnecter",
     "profile": "Profil",
-    "statistics": "Statistiques"
+    "statistics": "Statistiques",
+    "integrations": "Intégrations"
   },
   "pages": {
     "home": {
       "title": "Tes habitudes, ta progression, au même endroit.",
       "subtitle": "Suis ce qui compte pour toi (sport, lecture, études, side projects) et regarde-toi avancer, un jour après l'autre.",
       "empty_title": "Rien à suivre pour l'instant.",
-      "empty_description": "Crée ta première catégorie ou connecte une intégration pour commencer."
+      "empty_description": "Crée ta première catégorie ou connecte une intégration pour commencer.",
+      "greeting": "Salut {{name}}, content de te revoir 👋",
+      "summary": {
+        "categories": "Catégories",
+        "stats": "Stats suivies",
+        "automatic": "Automatiques"
+      },
+      "connect_app": "Connecter une app",
+      "category_empty_title": "Rien ici pour l’instant.",
+      "category_empty_description": "Ajoute ta première stat avec le bouton au-dessus."
     },
     "account": {
       "errors": {
@@ -62,7 +72,9 @@
       "delete_account": "Supprimer le compte",
       "deleting_account": "Suppression du compte...",
       "actions": "Actions",
-      "logout_everywhere": "Se déconnecter de tous les appareils"
+      "logout_everywhere": "Se déconnecter de tous les appareils",
+      "details_title": "Tes informations",
+      "details_description": "Ton nom, ton pseudo et ton email."
     },
     "login": {
       "welcome_back": "Content de vous revoir",
@@ -186,5 +198,8 @@
         "user_deleted": "Utilisateur supprimé avec succès"
       }
     }
+  },
+  "footer": {
+    "tagline": "Tes habitudes, ta progression, au même endroit."
   }
 }
