@@ -1,6 +1,6 @@
 {
   "navbar": {
-    "home": "Accueil",
+    "home": "Tableau de bord",
     "dashboard": "Tableau de bord",
     "account": "Mon compte",
     "login": "Se connecter",
@@ -10,24 +10,10 @@
     "logout": "Se déconnecter",
     "profile": "Profil",
     "statistics": "Statistiques",
-    "integrations": "Intégrations"
+    "integrations": "Intégrations",
+    "admin": "Admin"
   },
   "pages": {
-    "home": {
-      "title": "Tes habitudes, ta progression, au même endroit.",
-      "subtitle": "Suis ce qui compte pour toi (sport, lecture, études, side projects) et regarde-toi avancer, un jour après l'autre.",
-      "empty_title": "Rien à suivre pour l'instant.",
-      "empty_description": "Crée ta première catégorie ou connecte une intégration pour commencer.",
-      "greeting": "Salut {{name}}, content de te revoir 👋",
-      "summary": {
-        "categories": "Catégories",
-        "stats": "Stats suivies",
-        "automatic": "Automatiques"
-      },
-      "connect_app": "Connecter une app",
-      "category_empty_title": "Rien ici pour l’instant.",
-      "category_empty_description": "Ajoute ta première stat avec le bouton au-dessus."
-    },
     "account": {
       "errors": {
         "check_approval": "Veuillez cocher la case pour confirmer la suppression de votre compte.",
@@ -126,6 +112,94 @@
         "passwords_mismatch": "Les mots de passe ne correspondent pas.",
         "password_invalid": "Le mot de passe doit contenir au moins 8 caractères, une lettre minuscule, une lettre majuscule, un chiffre et un caractère spécial."
       }
+    },
+    "dashboard": {
+      "greeting": "Salut {{name}} 👋",
+      "subtitle": "Voilà où tu en es aujourd'hui.",
+      "log_value": "Ajouter une valeur",
+      "pinned": {
+        "title": "Stats épinglées",
+        "empty": "Épingle tes stats clés pour les voir ici avec leur tendance.",
+        "empty_action": "Choisir les stats à épingler"
+      },
+      "goals": {
+        "title": "Objectifs",
+        "empty": "Pas encore d'objectif. Fixes-en un sur une stat depuis la page Statistiques.",
+        "done": "Objectif atteint 🎯",
+        "deadline": "d'ici le {{date}}"
+      },
+      "recent": {
+        "title": "Activité récente",
+        "empty": "Rien d'enregistré pour l'instant.",
+        "synced": "synchro"
+      },
+      "categories": {
+        "title": "Toutes tes stats",
+        "all": "Toutes",
+        "empty": "Pas encore de stat. Crée la première ou connecte une app.",
+        "empty_action": "Créer une stat"
+      },
+      "quick_update": {
+        "title": "Ajouter une valeur",
+        "description": "Choisis une stat et entre sa nouvelle valeur. L'ancienne reste dans l'historique.",
+        "stat": "Stat",
+        "choose": "Choisis une stat",
+        "value": "Nouvelle valeur",
+        "submit": "Enregistrer"
+      }
+    },
+    "statistics": {
+      "title": "Tes stats",
+      "description": "Suis chaque stat dans le temps, fixe des objectifs et gère tout ce que tu suis.",
+      "new_stat": "Nouvelle stat",
+      "search": "Chercher une stat",
+      "no_stats": "Aucune stat ne correspond.",
+      "pick_title": "Choisis une stat",
+      "pick_description": "Sélectionne une stat à gauche pour voir son évolution.",
+      "synced": "Synchronisée",
+      "evolution": "Évolution",
+      "periods": {
+        "7d": "7 j",
+        "30d": "30 j",
+        "90d": "90 j",
+        "1y": "1 an",
+        "all": "Tout"
+      },
+      "text_stat": "Cette stat est du texte, donc pas de graphique. Utilise un nombre (142) ou une durée (5:12) pour la suivre dans le temps.",
+      "hidden_stat": "Cette stat est masquée. Affiche-la pour voir son graphique.",
+      "not_enough": "Enregistre au moins deux valeurs pour voir la courbe.",
+      "figures": {
+        "change": "Évolution",
+        "min": "Plus bas",
+        "max": "Plus haut",
+        "entries": "Valeurs"
+      },
+      "history": "Historique",
+      "actions": {
+        "pin": "Épingler",
+        "unpin": "Désépingler",
+        "goal": "Objectif",
+        "edit": "Modifier",
+        "hide": "Masquer",
+        "show": "Afficher",
+        "rollback": "Annuler la dernière",
+        "delete": "Supprimer"
+      },
+      "goal": {
+        "title": "Objectif",
+        "description": "Fixe la cible que tu veux atteindre pour {{name}}.",
+        "target": "Cible",
+        "deadline": "Échéance (facultatif)",
+        "duration_hint": "Format min:sec, par exemple 4:45.",
+        "save": "Enregistrer l'objectif",
+        "remove": "Retirer l'objectif",
+        "set": "Fixer un objectif",
+        "none": "Pas encore d'objectif pour cette stat.",
+        "text_only": "Un objectif demande un nombre ou une durée.",
+        "invalid": "Entre un nombre (12, 4,5) ou une durée (4:45)."
+      },
+      "delete_title": "Supprimer cette stat",
+      "delete_description": "Supprimer « {{name}} » et tout son historique ? C'est définitif."
     }
   },
   "components": {

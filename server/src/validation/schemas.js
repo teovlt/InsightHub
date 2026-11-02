@@ -71,6 +71,15 @@ export const createStatSchema = z.object({
   hided: z.boolean().optional(),
 });
 
+export const pinStatSchema = z.object({
+  pinned: z.boolean(),
+});
+
+export const statGoalSchema = z.object({
+  target: z.number().finite().nullable(),
+  deadline: z.coerce.date().nullable().optional(),
+});
+
 export const updateStatSchema = z.object({
   name: trimmed(100).optional(),
   description: z.string().max(500).optional(),

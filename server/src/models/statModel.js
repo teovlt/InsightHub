@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { parseStatValue } from "../utils/statValue.js";
 
 const statSchema = new mongoose.Schema(
   {
@@ -42,10 +43,38 @@ const statSchema = new mongoose.Schema(
     integrationStatId: {
       type: mongoose.Schema.Types.ObjectId,
     },
+    // Derived from value on save (see parseStatValue): lets the client chart and compare values
+    type: {
+      type: String,
+      enum: ["number", "duration", "text"],
+      default: "text",
+    },
+    numericValue: {
+      type: Number,
+      default: null,
+    },
+    // Shown at the top of the dashboard. Pin and goal are copied on every version of the stat.
+    pinned: {
+      type: Boolean,
+      default: false,
+    },
+    goal: {
+      target: { type: Number },
+      deadline: { type: Date },
+    },
   },
   {
     timestamps: true,
   },
 );
+
+statSchema.pre("save", function (next) {
+  if (this.isModified("value") || this.isNew) {
+    const { type, numericValue } = parseStatValue(this.value);
+    this.type = type;
+    this.numericValue = numericValue;
+  }
+  next();
+});
 
 export const Stat = mongoose.model("Stat", statSchema);

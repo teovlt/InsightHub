@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ThemeChanger } from "./themeChanger";
 import { useTranslation } from "react-i18next";
 import { Separator } from "../ui/separator";
-import { House, Link2, LogIn, LogOut, Menu, User, Wrench, X, type LucideIcon } from "lucide-react";
+import { BarChart3, LayoutDashboard, Link2, LogIn, LogOut, Menu, User, Wrench, X, type LucideIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -45,10 +45,11 @@ export const Navbar = () => {
   const { authUser } = useAuthContext();
 
   const items: NavItem[] = [
-    { to: "/", label: t("navbar.home"), icon: House },
+    { to: "/", label: t("navbar.home"), icon: LayoutDashboard },
+    { to: "/statistics", label: t("navbar.statistics"), icon: BarChart3 },
     { to: "/integrations", label: t("navbar.integrations"), icon: Link2 },
     { to: "/account", label: t("navbar.profile"), icon: User },
-    ...(authUser?.role === "admin" ? [{ to: "/admin/dashboard", label: t("navbar.dashboard"), icon: Wrench }] : []),
+    ...(authUser?.role === "admin" ? [{ to: "/admin/dashboard", label: t("navbar.admin"), icon: Wrench }] : []),
   ];
 
   useEffect(() => {

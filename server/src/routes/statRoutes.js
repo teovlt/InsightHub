@@ -1,8 +1,17 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { validateBody } from "../middlewares/validate.js";
-import { createStatSchema, updateStatSchema } from "../validation/schemas.js";
-import { createStat, deleteStat, rollbackStat, updateStat } from "../controllers/statController.js";
+import { createStatSchema, pinStatSchema, statGoalSchema, updateStatSchema } from "../validation/schemas.js";
+import {
+  createStat,
+  deleteStat,
+  getStatHistory,
+  getStatsOverview,
+  pinStat,
+  rollbackStat,
+  setStatGoal,
+  updateStat,
+} from "../controllers/statController.js";
 
 export const statRouter = new express.Router();
 
@@ -13,6 +22,37 @@ export const statRouter = new express.Router();
  * @param {Object} statData - The data for the new stat.
  */
 statRouter.post("/", verifyToken(), validateBody(createStatSchema), createStat);
+
+/**
+ * @route GET /overview
+ * @description Dashboard data: pinned stats with their history, stats with a goal, latest changes.
+ * @middleware verifyToken() - Ensures the user is authenticated.
+ */
+statRouter.get("/overview", verifyToken(), getStatsOverview);
+
+/**
+ * @route GET /:id/history
+ * @description Every version of a stat, oldest first.
+ * @param {string} id - The ID of any version of the stat.
+ * @middleware verifyToken() - Ensures the user is authenticated.
+ */
+statRouter.get("/:id/history", verifyToken(), getStatHistory);
+
+/**
+ * @route PATCH /:id/pin
+ * @description Pins or unpins a stat on the dashboard.
+ * @param {string} id - The ID of the current version of the stat.
+ * @middleware verifyToken() - Ensures the user is authenticated.
+ */
+statRouter.patch("/:id/pin", verifyToken(), validateBody(pinStatSchema), pinStat);
+
+/**
+ * @route PATCH /:id/goal
+ * @description Sets (or clears with target: null) the goal of a numeric stat.
+ * @param {string} id - The ID of the current version of the stat.
+ * @middleware verifyToken() - Ensures the user is authenticated.
+ */
+statRouter.patch("/:id/goal", verifyToken(), validateBody(statGoalSchema), setStatGoal);
 
 /**
  * @route DELETE /:id

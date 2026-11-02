@@ -4,7 +4,6 @@ import { LayoutWrapper } from "./layoutWrapper";
 
 import { ProtectedRoute } from "@/router/protectedRoute";
 import { Home } from "@/pages/Home";
-import { Statistics } from "@/pages/Statistics";
 
 // Pages export named components; React.lazy needs a default export
 const lazyNamed = <M, K extends keyof M>(load: () => Promise<M>, name: K) =>
@@ -15,6 +14,7 @@ const lazyNamed = <M, K extends keyof M>(load: () => Promise<M>, name: K) =>
 const Login = lazyNamed(() => import("@/pages/Authentication/login"), "Login");
 const Register = lazyNamed(() => import("@/pages/Authentication/register"), "Register");
 const RegisterGoogleForm = lazyNamed(() => import("@/pages/Authentication/registerGoogleForm"), "RegisterGoogleForm");
+const Statistics = lazyNamed(() => import("@/pages/Statistics"), "Statistics");
 const Account = lazyNamed(() => import("@/pages/Account"), "Account");
 const IntegrationsPage = lazyNamed(() => import("@/pages/Integrations"), "IntegrationsPage");
 const Index = lazyNamed(() => import("@/pages/Admin"), "Index");

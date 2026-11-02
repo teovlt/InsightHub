@@ -113,4 +113,75 @@ describe("Stats", () => {
     expect(response.status).toBe(200);
     expect(await Stat.countDocuments({ categoryId: category._id })).toBe(0);
   });
+  it("should derive a numeric value from the stored string", async () => {
+    const response = await request(app)
+      .post("/api/stats")
+      .set("Cookie", authCookie(owner))
+      .send({ name: "Pace", value: "5:12", categoryId: category._id.toString() });
+
+    expect(response.body.stat.type).toBe("duration");
+    expect(response.body.stat.numericValue).toBe(312);
+    expect(stat.type).toBe("number");
+    expect(stat.numericValue).toBe(80);
+  });
+
+  it("should keep pin and goal on the new version after an update", async () => {
+    await request(app).patch(`/api/stats/${stat._id}/pin`).set("Cookie", authCookie(owner)).send({ pinned: true });
+    await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 75 });
+
+    const response = await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "79" });
+
+    expect(response.body.stat.pinned).toBe(true);
+    expect(response.body.stat.goal.target).toBe(75);
+  });
+
+  it("should refuse a goal on a text stat", async () => {
+    const text = await Stat.create({ userId: owner._id, categoryId: category._id, name: "Mood", value: "great" });
+
+    const response = await request(app).patch(`/api/stats/${text._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 10 });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("should clear a goal", async () => {
+    await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 75 });
+
+    const response = await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.stat.goal?.target).toBeUndefined();
+  });
+
+  it("should not let another user pin, set a goal or read the history (IDOR)", async () => {
+    const pin = await request(app).patch(`/api/stats/${stat._id}/pin`).set("Cookie", authCookie(other)).send({ pinned: true });
+    const goal = await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(other)).send({ target: 1 });
+    const history = await request(app).get(`/api/stats/${stat._id}/history`).set("Cookie", authCookie(other));
+
+    expect([pin.status, goal.status, history.status]).toEqual([404, 404, 404]);
+  });
+
+  it("should return the history oldest first", async () => {
+    const current = (await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "79" })).body.stat;
+
+    const response = await request(app).get(`/api/stats/${current._id}/history`).set("Cookie", authCookie(owner));
+
+    expect(response.status).toBe(200);
+    expect(response.body.history.map((h) => h.numericValue)).toEqual([80, 79]);
+  });
+
+  it("should give the dashboard its pinned stats with history, goals and recent changes", async () => {
+    await request(app).patch(`/api/stats/${stat._id}/pin`).set("Cookie", authCookie(owner)).send({ pinned: true });
+    await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 75 });
+    await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "79" });
+    await Stat.create({ userId: other._id, categoryId: category._id, name: "Other", value: "1", pinned: true });
+
+    const response = await request(app).get("/api/stats/overview").set("Cookie", authCookie(owner));
+
+    expect(response.status).toBe(200);
+    expect(response.body.pinned).toHaveLength(1);
+    expect(response.body.pinned[0].history.map((h) => h.value)).toEqual(["80", "79"]);
+    expect(response.body.pinned[0].categoryId.name).toBe("Health");
+    expect(response.body.goals).toHaveLength(1);
+    expect(response.body.recent.every((s) => s.userId === owner._id.toString())).toBe(true);
+  });
 });

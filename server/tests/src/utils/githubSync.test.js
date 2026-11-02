@@ -172,6 +172,32 @@ describe("GitHub integration", () => {
 
       expect(await Stat.countDocuments({ userId: userA._id, integrationStatId: statId, current: true })).toBe(1);
     });
+
+    it("should keep the previous value as history when a synced value changes", async () => {
+      mockGithub();
+      const connection = await connect(userA);
+      const statId = connection.activedStat[0];
+      const category = await Category.create({ name: "GitHub", description: "d", icon: "Github", color: "#24292e" });
+      await Stat.create({
+        userId: userA._id,
+        categoryId: category._id,
+        name: "Total Commits",
+        value: "1",
+        pinned: true,
+        integrationId: integration._id,
+        integrationStatId: statId,
+      });
+
+      await autoSyncStats(userA._id, integration._id);
+
+      const versions = await Stat.find({ userId: userA._id, integrationStatId: statId }).sort({ createdAt: 1 });
+      expect(versions.map((v) => [v.value, v.current])).toEqual([
+        ["1", false],
+        ["20", true],
+      ]);
+      expect(versions[1].pinned).toBe(true);
+      expect(versions[1].numericValue).toBe(20);
+    });
   });
 
   describe("repairActivatedStats", () => {

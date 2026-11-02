@@ -23,6 +23,15 @@ code, musique…) et tu vois — et montres — ta progression.**
 - **Pas un réseau social** : on peut partager sa progression (lien, image), mais pas de feed, de likes, de followers
   ni de classements.
 
+### Structure de l'app
+
+Navigation : **Tableau de bord · Statistiques · Intégrations · Profil** (+ Admin pour les admins).
+
+- **Tableau de bord** : lecture seule. Stats épinglées avec tendance, objectifs, activité récente, toutes les stats
+  par catégorie, et un seul geste d'écriture : « Ajouter une valeur ».
+- **Statistiques** : l'analyse **et** l'édition. Graphique par stat, période, records, historique ; créer, modifier,
+  épingler, fixer un objectif, masquer, annuler, supprimer.
+
 ### Conséquences pour la roadmap
 
 - La page **Statistiques** (graphiques, objectifs, séries / streaks) est le cœur du produit.

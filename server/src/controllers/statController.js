@@ -134,6 +134,8 @@ export const updateStat = async (req, res) => {
         value,
         unit: unit || oldStat.unit,
         hided: typeof hided === "boolean" ? hided : oldStat.hided,
+        pinned: oldStat.pinned,
+        goal: oldStat.goal,
         current: true,
       });
 
@@ -202,6 +204,124 @@ export const rollbackStat = async (req, res) => {
     await previousStat.save();
 
     res.status(200).json({ message: "Rollback successful", stat: previousStat });
+  } catch (err) {
+    handleServerError(res, err);
+  }
+};
+
+// A stat is identified across its versions by owner, category and name
+const versionsOf = (stat) => ({ userId: stat.userId, categoryId: stat.categoryId, name: stat.name });
+
+const HISTORY_FIELDS = "value numericValue createdAt";
+
+/**
+ * Pin or unpin a stat on the dashboard (applies to every version).
+ *
+ * @param {Object} req - The request object, body { pinned: boolean }.
+ * @param {Object} res - The response object.
+ * @returns {Object} JSON response with the updated stat or error.
+ */
+export const pinStat = async (req, res) => {
+  try {
+    const stat = await Stat.findOne({ _id: req.params.id, userId: req.userId, current: true });
+    if (!stat) {
+      return res.status(404).json({ error: "No such current stat" });
+    }
+
+    await Stat.updateMany(versionsOf(stat), { $set: { pinned: req.body.pinned } });
+    stat.pinned = req.body.pinned;
+
+    res.status(200).json({ stat, message: req.body.pinned ? "Stat pinned" : "Stat unpinned" });
+  } catch (err) {
+    handleServerError(res, err);
+  }
+};
+
+/**
+ * Set or clear the goal of a numeric stat (applies to every version).
+ *
+ * @param {Object} req - The request object, body { target: number|null, deadline?: date|null }.
+ * @param {Object} res - The response object.
+ * @returns {Object} JSON response with the updated stat or error.
+ */
+export const setStatGoal = async (req, res) => {
+  const { target, deadline } = req.body;
+
+  try {
+    const stat = await Stat.findOne({ _id: req.params.id, userId: req.userId, current: true });
+    if (!stat) {
+      return res.status(404).json({ error: "No such current stat" });
+    }
+    if (target !== null && stat.type === "text") {
+      return res.status(400).json({ error: "Only numeric stats can have a goal" });
+    }
+
+    const update = target === null ? { $unset: { goal: 1 } } : { $set: { goal: { target, deadline: deadline ?? undefined } } };
+    await Stat.updateMany(versionsOf(stat), update);
+    const updated = await Stat.findById(stat._id);
+
+    res.status(200).json({ stat: updated, message: target === null ? "Goal removed" : "Goal saved" });
+  } catch (err) {
+    handleServerError(res, err);
+  }
+};
+
+/**
+ * Get every version of a stat, oldest first, to draw its evolution.
+ *
+ * @param {Object} req - The request object with the stat ID.
+ * @param {Object} res - The response object.
+ * @returns {Object} JSON response with the history or error.
+ */
+export const getStatHistory = async (req, res) => {
+  try {
+    const stat = await Stat.findOne({ _id: req.params.id, userId: req.userId });
+    if (!stat) {
+      return res.status(404).json({ error: "No such stat" });
+    }
+
+    const history = await Stat.find(versionsOf(stat)).select(HISTORY_FIELDS).sort({ createdAt: 1 }).lean();
+
+    res.status(200).json({ history });
+  } catch (err) {
+    handleServerError(res, err);
+  }
+};
+
+/**
+ * Everything the dashboard needs in one call: pinned stats with their history,
+ * stats with a goal, and the latest changes.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} JSON response { pinned, goals, recent }.
+ */
+export const getStatsOverview = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const [pinnedStats, goals, recent] = await Promise.all([
+      Stat.find({ userId, current: true, pinned: true }).populate("categoryId", "name color icon").sort({ updatedAt: -1 }).lean(),
+      Stat.find({ userId, current: true, "goal.target": { $exists: true } })
+        .populate("categoryId", "name color icon")
+        .sort({ "goal.deadline": 1 })
+        .lean(),
+      Stat.find({ userId }).populate("categoryId", "name color icon").sort({ createdAt: -1 }).limit(12).lean(),
+    ]);
+
+    const pinned = await Promise.all(
+      pinnedStats.map(async (stat) => ({
+        ...stat,
+        history: await Stat.find(versionsOf(stat))
+          .select(HISTORY_FIELDS)
+          .sort({ createdAt: -1 })
+          .limit(30)
+          .lean()
+          .then((h) => h.reverse()),
+      })),
+    );
+
+    res.status(200).json({ pinned, goals, recent });
   } catch (err) {
     handleServerError(res, err);
   }

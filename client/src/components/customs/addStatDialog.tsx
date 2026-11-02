@@ -6,14 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { axiosConfig } from "@/config/axiosConfig";
+import { CategoryInterface } from "@/interfaces/Category";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AddStatDialogProps {
-  categoryId: string;
+  // Fixed category, or a list to pick from when the dialog is opened outside a category
+  categoryId?: string;
+  categories?: Pick<CategoryInterface, "_id" | "name">[];
   refrechStats: () => void; // Optional callback to refresh stats after adding
+  trigger?: React.ReactNode;
 }
 
-export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) {
+export function AddStatDialog({ categoryId, categories = [], refrechStats, trigger }: AddStatDialogProps) {
   const [open, setOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(categoryId ?? "");
   const [name, setName] = useState("");
   const [value, setValue] = useState("");
   const [unit, setUnit] = useState("");
@@ -23,14 +29,14 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !value.trim()) return;
+    if (!name.trim() || !value.trim() || !selectedCategory) return;
 
     const values = {
       name: name.trim(),
       value,
       unit: unit.trim() || undefined,
       description: description.trim() || undefined,
-      categoryId,
+      categoryId: selectedCategory,
       createdAt: new Date(),
       hided: hided,
     };
@@ -50,30 +56,48 @@ export function AddStatDialog({ categoryId, refrechStats }: AddStatDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={() => {
-            setName("");
-            setValue("");
-            setUnit("");
-            setDescription("");
-            setHided(false);
-          }}
-        >
-          <Plus className="h-3 w-3" />
-          Add Stat
-        </Button>
+      <DialogTrigger
+        asChild
+        onClick={() => {
+          setSelectedCategory(categoryId ?? "");
+          setName("");
+          setValue("");
+          setUnit("");
+          setDescription("");
+          setHided(false);
+        }}
+      >
+        {trigger ?? (
+          <Button variant="outline" size="sm" className="gap-2">
+            <Plus className="h-3 w-3" />
+            Add Stat
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add New Stat</DialogTitle>
-            <DialogDescription>Add a new metric to track in this category.</DialogDescription>
+            <DialogDescription>Add a new metric to track. Numbers and durations (5:12) get charts.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            {!categoryId && (
+              <div className="grid gap-2">
+                <Label>Category</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="h-10 w-full rounded-lg">
+                    <SelectValue placeholder="Choose a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category._id} value={category._id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="stat-name">Stat Name</Label>
               <Input

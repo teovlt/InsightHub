@@ -1,4 +1,6 @@
 import { Log } from "../models/logModel.js";
+import { Stat } from "../models/statModel.js";
+import { parseStatValue } from "../utils/statValue.js";
 
 /**
  * @function runMigrations
@@ -12,6 +14,15 @@ export const runMigrations = async () => {
       { $set: { level: { $arrayElemAt: ["$level", 0] } } },
     ]);
     if (modifiedCount > 0) console.log(`Migrated the level of ${modifiedCount} logs`);
+
+    // Stats created before typed values: derive type and numericValue from the stored string
+    const untyped = await Stat.collection.find({ type: { $exists: false } }, { projection: { value: 1 } }).toArray();
+    if (untyped.length > 0) {
+      await Stat.collection.bulkWrite(
+        untyped.map((stat) => ({ updateOne: { filter: { _id: stat._id }, update: { $set: parseStatValue(stat.value) } } })),
+      );
+      console.log(`Typed the value of ${untyped.length} stats`);
+    }
   } catch (err) {
     console.error("Migration failed:", err);
   }

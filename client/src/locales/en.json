@@ -1,6 +1,6 @@
 {
   "navbar": {
-    "home": "Home",
+    "home": "Dashboard",
     "dashboard": "Dashboard",
     "account": "My account",
     "login": "Login",
@@ -10,24 +10,10 @@
     "logout": "Logout",
     "profile": "Profile",
     "statistics": "Statistics",
-    "integrations": "Integrations"
+    "integrations": "Integrations",
+    "admin": "Admin"
   },
   "pages": {
-    "home": {
-      "title": "Your habits, your progress, all in one place.",
-      "subtitle": "Track what matters to you (sport, reading, studies, side projects) and watch yourself move forward, one day at a time.",
-      "empty_title": "Nothing to track yet.",
-      "empty_description": "Create your first category or connect an integration to get started.",
-      "greeting": "Hey {{name}}, glad to see you 👋",
-      "summary": {
-        "categories": "Categories",
-        "stats": "Stats tracked",
-        "automatic": "Automatic"
-      },
-      "connect_app": "Connect an app",
-      "category_empty_title": "Nothing here yet.",
-      "category_empty_description": "Add your first stat with the button above."
-    },
     "account": {
       "errors": {
         "check_approval": "Please check the box to confirm the deletion of your account.",
@@ -126,6 +112,94 @@
         "passwords_mismatch": "The passwords do not match.",
         "password_invalid": "Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character."
       }
+    },
+    "dashboard": {
+      "greeting": "Hey {{name}} 👋",
+      "subtitle": "Here is where you stand today.",
+      "log_value": "Log a value",
+      "pinned": {
+        "title": "Pinned stats",
+        "empty": "Pin your key stats to see them here with their trend.",
+        "empty_action": "Pick stats to pin"
+      },
+      "goals": {
+        "title": "Goals",
+        "empty": "No goal yet. Set one on a stat from the Statistics page.",
+        "done": "Goal reached 🎯",
+        "deadline": "by {{date}}"
+      },
+      "recent": {
+        "title": "Recent activity",
+        "empty": "Nothing logged yet.",
+        "synced": "synced"
+      },
+      "categories": {
+        "title": "All your stats",
+        "all": "All",
+        "empty": "No stats yet. Create your first one or connect an app.",
+        "empty_action": "Create a stat"
+      },
+      "quick_update": {
+        "title": "Log a value",
+        "description": "Pick a stat and enter its new value. The previous one stays in the history.",
+        "stat": "Stat",
+        "choose": "Choose a stat",
+        "value": "New value",
+        "submit": "Save"
+      }
+    },
+    "statistics": {
+      "title": "Your stats",
+      "description": "Follow each stat over time, set goals, and manage everything you track.",
+      "new_stat": "New stat",
+      "search": "Search a stat",
+      "no_stats": "No stat matches.",
+      "pick_title": "Pick a stat",
+      "pick_description": "Choose a stat on the left to see its evolution.",
+      "synced": "Synced",
+      "evolution": "Evolution",
+      "periods": {
+        "7d": "7d",
+        "30d": "30d",
+        "90d": "90d",
+        "1y": "1y",
+        "all": "All"
+      },
+      "text_stat": "This stat is text, so it has no chart. Use a number (142) or a duration (5:12) to track it over time.",
+      "hidden_stat": "This stat is hidden. Show it to see its chart.",
+      "not_enough": "Log at least two values to see the curve.",
+      "figures": {
+        "change": "Change",
+        "min": "Lowest",
+        "max": "Highest",
+        "entries": "Entries"
+      },
+      "history": "History",
+      "actions": {
+        "pin": "Pin",
+        "unpin": "Unpin",
+        "goal": "Goal",
+        "edit": "Edit",
+        "hide": "Hide",
+        "show": "Show",
+        "rollback": "Undo last",
+        "delete": "Delete"
+      },
+      "goal": {
+        "title": "Goal",
+        "description": "Set the target you want to reach for {{name}}.",
+        "target": "Target",
+        "deadline": "Deadline (optional)",
+        "duration_hint": "Format min:sec, for example 4:45.",
+        "save": "Save goal",
+        "remove": "Remove goal",
+        "set": "Set a goal",
+        "none": "No goal for this stat yet.",
+        "text_only": "Goals need a number or a duration.",
+        "invalid": "Enter a number (12, 4.5) or a duration (4:45)."
+      },
+      "delete_title": "Delete this stat",
+      "delete_description": "Delete \"{{name}}\" and its whole history? This cannot be undone."
     }
   },
   "components": {

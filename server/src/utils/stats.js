@@ -91,27 +91,40 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
       const value = values[getGithubStatKey(availableStat)];
       if (value === null || value === undefined) continue;
 
-      // Only the current version is refreshed; categoryId is always set so a stat never ends up orphaned
-      const stat = await Stat.findOneAndUpdate(
-        { userId, integrationId, integrationStatId: availableStat._id, current: true },
-        {
-          $set: {
-            value: value.toString(),
-            name: availableStat.name,
-            description: availableStat.description,
-            unit: availableStat.unit ?? "",
-            categoryId: category._id,
-          },
-          $setOnInsert: { hided: false },
-        },
-        { new: true, upsert: true },
-      ).lean();
+      // categoryId is always set so a stat never ends up orphaned
+      const fields = {
+        name: availableStat.name,
+        description: availableStat.description,
+        unit: availableStat.unit ?? "",
+        categoryId: category._id,
+      };
+      const key = { userId, integrationId, integrationStatId: availableStat._id };
+      const current = await Stat.findOne({ ...key, current: true }).sort({ createdAt: -1 });
+
+      let stat;
+      if (!current) {
+        stat = await Stat.create({ ...key, ...fields, value: value.toString(), hided: false, current: true });
+      } else if (current.value !== value.toString()) {
+        // A new value becomes a new version so the stat keeps its history (charts, trends)
+        current.current = false;
+        await current.save();
+        stat = await Stat.create({
+          ...key,
+          ...fields,
+          value: value.toString(),
+          hided: current.hided,
+          pinned: current.pinned,
+          goal: current.goal,
+          current: true,
+        });
+      } else {
+        Object.assign(current, fields);
+        stat = await current.save();
+      }
+      stat = stat.toObject();
 
       // Older syncs could leave several current versions of the same stat
-      await Stat.updateMany(
-        { userId, integrationId, integrationStatId: availableStat._id, current: true, _id: { $ne: stat._id } },
-        { current: false },
-      );
+      await Stat.updateMany({ ...key, current: true, _id: { $ne: stat._id } }, { current: false });
 
       updatedStats.push(stat);
     }
