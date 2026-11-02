@@ -24,10 +24,17 @@ RUN pnpm run build
 # Stage 2: Serve with Nginx
 FROM nginx:1.27-alpine
 
-# Templates are rendered by the nginx entrypoint with the container environment (API_URL for the CSP)
+# Templates are rendered by the nginx entrypoint with the container environment (API_URL for the CSP).
+# API_URL defaults to the URL the bundle was built with, so the image works without any runtime variable;
+# only API_* variables are substituted, nginx's own $variables are left untouched.
+ARG VITE_API_URL
+ENV API_URL=${VITE_API_URL} \
+    NGINX_ENVSUBST_FILTER=^API_
+
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx/*.template /etc/nginx/templates/
-COPY --chmod=755 nginx/05-api-ws-url.envsh /docker-entrypoint.d/
+COPY nginx/05-api-ws-url.envsh /docker-entrypoint.d/
+RUN chmod 755 /docker-entrypoint.d/05-api-ws-url.envsh
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
