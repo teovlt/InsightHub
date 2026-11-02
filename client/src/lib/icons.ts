@@ -9,6 +9,7 @@ import {
   Cloud,
   Code,
   CookingPot,
+  Crown,
   CreditCard,
   DollarSign,
   Facebook,
@@ -18,6 +19,8 @@ import {
   Heart,
   Home,
   Instagram,
+  Keyboard,
+  Languages,
   Linkedin,
   Lock,
   LucideIcon,
@@ -30,6 +33,7 @@ import {
   Slack,
   Star,
   Target,
+  Timer,
   Twitter,
   User,
   Users,
@@ -53,6 +57,12 @@ export const categoryIcons: Record<string, LucideIcon> = {
   Users,
   Target,
   CookingPot,
+  Code,
+  Crown,
+  Keyboard,
+  Languages,
+  Music,
+  Timer,
 };
 
 export const integrationIcons: Record<string, LucideIcon> = {
@@ -82,6 +92,10 @@ export const integrationIcons: Record<string, LucideIcon> = {
   Music,
   Bookmark,
   Footprints,
+  Crown,
+  Keyboard,
+  Languages,
+  Timer,
 };
 
 const allIcons: Record<string, LucideIcon> = { ...categoryIcons, ...integrationIcons };

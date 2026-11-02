@@ -11,12 +11,14 @@ import { toast } from "sonner";
 import { IntegrationInterface } from "@/interfaces/Integration";
 import { axiosConfig } from "@/config/axiosConfig";
 import { IntegrationCard } from "./integrationCard";
+import { ConnectDialog } from "./connectDialog";
 
 export function IntegrationsPage() {
   const [integrations, setIntegrations] = useState<IntegrationInterface[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(false);
+  const [connectTarget, setConnectTarget] = useState<IntegrationInterface | null>(null);
 
   const handleConnect = async (integrationId: string) => {
     setLoading(true);
@@ -25,6 +27,12 @@ export function IntegrationsPage() {
       const integration = integrations.find((i) => i._id === integrationId);
       if (!integration) {
         toast.error("Integration not found");
+        return;
+      }
+
+      // Username / API key integrations connect in a dialog instead of an OAuth redirect
+      if (integration.authType && integration.authType !== "oauth") {
+        setConnectTarget(integration);
         return;
       }
 
@@ -234,6 +242,8 @@ export function IntegrationsPage() {
           </div>
         </div>
       </Card>
+
+      <ConnectDialog integration={connectTarget} onOpenChange={(open) => !open && setConnectTarget(null)} onConnected={fetchIntegrations} />
     </Page>
   );
 }

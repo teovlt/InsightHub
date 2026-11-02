@@ -2,7 +2,8 @@ import { Integration } from "../models/integrationModel.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
 import { decrypt } from "./crypto.js";
-import { ensureGithubCategory, fetchGithubStats, getGithubStatKey } from "./github/integration.js";
+import { ensureProviderCategory, getStatKey } from "../integrations/ensure.js";
+import { getProvider } from "../integrations/index.js";
 
 // Automatic syncs (home page) run at most this often; a manual sync always runs
 export const SYNC_INTERVAL = 30 * 60 * 1000;
@@ -72,23 +73,27 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
     if (!integration) {
       return { error: "Integration not found" };
     }
+    const provider = getProvider(integration);
+    if (!provider) {
+      return { error: "No provider handles this integration" };
+    }
 
     const activatedIds = new Set(await repairActivatedStats(integrationUser, integration));
-    const activeStats = integration.availableStats.filter((stat) => activatedIds.has(stat._id.toString()) && getGithubStatKey(stat));
+    const activeStats = integration.availableStats.filter((stat) => activatedIds.has(stat._id.toString()) && getStatKey(provider, stat));
     if (activeStats.length === 0) {
       return { error: "No activated stats to sync" };
     }
 
-    const values = await fetchGithubStats(
+    const values = await provider.fetchStats(
       decrypt(integrationUser.accessToken),
-      integrationUser.config?.githubUser?.created_at,
-      activeStats.map(getGithubStatKey),
+      activeStats.map((stat) => getStatKey(provider, stat)),
+      integrationUser,
     );
-    const category = await ensureGithubCategory();
+    const category = await ensureProviderCategory(provider);
 
     const updatedStats = [];
     for (const availableStat of activeStats) {
-      const value = values[getGithubStatKey(availableStat)];
+      const value = values[getStatKey(provider, availableStat)];
       if (value === null || value === undefined) continue;
 
       // categoryId is always set so a stat never ends up orphaned

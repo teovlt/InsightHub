@@ -22,7 +22,7 @@ export const getEnabledIntegrations = async (req, res) => {
     const userId = req.userId;
 
     // 1. Intégrations disponibles
-    const integrations = await Integration.find({ status: "available" }).sort({ createdAt: -1 }).lean();
+    const integrations = await Integration.find({ status: "available" }).sort({ name: 1 }).lean();
 
     // 2. Connexions de l'utilisateur (sans le token chiffré)
     const userIntegrations = await IntegrationUser.find({ userId, connected: true }).select("-accessToken").lean();
@@ -95,7 +95,9 @@ export const updateIntegration = async (req, res) => {
 
   try {
     // req.body only holds the validated fields that were sent
-    const integration = await Integration.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    // An admin choosing the status takes over from the automatic one
+    const update = req.body.status ? { ...req.body, autoDisabled: false } : req.body;
+    const integration = await Integration.findByIdAndUpdate(id, update, { new: true, runValidators: true });
     if (!integration) {
       return res.status(404).json({ error: "Integration not found." });
     }

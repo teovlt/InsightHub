@@ -5,6 +5,9 @@ import { Integration } from "../models/integrationModel.js";
 import { ensureGithubStats } from "../utils/github/integration.js";
 import { autoSyncStats } from "../utils/stats.js";
 import { handleServerError } from "../utils/httpErrors.js";
+import { getProvider } from "../integrations/index.js";
+import { ensureProviderStats } from "../integrations/ensure.js";
+import { ProviderError } from "../integrations/http.js";
 
 const getClientUrl = () => (process.env.CORS_ORIGIN || "").split(",")[0].trim();
 
@@ -187,5 +190,68 @@ export const syncStatistics = async (req, res) => {
     });
   } catch (error) {
     handleServerError(res, error);
+  }
+};
+
+/**
+ * Connects the user to an integration that needs a username or a personal API key (no OAuth redirect).
+ * The credential is checked with the service, stored encrypted, then the first sync runs.
+ *
+ * @param {Object} req - The request object, body { credential }.
+ * @param {Object} res - The response object.
+ */
+export const connectWithCredential = async (req, res) => {
+  const { integrationId } = req.params;
+  const userId = req.userId;
+
+  try {
+    const integration = await Integration.findOne({ _id: integrationId, status: "available" }).lean();
+    const provider = getProvider(integration);
+    if (!integration || !provider) {
+      return res.status(404).json({ error: "Integration not found." });
+    }
+    if (provider.auth === "oauth") {
+      return res.status(400).json({ error: "This integration connects through its own sign-in page." });
+    }
+
+    let verified;
+    try {
+      verified = await provider.verify(req.body.credential);
+    } catch (err) {
+      if (err instanceof ProviderError) return res.status(400).json({ error: err.message });
+      console.error(`${provider.key} verify:`, err.message);
+      return res.status(502).json({ error: `${provider.name} could not be reached, try again in a moment.` });
+    }
+
+    await IntegrationUser.findOneAndUpdate(
+      { userId, integrationId },
+      {
+        userId,
+        integrationId,
+        connected: true,
+        accessToken: encrypt(verified.credential ?? req.body.credential),
+        config: { account: verified.account },
+        $unset: { lastSyncedAt: 1 },
+      },
+      { upsert: true, new: true },
+    );
+
+    // First connection: every stat is activated; a reconnection keeps the user's choice
+    const updated = await ensureProviderStats(integrationId, provider);
+    const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
+    if (!integrationUser.activedStat?.length) {
+      await IntegrationUser.updateOne({ _id: integrationUser._id }, { activedStat: updated.availableStats.map((stat) => stat._id) });
+    }
+
+    const result = await autoSyncStats(userId, integrationId, { force: true });
+
+    res.status(200).json({
+      message: result.error
+        ? `${provider.name} connected, but the first sync failed. Try "Sync now" in a moment.`
+        : `${provider.name} connected.`,
+      account: verified.account,
+    });
+  } catch (err) {
+    handleServerError(res, err);
   }
 };

@@ -113,6 +113,10 @@ const integrationStatSchema = z.object({
   icon: z.string().max(50).optional(),
 });
 
+export const connectIntegrationSchema = z.object({
+  credential: trimmed(300),
+});
+
 export const integrationSchema = z.object({
   name: trimmed(100),
   description: z.string().max(500).optional(),

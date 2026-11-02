@@ -26,6 +26,21 @@ const IntegrationSchema = new Schema(
       enum: ["available", "disabled", "deprecated"],
       default: "available",
     },
+    // Key of the provider in src/integrations that fetches this integration's stats
+    provider: {
+      type: String,
+      index: { unique: true, sparse: true },
+    },
+    authType: {
+      type: String,
+      enum: ["oauth", "username", "apiKey"],
+      default: "oauth",
+    },
+    // What the user types to connect a "username" or "apiKey" integration, and where to find it
+    credentialLabel: { type: String },
+    credentialHelp: { type: String },
+    // Disabled at startup because a server key is missing (see ensureProviderIntegrations)
+    autoDisabled: { type: Boolean, default: false },
     availableStats: [
       {
         id: { type: String, required: true },

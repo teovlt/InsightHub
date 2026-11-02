@@ -50,8 +50,13 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
                 {integration.isConnected && (
                   <Badge className="border-transparent bg-lime text-[#0f172a]">
                     <CheckCircle />
-                    Connected
+                    {integration.integrationUser?.config?.account && integration.authType === "username"
+                      ? integration.integrationUser.config.account
+                      : "Connected"}
                   </Badge>
+                )}
+                {!integration.isConnected && integration.authType && integration.authType !== "oauth" && (
+                  <Badge variant="outline">{integration.authType === "apiKey" ? "API key" : "Username only"}</Badge>
                 )}
                 {integration.category && <Badge variant="secondary">{integration.category}</Badge>}
               </div>

@@ -1,7 +1,7 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { validateBody } from "../middlewares/validate.js";
-import { integrationSchema } from "../validation/schemas.js";
+import { connectIntegrationSchema, integrationSchema } from "../validation/schemas.js";
 import {
   createIntegration,
   deleteIntegration,
@@ -10,7 +10,13 @@ import {
   getIntegrations,
   updateIntegration,
 } from "../controllers/integrationController.js";
-import { getGithubUser, redirectToGithub, syncStatistics, toggleActivedStat } from "../controllers/integrationUserController.js";
+import {
+  connectWithCredential,
+  getGithubUser,
+  redirectToGithub,
+  syncStatistics,
+  toggleActivedStat,
+} from "../controllers/integrationUserController.js";
 
 export const integrationRouter = new express.Router();
 
@@ -55,6 +61,12 @@ integrationRouter.get("/auth/github", verifyToken(), redirectToGithub);
  * Retour de GitHub : l'utilisateur est retrouvé via le state stocké en session
  */
 integrationRouter.get("/auth/github/callback", getGithubUser);
+
+/**
+ * POST /api/integrations/:integrationId/connection
+ * Connecte l'utilisateur avec un pseudo ou une clé API (intégrations sans OAuth)
+ */
+integrationRouter.post("/:integrationId/connection", verifyToken(), validateBody(connectIntegrationSchema), connectWithCredential);
 
 /**
  * DELETE /api/integrations/:integrationId/connection

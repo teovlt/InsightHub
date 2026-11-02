@@ -6,6 +6,10 @@ export interface IntegrationInterface {
   color: string;
   category: string;
   status: "available" | "disabled" | "deprecated";
+  provider?: string;
+  authType?: "oauth" | "username" | "apiKey";
+  credentialLabel?: string;
+  credentialHelp?: string;
   availableStats?: IntegrationStat[];
   config?: {
     authUrl?: string;
@@ -17,6 +21,7 @@ export interface IntegrationInterface {
   isConnected?: boolean;
   integrationUser: {
     activedStat: string[];
+    config?: { account?: string };
   };
 }
 

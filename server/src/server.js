@@ -1,6 +1,7 @@
 import { app } from "./app.js";
 import { connectToDatabase } from "./database/connectToDB.js";
 import { runMigrations } from "./database/migrations.js";
+import { ensureProviderIntegrations } from "./integrations/index.js";
 import { createServer } from "http";
 import { initSockets } from "./sockets/socket.js";
 
@@ -51,6 +52,8 @@ export async function initServer() {
   // Connect to the database
   await connectToDatabase();
   await runMigrations();
+  // A provider that cannot be set up must not keep the API down
+  await ensureProviderIntegrations().catch((err) => console.error("Integrations setup failed:", err));
 
   // Create an HTTP server using the Express app
   const httpServer = createServer(app);

@@ -70,6 +70,9 @@ services:
       FIREBASE_BUCKET_NAME: ${FIREBASE_BUCKET_NAME:?FIREBASE_BUCKET_NAME is required}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      # Optional free keys: the Steam and Last.fm integrations stay disabled without them
+      STEAM_API_KEY: ${STEAM_API_KEY:-}
+      LASTFM_API_KEY: ${LASTFM_API_KEY:-}
     # Attach the API domain to this service on port 3000 in Dokploy
     expose:
       - "3000"
