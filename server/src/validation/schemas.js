@@ -119,8 +119,3 @@ export const integrationSchema = z.object({
     })
     .optional(),
 });
-
-export const updateConfigSchema = z.object({
-  keys: z.array(trimmed(100)).max(50),
-  config: z.record(z.string(), z.string().max(1000)),
-});

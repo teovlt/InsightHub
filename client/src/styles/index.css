@@ -76,7 +76,7 @@
 }
 
 @layer base {
-  /* Brand palette: see BRAND.md. --accent is the brand blue and is overridden at runtime by the ACCENT_COLOR config. */
+  /* Brand palette: see BRAND.md. --accent is the brand blue. */
   :root {
     --background: #f7f9fc;
     --foreground: #0f172a;

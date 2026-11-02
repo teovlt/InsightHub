@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { OAuth } from "./oauth";
-import { useConfigContext } from "@/contexts/configContext";
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Logo } from "@/components/customs/logo";
 
@@ -47,21 +45,9 @@ export const RegisterForm = ({
     },
   });
 
-  const { getConfigValue } = useConfigContext();
-  const [configValues, setConfigValues] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const fetchConfigValues = async () => {
-      const values = await getConfigValue(["APP_NAME"]);
-      setConfigValues(values);
-    };
-
-    fetchConfigValues();
-  }, [getConfigValue]);
-
   return (
     <div className="flex flex-col items-center justify-center min-h-svh gap-6 px-2 py-4 md:px-10 md:py-10">
-      <Logo name={configValues["APP_NAME"]} className="self-center text-3xl sm:text-4xl" markClassName="w-10 h-10" />
+      <Logo className="self-center text-3xl sm:text-4xl" markClassName="w-10 h-10" />
       <div className="flex flex-col w-full max-w-2xl gap-6 bg-card p-4 md:p-8 sm:rounded-2xl sm:shadow">
         <div className="text-center">
           <h1 className="text-xl md:text-2xl">{oauth ? t("pages.register.title") : t("pages.register.password_creation")}</h1>

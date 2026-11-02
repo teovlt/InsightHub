@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChartBarStacked, Folder, Home, NotebookText, Presentation, Settings, UsersIcon } from "lucide-react";
+import { ChartBarStacked, Folder, Home, NotebookText, Presentation, UsersIcon } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, useSidebar } from "@/components/ui/sidebar";
@@ -34,11 +34,6 @@ const adminMenus = {
       title: "Integrations",
       icon: ChartBarStacked,
       url: "/admin/integrations",
-    },
-    {
-      title: "Settings",
-      icon: Settings,
-      url: "/admin/settings",
     },
   ],
 };

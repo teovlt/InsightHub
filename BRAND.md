@@ -99,7 +99,7 @@ Règles d'accessibilité :
 - En mode sombre, le lime et le bleu primaire s'utilisent tels quels sur `#0B1220`.
 - Graphiques : bleu = série principale, lime = objectif / record ; les autres séries en nuances de neutre ou de bleu.
 
-Le `ACCENT_COLOR` stocké en config doit rester par défaut à `#1489E0`.
+Les couleurs sont définies uniquement dans `client/src/styles/index.css` (pas de configuration en base).
 
 ### Typographie (Google Fonts)
 

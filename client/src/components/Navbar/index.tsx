@@ -20,13 +20,10 @@ import {
 } from "../ui/dropdown-menu";
 import { useLogout } from "@/hooks/useLogout";
 import { AvatarWithStatusCell } from "@/components/customs/avatarStatusCell";
-import { useConfigContext } from "../../contexts/configContext";
 import { Logo } from "@/components/customs/logo";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [configValues, setConfigValues] = useState<Record<string, string>>({});
-
   const menuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
@@ -34,16 +31,6 @@ export const Navbar = () => {
   const { logout, loading } = useLogout();
 
   const { authUser } = useAuthContext();
-  const { getConfigValue } = useConfigContext();
-
-  useEffect(() => {
-    const fetchConfigValues = async () => {
-      const values = await getConfigValue(["APP_NAME"]);
-      setConfigValues(values);
-    };
-
-    fetchConfigValues();
-  }, [getConfigValue]);
 
   useEffect(() => {
     const handleClickOutside = (event: { target: any }) => {
@@ -66,7 +53,7 @@ export const Navbar = () => {
       <div className="sticky top-0 left-0 right-0 z-50 border-b bg-background">
         <div className="items-center justify-between hidden p-4 px-8 select-none md:flex text-accent">
           <Link to="/">
-            <Logo name={configValues["APP_NAME"]} className="text-2xl" />
+            <Logo className="text-2xl" />
           </Link>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -167,7 +154,7 @@ export const Navbar = () => {
         {/* Mobile Navbar with Hamburger Menu */}
         <div className="flex items-center justify-between p-4 md:hidden ">
           <Link to="/">
-            <Logo name={configValues["APP_NAME"]} className="text-2xl" />
+            <Logo className="text-2xl" />
           </Link>
           <Menu onClick={() => setIsOpen(!isOpen)} className="cursor-pointer" />
         </div>

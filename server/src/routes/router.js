@@ -6,7 +6,6 @@ import { uploadRouter } from "./uploadRoutes.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
-import { configRouter } from "./configRoute.js";
 import { categoryRouter } from "./categoryRoutes.js";
 import { statRouter } from "./statRoutes.js";
 import { integrationRouter } from "./integrationRoutes.js";
@@ -19,7 +18,6 @@ export const router = new express.Router();
 router.use("/api/users", userRouter); // User-related routes
 router.use("/api/auth", authRouter); // Authentication routes
 router.use("/api/logs", logRouter); // Logging routes
-router.use("/api/config", configRouter); // Config routes
 router.use("/api/categories", categoryRouter); // Category routes
 router.use("/api/stats", statRouter); // Stat routes
 router.use("/api/integrations", integrationRouter); // Integration routes

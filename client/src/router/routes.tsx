@@ -23,7 +23,6 @@ const Users = lazyNamed(() => import("@/pages/Admin/components/users"), "Users")
 const Logs = lazyNamed(() => import("@/pages/Admin/components/logs"), "Logs");
 const Categories = lazyNamed(() => import("@/pages/Admin/components/categories"), "Categories");
 const Integrations = lazyNamed(() => import("@/pages/Admin/components/integrations"), "Integrations");
-const Config = lazyNamed(() => import("@/pages/Admin/components/config"), "Config");
 
 export const Router = () => {
   return (
@@ -69,7 +68,6 @@ export const Router = () => {
           <Route path="logs" element={<Logs />} />
           <Route path="categories" element={<Categories />} />
           <Route path="integrations" element={<Integrations />} />
-          <Route path="settings" element={<Config />} />
         </Route>
       </Route>
 

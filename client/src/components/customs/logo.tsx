@@ -14,19 +14,14 @@ export const LogoMark = ({ className }: { className?: string }) => {
   );
 };
 
-// Splits "InsightHub" into a bold "Insight" and a regular "Hub"; any other name renders in bold.
-export const Logo = ({ name, className, markClassName }: { name?: string; className?: string; markClassName?: string }) => {
-  const appName = name && name !== "__NOT_FOUND__" ? name : "InsightHub";
-  const split = appName.search(/[A-Z][^A-Z]*$/);
-  const head = split > 0 ? appName.slice(0, split) : appName;
-  const tail = split > 0 ? appName.slice(split) : "";
-
+// Symbol + "InsightHub" wordmark, with "Insight" bold and "Hub" regular.
+export const Logo = ({ className, markClassName }: { className?: string; markClassName?: string }) => {
   return (
     <span className={cn("inline-flex items-center gap-2 font-display tracking-tight text-foreground", className)}>
       <LogoMark className={markClassName} />
       <span>
-        <span className="font-bold">{head}</span>
-        <span className="font-normal">{tail}</span>
+        <span className="font-bold">Insight</span>
+        <span className="font-normal">Hub</span>
       </span>
     </span>
   );

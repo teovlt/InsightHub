@@ -6,12 +6,10 @@
  * @property {number} MAX_AGE - The maximum age (in milliseconds) for tokens or sessions, set to 30 days.
  * @property {number} AVATAR_MAX_SIZE - The maximum size (in bytes) for an avatar file, set to 3 MB.
  * @property {RegExp} REGEX_PASSWORD - Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character.
- * @property {string[]} PUBLIC_CONFIG_KEYS - Configuration keys readable without authentication.
  *
  */
 export const Constants = {
   MAX_AGE: 30 * 24 * 60 * 60,
   AVATAR_MAX_SIZE: 3 * 1024 * 1024,
   REGEX_PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/,
-  PUBLIC_CONFIG_KEYS: ["APP_NAME", "ACCENT_COLOR"],
 };

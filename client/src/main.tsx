@@ -6,8 +6,6 @@ import { Toaster } from "./components/ui/sonner.js";
 import { AuthContextProvider } from "./contexts/authContext.js";
 import { ThemeProvider } from "./providers/theme-provider.js";
 import { SocketContextProvider } from "./contexts/socketContext.js";
-import { ConfigProvider } from "./contexts/configContext.js";
-import { AppInitializer } from "./initializer.js";
 import "./lib/i18n.js";
 
 if (!import.meta.env.VITE_API_URL) {
@@ -20,20 +18,16 @@ if (!rootElement) {
 } else {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-      <ConfigProvider>
-        <AppInitializer>
-          <AuthContextProvider>
-            <SocketContextProvider>
-              <BrowserRouter>
-                <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-                  <App />
-                  <Toaster />
-                </ThemeProvider>
-              </BrowserRouter>
-            </SocketContextProvider>
-          </AuthContextProvider>
-        </AppInitializer>
-      </ConfigProvider>
+      <AuthContextProvider>
+        <SocketContextProvider>
+          <BrowserRouter>
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <App />
+              <Toaster />
+            </ThemeProvider>
+          </BrowserRouter>
+        </SocketContextProvider>
+      </AuthContextProvider>
     </React.StrictMode>,
   );
 }
