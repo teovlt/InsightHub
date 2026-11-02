@@ -1,45 +1,48 @@
 // vitest.setup.ts
-import fs from "fs";
-import path from "path";
 import mongoose from "mongoose";
-import { beforeAll, afterAll, beforeEach, afterEach } from "vitest";
-import { User } from "./src/models/userModel.js";
-import { Log } from "./src/models/logModel.js";
-import { Config } from "./src/models/configModel.js";
+import { Writable } from "stream";
+import { beforeAll, afterAll, beforeEach, vi } from "vitest";
 
-import "dotenv/config";
+// Firebase is replaced by in-memory fakes: no credentials or network needed.
+// Tests drive Google sign-in through firebaseAuth.verifyIdToken (see tests/helpers.js).
+vi.mock("./src/lib/firebase.js", () => {
+  const file = (name: string) => ({
+    name,
+    delete: vi.fn(async () => {}),
+    makePublic: vi.fn(async () => {}),
+    createWriteStream: () =>
+      new Writable({
+        write(_chunk, _encoding, callback) {
+          callback();
+        },
+      }),
+  });
 
-const uploadsDir = path.resolve(__dirname, "uploads/users/avatars");
-let initialAvatarFiles: string[] = [];
+  return {
+    bucket: { name: "test-bucket", file: vi.fn(file) },
+    firebaseAuth: { verifyIdToken: vi.fn(async () => Promise.reject(new Error("No token configured"))) },
+  };
+});
+
+// Avatars are fetched from DiceBear/Google in production; tests must not hit the network
+vi.mock("./src/utils/saveAvatarFromUrl.js", async (importOriginal) => {
+  const original = await importOriginal<typeof import("./src/utils/saveAvatarFromUrl.js")>();
+  return {
+    ...original,
+    saveAvatarFromUrl: vi.fn(
+      async (_url: string, userId: string, extension = "jpg") => `https://storage.googleapis.com/test-bucket/avatars/avatar_${userId}.${extension}`,
+    ),
+  };
+});
 
 beforeAll(async () => {
   await mongoose.connect(process.env.MONG_URI_TEST as string);
 });
 
 beforeEach(async () => {
-  // Snapshot des fichiers existants AVANT test
-  if (fs.existsSync(uploadsDir)) {
-    initialAvatarFiles = fs.readdirSync(uploadsDir);
-  } else {
-    initialAvatarFiles = [];
-  }
-
   // Reset BDD
-  await User.deleteMany({});
-  await Log.deleteMany({});
-  await Config.deleteMany({});
-});
-
-afterEach(() => {
-  if (!fs.existsSync(uploadsDir)) return;
-
-  const finalFiles = fs.readdirSync(uploadsDir);
-  const newFiles = finalFiles.filter((f) => !initialAvatarFiles.includes(f));
-
-  newFiles.forEach((file) => {
-    const fullPath = path.join(uploadsDir, file);
-    fs.unlinkSync(fullPath);
-  });
+  const collections = await mongoose.connection.db!.collections();
+  await Promise.all(collections.map((collection) => collection.deleteMany({})));
 });
 
 afterAll(async () => {

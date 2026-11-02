@@ -46,6 +46,12 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: authTypes.LOCAL,
     },
+    // Incremented to revoke every JWT issued before (password change, logout everywhere)
+    tokenVersion: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
   },
   {
     timestamps: true,

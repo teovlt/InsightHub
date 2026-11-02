@@ -1,5 +1,7 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
+import { validateBody } from "../middlewares/validate.js";
+import { createStatSchema, updateStatSchema } from "../validation/schemas.js";
 import { createStat, deleteStat, rollbackStat, updateStat } from "../controllers/statController.js";
 
 export const statRouter = new express.Router();
@@ -10,7 +12,7 @@ export const statRouter = new express.Router();
  * @middleware verifyToken() - Ensures the user is authenticated.
  * @param {Object} statData - The data for the new stat.
  */
-statRouter.post("/", verifyToken(), createStat);
+statRouter.post("/", verifyToken(), validateBody(createStatSchema), createStat);
 
 /**
  * @route DELETE /:id
@@ -28,7 +30,7 @@ statRouter.delete("/:id", verifyToken(), deleteStat);
  * @middleware verifyToken() - Ensures the user is authenticated.
  * @returns {Object} JSON response with the updated stat or error.
  */
-statRouter.put("/:id", verifyToken(), updateStat);
+statRouter.put("/:id", verifyToken(), validateBody(updateStatSchema), updateStat);
 
 /**
  * @route POST /rollback/:id

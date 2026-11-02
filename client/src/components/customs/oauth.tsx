@@ -25,15 +25,17 @@ export function OAuth({ message }: OauthProps) {
     try {
       const googleRes = await signInWithPopup(auth, provider);
 
+      const idToken = await googleRes.user.getIdToken();
       const userData = {
         name: googleRes.user.displayName,
         email: googleRes.user.email,
         photoURL: googleRes.user.photoURL,
+        idToken,
       };
 
       try {
-        const res = await axiosConfig.post("/auth/login/google", userData);
-        localStorage.setItem("accessTokenInsightHub", res.data.accessToken);
+        // Only the ID token is trusted by the server, which reads the email from it
+        const res = await axiosConfig.post("/auth/login/google", { idToken });
         toast.success(t(res.data.message));
         setAuthUser(res.data.user);
         navigate("/");

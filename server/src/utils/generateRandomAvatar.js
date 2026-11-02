@@ -5,5 +5,5 @@
  * @returns {string} The generated URL for the random avatar.
  */
 export const generateRandomAvatar = (username) => {
-  return `https://api.dicebear.com/9.x/identicon/svg?seed=${username}`;
+  return `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(username)}`;
 };

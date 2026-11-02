@@ -2,10 +2,31 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
 import { createLog } from "../controllers/logController.js";
 import { logLevels } from "../utils/enums/logLevel.js";
+import { ACCESS_TOKEN_COOKIE } from "../utils/authCookie.js";
+import { handleServerError } from "../utils/httpErrors.js";
 
 /**
- * Middleware to verify JWT token and, if specified, check the user's role.
- * This middleware verifies the access token from the cookie and ensures the user has the required role (if provided).
+ * @function authenticateToken
+ * @description Verifies a JWT and loads the matching user, rejecting tokens revoked through tokenVersion.
+ * @param {string} token - The raw JWT.
+ * @returns {Promise<Object|null>} The user (with role and tokenVersion), or null if the token is not valid.
+ */
+export const authenticateToken = async (token) => {
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.SECRET_ACCESS_TOKEN);
+  } catch {
+    return null;
+  }
+
+  const user = await User.findById(payload.id).select("+tokenVersion");
+  if (!user || (payload.v ?? 0) !== (user.tokenVersion ?? 0)) return null;
+  return user;
+};
+
+/**
+ * Middleware to verify the JWT stored in the httpOnly auth cookie and, if specified, check the user's role.
+ * On success, req.userId (string) and req.user are set.
  *
  * @param {Object} options - Options for the middleware.
  * @param {string} [options.role] - Required role to access the route (e.g., "admin").
@@ -13,32 +34,28 @@ import { logLevels } from "../utils/enums/logLevel.js";
  */
 export const verifyToken = ({ role } = {}) => {
   return async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ error: "Not Authenticated" });
+    const token = req.cookies?.[ACCESS_TOKEN_COOKIE];
+    if (!token) return res.status(401).json({ error: "Not Authenticated" });
 
-    const token = authHeader.split(" ")[1];
-    jwt.verify(token, process.env.SECRET_ACCESS_TOKEN, async (err, payload) => {
-      if (err) return res.status(403).json({ error: "Access Token is invalid" });
+    try {
+      const user = await authenticateToken(token);
+      if (!user) return res.status(401).json({ error: "Access Token is invalid" });
 
-      try {
-        const user = await User.findOne({ _id: payload.id });
-        if (!user) return res.status(400).json({ error: "No such user" });
+      req.userId = user._id.toString();
+      req.user = user;
 
-        req.userId = payload.id;
-
-        if (role && user.role !== role) {
-          createLog({
-            message: `User ${user.username} attempted to access a restricted route`,
-            userId: user._id,
-            level: logLevels.ERROR,
-          });
-          return res.status(403).json({ error: "Access restricted" });
-        }
-      } catch (error) {
-        return res.status(500).json({ error: error.message });
+      if (role && user.role !== role) {
+        createLog({
+          message: `User ${user.username} attempted to access a restricted route`,
+          userId: user._id,
+          level: logLevels.ERROR,
+        });
+        return res.status(403).json({ error: "Access restricted" });
       }
+    } catch (error) {
+      return handleServerError(res, error);
+    }
 
-      next();
-    });
+    next();
   };
 };

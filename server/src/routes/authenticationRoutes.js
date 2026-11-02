@@ -1,6 +1,7 @@
 import express from "express";
 import { getConnectedUser, login, logout, register, signInWithGoogle } from "../controllers/authenticationController.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
+import { credentialsLimiter, registerLimiter } from "../middlewares/rateLimiters.js";
 
 export const authRouter = new express.Router();
 
@@ -8,27 +9,26 @@ export const authRouter = new express.Router();
  * @route POST /login
  * @description Authenticates a user with their credentials (e.g., email and password).
  */
-authRouter.post("/login", login);
+authRouter.post("/login", credentialsLimiter, login);
 
 /**
  * @route POST /google
  * @description Authenticates a user using Google OAuth.
- * @body {Object} - Contains user details like name, email, and photoURL.
+ * @body {Object} - Contains the Firebase ID token ({ idToken }), verified server-side.
  */
-authRouter.post("/login/google", signInWithGoogle);
+authRouter.post("/login/google", credentialsLimiter, signInWithGoogle);
 
 /**
  * @route POST /register
  * @description Registers a new user with the provided details.
  */
-authRouter.post("/register", register);
+authRouter.post("/register", registerLimiter, register);
 
 /**
- * @route GET /logout
- * @description Logs out the currently authenticated user.
- * @middleware verifyToken() - Ensures the user is authenticated before logging out.
+ * @route POST /logout
+ * @description Logs out the current user by clearing the auth cookie (works even with an expired token).
  */
-authRouter.get("/logout", verifyToken(), logout);
+authRouter.post("/logout", logout);
 
 /**
  * @route GET /me

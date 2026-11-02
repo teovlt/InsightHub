@@ -1,4 +1,3 @@
-import fs from "fs";
 import bcrypt from "bcryptjs";
 
 export const adminUser = {
@@ -43,8 +42,7 @@ export const regularUser = {
   password: "Abcdef1@",
 };
 
-export const pathAvatarOldTest = "./uploads/users/avatars/_test_hello-world.png";
-fs.writeFileSync(pathAvatarOldTest, "Hello, world!");
+export const pathAvatarOldTest = "https://storage.googleapis.com/test-bucket/avatars/_test_hello-world.png";
 
 export const userAdminWithAvatar = {
   username: "test",

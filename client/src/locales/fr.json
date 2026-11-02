@@ -130,7 +130,12 @@
     "global": {
       "errors": {
         "missing_fields": "Veuillez remplir tous les champs obligatoires.",
-        "no_such_user": "Aucun utilisateur trouvé."
+        "no_such_user": "Aucun utilisateur trouvé.",
+        "internal": "Une erreur est survenue, réessayez plus tard.",
+        "invalid_id": "Identifiant invalide.",
+        "invalid_fields": "Certains champs sont invalides.",
+        "forbidden": "Vous n'êtes pas autorisé à faire cela.",
+        "too_many_requests": "Trop de tentatives, réessayez plus tard."
       }
     },
     "auth": {
@@ -139,7 +144,8 @@
         "password_no_match": "Les mots de passe ne correspondent pas",
         "email_taken": "Cet email est déjà utilisé",
         "username_taken": "Ce nom d'utilisateur est déjà utilisé",
-        "invalid_credentials": "Identifiants invalides"
+        "invalid_credentials": "Identifiants invalides",
+        "google_token_invalid": "L'authentification Google a échoué, réessayez."
       },
       "messages": {
         "register_success": "Inscription réussie",
@@ -150,7 +156,7 @@
     "upload": {
       "errors": {
         "no_file": "Aucun fichier téléchargé",
-        "invalid_file_type": "Type de fichier invalide. Seuls les fichiers jpg, jpeg, png, gif et svg sont autorisés",
+        "invalid_file_type": "Type de fichier invalide. Seuls les formats jpg, jpeg, png, gif et webp sont autorisés",
         "limit": "La taille du fichier dépasse la limite autorisée."
       },
       "messages": {

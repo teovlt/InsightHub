@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
-import { axiosConfig } from "../config/axiosConfig";
+import { axiosConfig, UNAUTHORIZED_EVENT } from "../config/axiosConfig";
 import { UserInterface } from "@/interfaces/User";
 
 const AuthContext = createContext<{
@@ -22,6 +22,16 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Tokens used to be kept in localStorage; drop any leftover
+    try {
+      localStorage.removeItem("accessTokenInsightHub");
+    } catch {
+      // Storage unavailable (private mode), nothing to clean
+    }
+
+    const handleUnauthorized = () => setAuthUser(null);
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+
     const getAuthUser = async () => {
       setLoading(true);
       try {
@@ -36,6 +46,8 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     };
 
     getAuthUser();
+
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
   }, []);
   return <AuthContext.Provider value={{ authUser, setAuthUser, loading }}>{children}</AuthContext.Provider>;
 };

@@ -31,9 +31,9 @@ const IntegrationUserSchema = new Schema(
       type: Schema.Types.Mixed,
       default: {},
     },
+    // Encrypted with utils/crypto.js; removed when the user disconnects
     accessToken: {
       type: String,
-      required: true,
     },
   },
   {

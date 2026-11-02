@@ -2,6 +2,8 @@ import { Category } from "../models/categoryModel.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
 import { autoSyncStats } from "../utils/stats.js";
+import { handleServerError } from "../utils/httpErrors.js";
+import { getPagination } from "../utils/pagination.js";
 
 /**
  * Get a paginated list of categories.
@@ -9,14 +11,13 @@ import { autoSyncStats } from "../utils/stats.js";
  * @returns {Object} JSON response with categories and total count.
  */
 export const getCategories = async (req, res) => {
-  const size = parseInt(req.query.size) || 10;
-  const page = parseInt(req.query.page) || 0;
+  const { size, skip } = getPagination(req.query);
   const userId = req.userId;
 
   try {
     const categories = await Category.find({})
       .sort({ order: 1, createdAt: 1 })
-      .skip(page * size)
+      .skip(skip)
       .limit(size)
       .lean();
 
@@ -63,7 +64,7 @@ export const getCategories = async (req, res) => {
 
     res.status(200).json({ categories: categoriesWithStats, count });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -76,10 +77,6 @@ export const getCategories = async (req, res) => {
  */
 export const createCategory = async (req, res) => {
   const { name, description, icon, color } = req.body;
-
-  if (!name || !description || !icon || !color) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
 
   try {
     const categories = await Category.find({}).sort({ order: 1 });
@@ -94,7 +91,7 @@ export const createCategory = async (req, res) => {
 
     res.status(201).json({ category, message: "Category created successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -105,14 +102,10 @@ export const createCategory = async (req, res) => {
  */
 export const updateCategory = async (req, res) => {
   const { id } = req.params;
-  const { name, description, icon, color, order } = req.body;
 
   try {
-    const updatedCategory = await Category.findByIdAndUpdate(
-      id,
-      { name, description, icon, color, order },
-      { new: true, runValidators: true },
-    );
+    // req.body only holds the validated fields that were sent
+    const updatedCategory = await Category.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
 
     if (!updatedCategory) {
       return res.status(400).json({ error: "No such category" });
@@ -120,7 +113,7 @@ export const updateCategory = async (req, res) => {
 
     res.status(200).json({ message: "Category updated successfully", category: updatedCategory });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -139,7 +132,7 @@ export const deleteCategory = async (req, res) => {
     }
     res.status(200).json({ message: "Category deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -153,6 +146,6 @@ export const deleteAllCategories = async (req, res) => {
     await Category.deleteMany();
     res.status(200).json({ message: "All categories deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };

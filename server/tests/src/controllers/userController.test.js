@@ -5,7 +5,10 @@ import request from "supertest";
 import { User } from "../../../src/models/userModel.js";
 import { Log } from "../../../src/models/logModel.js";
 import { generateAccessToken } from "../../../src/utils/generateAccessToken.js";
-import fs from "fs";
+import { bucket } from "../../../src/lib/firebase.js";
+import { Stat } from "../../../src/models/statModel.js";
+import { IntegrationUser } from "../../../src/models/integrationUser.js";
+import { authCookie, getAuthSetCookie } from "../../helpers.js";
 import bcrypt from "bcryptjs";
 
 //Import server and app
@@ -48,7 +51,7 @@ describe("GET /api/users/", () => {
       .get("/api/users/")
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -91,7 +94,7 @@ describe("GET /api/users/:id", () => {
       .get(`/api/users/${user._id}`)
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -119,8 +122,8 @@ describe("POST /api/users/", () => {
       .send({ username: "invaliduser", email: "invaliduser@example.com" })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
-    expect(response.status).toBe(400);
-    expect(response.body.error).toBe("Missing fields");
+    expect(response.status).toBe(422);
+    expect(response.body.error).toBe("server.global.errors.missing_fields");
   });
 
   it("should return an error if the email already exist", async () => {
@@ -156,7 +159,7 @@ describe("POST /api/users/", () => {
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe("Invalid role");
+    expect(response.body.error).toBe("server.global.errors.invalid_fields");
   });
 
   it("should return a 500 status if there is an error during user creation", async () => {
@@ -172,7 +175,7 @@ describe("POST /api/users/", () => {
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -208,7 +211,7 @@ describe("PUT /api/users/:id", () => {
     const user = await User.create(adminUser);
     const response = await request(app)
       .put(`/api/users/${user._id}`)
-      .send({ password: "newPassword" })
+      .send({ password: "NewPassw0rd!" })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
     expect(response.status).toBe(200);
@@ -282,7 +285,7 @@ describe("PUT /api/users/:id", () => {
       .send({ role: "roleInexistant" })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe("server.users.errors.invalid_role");
+    expect(response.body.error).toBe("server.global.errors.invalid_fields");
   });
 
   it("should return a 500 status if an error occurs", async () => {
@@ -297,7 +300,7 @@ describe("PUT /api/users/:id", () => {
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -309,7 +312,7 @@ describe("DELETE /api/users/:id", () => {
       .delete(`/api/users/${user._id}`)
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
-    expect(fs.existsSync(pathAvatarOldTest)).toBe(false);
+    expect(bucket.file).toHaveBeenCalledWith("avatars/_test_hello-world.png");
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("User deleted successfully");
     expect(response.body.user.username).toBe(user.username);
@@ -340,7 +343,7 @@ describe("DELETE /api/users/:id", () => {
       .delete(`/api/users/${user._id}`)
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -394,7 +397,7 @@ describe("PUT /api/users/:id/password", () => {
       })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
     expect(response.body.error).toBe("server.global.errors.missing_fields");
   });
 
@@ -440,7 +443,7 @@ describe("PUT /api/users/:id/password", () => {
     expect(response.body.error).toBe("server.users.errors.passwords_do_not_match");
   });
 
-  it("should return a 400 status error if user does not exist", async () => {
+  it("should refuse to change the password of another user", async () => {
     const falseId = new mongoose.Types.ObjectId();
 
     const response = await request(app)
@@ -452,8 +455,8 @@ describe("PUT /api/users/:id/password", () => {
       })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
-    expect(response.status).toBe(400);
-    expect(response.body.error).toBe("server.global.errors.no_such_user");
+    expect(response.status).toBe(403);
+    expect(response.body.error).toBe("server.global.errors.forbidden");
   });
 
   it("should return a 500 status error due to internal server error", async () => {
@@ -471,19 +474,13 @@ describe("PUT /api/users/:id/password", () => {
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
 describe("DELETE /api/users/delete/account", () => {
   it("should delete the current user's account", async () => {
-    fs.mkdirSync(path.dirname(pathAvatarOldTest), { recursive: true });
-    fs.writeFileSync(pathAvatarOldTest, "fake image content");
-
-    const user = await User.create({
-      ...userWithAvatarAndHashPassword,
-      avatar: `/uploads/users/avatars/${path.basename(pathAvatarOldTest)}`,
-    });
+    const user = await User.create(userWithAvatarAndHashPassword);
 
     const response = await request(app)
       .delete("/api/users/delete/account")
@@ -492,7 +489,7 @@ describe("DELETE /api/users/delete/account", () => {
       })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
-    expect(fs.existsSync(pathAvatarOldTest)).toBe(false);
+    expect(bucket.file).toHaveBeenCalledWith("avatars/_test_hello-world.png");
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("server.users.messages.user_deleted");
     expect(response.body.user).toBe(undefined);
@@ -514,7 +511,7 @@ describe("DELETE /api/users/delete/account", () => {
       })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 
   it("should return a 400 status if password is missing", async () => {
@@ -523,11 +520,10 @@ describe("DELETE /api/users/delete/account", () => {
     const response = await request(app)
       .delete("/api/users/delete/account")
       .send({
-        password: "",
       })
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
     expect(response.body.error).toBe("server.global.errors.missing_fields");
   });
 
@@ -604,13 +600,95 @@ describe("GET /api/users/stats/authTypes", () => {
   });
 
   it("should return 500 if an error occurs", async () => {
-    vi.spyOn(User, "find").mockImplementationOnce(() => {
+    vi.spyOn(User, "countDocuments").mockImplementationOnce(() => {
       throw new Error("Test error");
     });
 
     const res = await request(app).get("/api/users/stats/authTypes").set("Cookie", `__access__token=${adminToken}`);
 
     expect(res.status).toBe(500);
-    expect(res.body.error).toBe("Test error");
+    expect(res.body.error).toBe("server.global.errors.internal");
+  });
+});
+
+describe("Users security", () => {
+  it("should not let a user update another user's profile (IDOR)", async () => {
+    const attacker = await User.create(regularUser);
+    const victim = await User.create(userWithHashPassword);
+
+    const response = await request(app)
+      .put(`/api/users/${victim._id}`)
+      .send({ email: "attacker@evil.example" })
+      .set("Cookie", authCookie(attacker));
+
+    expect(response.status).toBe(403);
+    expect((await User.findById(victim._id)).email).toBe(userWithHashPassword.email);
+  });
+
+  it("should ignore role, password and unknown fields when a user updates their own profile", async () => {
+    const user = await User.create(regularUser);
+
+    const response = await request(app)
+      .put(`/api/users/${user._id}`)
+      .send({ name: "NEW", role: "admin", password: "Hacked1@!", auth_type: "google", tokenVersion: 5 })
+      .set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(200);
+    const updated = await User.findById(user._id).select("+password +tokenVersion");
+    expect(updated.name).toBe("NEW");
+    expect(updated.role).toBe("user");
+    expect(updated.password).toBe(regularUser.password);
+    expect(updated.auth_type).toBe("local");
+    expect(updated.tokenVersion).toBe(0);
+  });
+
+  it("should revoke existing sessions when an admin resets a password", async () => {
+    const admin = await User.create(adminUser);
+    const user = await User.create(regularUser);
+    const oldCookie = authCookie(user);
+
+    const response = await request(app)
+      .put(`/api/users/${user._id}`)
+      .send({ password: "NewPassw0rd!" })
+      .set("Cookie", authCookie(admin));
+    expect(response.status).toBe(200);
+
+    const me = await request(app).get("/api/auth/me").set("Cookie", oldCookie);
+    expect(me.status).toBe(401);
+  });
+
+  it("should revoke other sessions on password change and keep the current one", async () => {
+    const user = await User.create(userWithHashPassword);
+    const otherSession = authCookie(user);
+
+    const response = await request(app)
+      .put(`/api/users/${user._id}/password`)
+      .send({ currentPassword: "Abcdef1@", newPassword: "NewPass1@", newPasswordConfirm: "NewPass1@" })
+      .set("Cookie", otherSession);
+    expect(response.status).toBe(200);
+
+    const freshCookie = getAuthSetCookie(response).split(";")[0];
+    expect((await request(app).get("/api/auth/me").set("Cookie", otherSession)).status).toBe(401);
+    expect((await request(app).get("/api/auth/me").set("Cookie", freshCookie)).status).toBe(200);
+  });
+
+  it("should restrict the auth types statistics to admins", async () => {
+    const user = await User.create(regularUser);
+
+    const response = await request(app).get("/api/users/stats/authTypes").set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(403);
+  });
+
+  it("should delete the user's stats and integration tokens with the account", async () => {
+    const user = await User.create(userWithHashPassword);
+    await Stat.create({ userId: user._id, categoryId: new mongoose.Types.ObjectId(), name: "s", value: "1" });
+    await IntegrationUser.create({ userId: user._id, integrationId: new mongoose.Types.ObjectId(), accessToken: "x" });
+
+    const response = await request(app).delete("/api/users/delete/account").send({ password: "Abcdef1@" }).set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(200);
+    expect(await Stat.countDocuments({ userId: user._id })).toBe(0);
+    expect(await IntegrationUser.countDocuments({ userId: user._id })).toBe(0);
   });
 });

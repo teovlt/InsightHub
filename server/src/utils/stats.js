@@ -11,7 +11,8 @@ export const autoSyncStats = async (userId, integrationId) => {
 
   try {
     const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
-    if (!integrationUser) {
+    // A disconnected integration no longer has a token and must not be synced
+    if (!integrationUser || !integrationUser.connected || !integrationUser.accessToken) {
       return { error: "IntegrationUser not found" };
     }
     if (!integrationUser.activedStat || integrationUser.activedStat.length === 0) {

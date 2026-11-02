@@ -1,14 +1,18 @@
 import crypto from "crypto";
-import { decrypt, encrypt } from "../utils/crypto.js";
+import { encrypt } from "../utils/crypto.js";
 import { IntegrationUser } from "../models/integrationUser.js";
-import { User } from "../models/userModel.js";
 import { Integration } from "../models/integrationModel.js";
 import { getMaxStreak, getTotalCommits, getTotalStars } from "../utils/github/stats.js";
 import { Stat } from "../models/statModel.js";
 import { Category } from "../models/categoryModel.js";
+import { autoSyncStats } from "../utils/stats.js";
+import { handleServerError } from "../utils/httpErrors.js";
+
+const getClientUrl = () => (process.env.CORS_ORIGIN || "").split(",")[0].trim();
 
 export const redirectToGithub = async (req, res) => {
-  const { integrationId, userId } = req.query;
+  const { integrationId } = req.query;
+  const userId = req.userId;
 
   try {
     const { GITHUB_CLIENT_ID, SELF_URL } = process.env;
@@ -17,12 +21,7 @@ export const redirectToGithub = async (req, res) => {
       return res.status(500).json({ error: "Missing env variables for GitHub OAuth." });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
-    }
-
-    const integration = await Integration.findById(integrationId);
+    const integration = await Integration.findOne({ _id: integrationId, status: "available" });
     if (!integration) {
       return res.status(404).json({ error: "Integration not found." });
     }
@@ -32,20 +31,22 @@ export const redirectToGithub = async (req, res) => {
     req.session.github_oauth_state = state;
     req.session.github_oauth_integration = integrationId;
     req.session.github_oauth_user = userId;
-    req.session.save();
 
-    const redirectUri = `${process.env.SELF_URL}/api/integrations/auth/github/callback`;
+    const params = new URLSearchParams({
+      client_id: GITHUB_CLIENT_ID,
+      redirect_uri: `${SELF_URL}/api/integrations/auth/github/callback`,
+      // read:user is enough for contributions and public repositories; "repo" would grant write access to private code
+      scope: process.env.GITHUB_OAUTH_SCOPES || "read:user",
+      state,
+    });
 
-    const githubAuthUrl =
-      `https://github.com/login/oauth/authorize` +
-      `?client_id=${process.env.GITHUB_CLIENT_ID}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&scope=read:user repo` +
-      `&state=${state}`;
-
-    res.redirect(githubAuthUrl);
+    // The state must be persisted before GitHub redirects back
+    req.session.save((err) => {
+      if (err) return handleServerError(res, err);
+      res.redirect(`https://github.com/login/oauth/authorize?${params.toString()}`);
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleServerError(res, error);
   }
 };
 
@@ -55,6 +56,11 @@ export const getGithubUser = async (req, res) => {
   const expectedState = req.session.github_oauth_state;
   const integrationId = req.session.github_oauth_integration;
   const userId = req.session.github_oauth_user;
+
+  // The state is single-use
+  delete req.session.github_oauth_state;
+  delete req.session.github_oauth_integration;
+  delete req.session.github_oauth_user;
 
   if (!code) return res.status(400).send("No code provided for GitHub OAuth.");
   if (!state || state !== expectedState) return res.status(400).send("Invalid OAuth state.");
@@ -99,12 +105,6 @@ export const getGithubUser = async (req, res) => {
       },
       { upsert: true, new: true },
     );
-
-    // 4️⃣ Supprime les valeurs de session de mongoStore
-    req.session.github_oauth_state = null;
-    req.session.github_oauth_integration = null;
-    req.session.github_oauth_user = null;
-    req.session.save();
 
     // 5️⃣ Récupère les valeurs GitHub
     const totalCommits = await getTotalCommits(access_token, githubUser.created_at);
@@ -209,10 +209,10 @@ export const getGithubUser = async (req, res) => {
       );
     }
 
-    res.redirect(`${process.env.CORS_ORIGIN}/integrations`);
+    res.redirect(`${getClientUrl()}/integrations`);
   } catch (err) {
     console.error(err);
-    res.status(500).send(err.message);
+    res.redirect(`${getClientUrl()}/integrations?error=github`);
   }
 };
 
@@ -232,6 +232,11 @@ export const toggleActivedStat = async (req, res) => {
       return res.status(404).json({ error: "IntegrationUser not found" });
     }
 
+    const integration = await Integration.findById(integrationId).lean();
+    if (!integration?.availableStats?.some((stat) => stat._id.toString() === statId)) {
+      return res.status(404).json({ error: "Stat not found for this integration" });
+    }
+
     const isActive = integrationUser.activedStat.some((id) => id.toString() === statId);
 
     if (isActive) {
@@ -242,102 +247,30 @@ export const toggleActivedStat = async (req, res) => {
 
     await integrationUser.save();
 
-    return res.status(200).json({ integrationUser, message: isActive ? "Stat deactivated successfully." : "Stat activated successfully." });
+    const { accessToken, ...publicIntegrationUser } = integrationUser.toObject();
+
+    return res
+      .status(200)
+      .json({ integrationUser: publicIntegrationUser, message: isActive ? "Stat deactivated successfully." : "Stat activated successfully." });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    handleServerError(res, error);
   }
 };
 
 export const syncStatistics = async (req, res) => {
-  const userId = req.userId;
   const { integrationId } = req.params;
-  if (!integrationId) {
-    return res.status(400).json({ error: "Missing integrationId" });
-  }
 
   try {
-    const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
-    if (!integrationUser) {
-      return res.status(404).json({ error: "IntegrationUser not found" });
+    const result = await autoSyncStats(req.userId, integrationId);
+    if (result.error) {
+      return res.status(result.error === "IntegrationUser not found" ? 404 : 400).json({ error: result.error });
     }
-    if (!integrationUser.activedStat || integrationUser.activedStat.length === 0) {
-      return res.status(400).json({ error: "No activated stats to sync" });
-    }
-
-    const integration = await Integration.findById(integrationId).lean();
-    if (!integration) {
-      return res.status(404).json({ error: "Integration not found" });
-    }
-
-    // Map availableStats par _id pour accès rapide
-    const availableStatsMap = {};
-    integration.availableStats.forEach((stat) => {
-      availableStatsMap[stat._id.toString()] = stat;
-    });
-
-    // Récupère les données GitHub une fois pour toutes
-    let totalCommits = null;
-    let maxStreak = null;
-    let totalStars = null;
-    // Vérifie que les stats sont activées
-    const hasTotalCommits = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Total Commits");
-    const hasMaxStreak = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Max Streak");
-    const hasTotalStars = integrationUser.activedStat.some((id) => availableStatsMap[id.toString()]?.name === "Total Stars");
-
-    if (hasTotalCommits) {
-      totalCommits = await getTotalCommits(decrypt(integrationUser.accessToken), integrationUser.config.githubUser.created_at);
-    }
-    if (hasMaxStreak) {
-      maxStreak = await getMaxStreak(decrypt(integrationUser.accessToken));
-    }
-    if (hasTotalStars) {
-      totalStars = await getTotalStars(decrypt(integrationUser.accessToken));
-    }
-
-    // Mets à jour les stats en base
-    const updatePromises = integrationUser.activedStat.map(async (statId) => {
-      const availableStat = availableStatsMap[statId.toString()];
-      if (!availableStat) return null;
-
-      let valueToSet = null;
-      if (availableStat.name === "Total Commits") {
-        valueToSet = totalCommits;
-      } else if (availableStat.name === "Max Streak") {
-        valueToSet = maxStreak;
-      } else if (availableStat.name === "Total Stars") {
-        valueToSet = totalStars;
-      } else {
-        // Ici tu peux gérer d'autres stats, par défaut null ou skip
-        return null;
-      }
-
-      if (valueToSet === null) return null;
-
-      // Update ou création de la stat
-      return Stat.findOneAndUpdate(
-        {
-          userId,
-          integrationId,
-          integrationStatId: availableStat._id,
-        },
-        {
-          value: valueToSet.toString(),
-          updatedAt: new Date(),
-          current: true,
-          auto: true,
-          name: availableStat.name,
-        },
-        { new: true, upsert: true },
-      ).lean();
-    });
-
-    const updatedStats = (await Promise.all(updatePromises)).filter(Boolean);
 
     return res.status(200).json({
       message: "Statistics synced successfully",
-      updatedStats,
+      updatedStats: result.updatedStats,
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    handleServerError(res, error);
   }
 };

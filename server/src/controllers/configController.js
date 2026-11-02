@@ -1,20 +1,23 @@
 import { Config } from "../models/configModel.js";
 import { logLevels } from "../utils/enums/logLevel.js";
 import { createLog } from "./logController.js";
+import { Constants } from "../../constants/constants.js";
+import { handleServerError } from "../utils/httpErrors.js";
 
 /**
  * Gets configuration settings based on provided keys.
  * @returns {Object} JSON response with configuration settings.
  */
 export const getConfig = async (req, res) => {
-  const keys = req.query.keys?.split(",") || [];
+  // Only whitelisted keys are readable: this route is public
+  const keys = typeof req.query.keys === "string" ? req.query.keys.split(",").filter((key) => Constants.PUBLIC_CONFIG_KEYS.includes(key)) : [];
 
   try {
     const configItems = await Config.find({ key: { $in: keys } });
 
     res.status(200).json({ config: configItems });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleServerError(res, error);
   }
 };
 
@@ -31,7 +34,7 @@ export const updateConfig = async (req, res) => {
 
   try {
     for (const key of keys) {
-      if (config.hasOwnProperty(key)) {
+      if (Object.hasOwn(config, key)) {
         await Config.findOneAndUpdate({ key }, { value: config[key] }, { new: true, upsert: true });
         createLog({
           level: logLevels.INFO,
@@ -50,6 +53,6 @@ export const updateConfig = async (req, res) => {
 
     res.json({ message: "Configuration updated successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    handleServerError(res, error);
   }
 };

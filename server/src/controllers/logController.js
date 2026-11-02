@@ -1,5 +1,7 @@
 import { Log } from "../models/logModel.js";
 import { logLevels } from "../utils/enums/logLevel.js";
+import { handleServerError } from "../utils/httpErrors.js";
+import { getPagination } from "../utils/pagination.js";
 
 /**
  * Retrieves logs from the database.
@@ -7,21 +9,20 @@ import { logLevels } from "../utils/enums/logLevel.js";
  * @returns {Object} JSON response with logs or error message.
  */
 export const getLogs = async (req, res) => {
-  const size = parseInt(req.query.size);
-  const page = parseInt(req.query.page);
+  const { size, skip } = getPagination(req.query);
 
   try {
     const logs = await Log.find({})
       .sort({ createdAt: -1 })
       .populate("user")
-      .skip(page * size)
+      .skip(skip)
       .limit(size);
 
     const count = await Log.countDocuments();
 
     res.status(200).json({ logs, count });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -66,7 +67,7 @@ export const deleteLog = async (req, res) => {
     }
     res.status(200).json({ message: "Log deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -80,7 +81,7 @@ export const deleteAllLogs = async (req, res) => {
     await Log.deleteMany();
     res.status(200).json({ message: "All logs deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 

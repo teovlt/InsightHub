@@ -1,5 +1,7 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
+import { validateBody } from "../middlewares/validate.js";
+import { createCategorySchema, updateCategorySchema } from "../validation/schemas.js";
 import { createCategory, deleteAllCategories, deleteCategory, getCategories, updateCategory } from "../controllers/categoryController.js";
 
 export const categoryRouter = new express.Router();
@@ -17,7 +19,7 @@ categoryRouter.get("/", verifyToken(), getCategories);
  * @middleware verifyToken({ role: "admin" }) - Ensures the user is authenticated and has the 'admin' role.
  * @param {Object} categoryData - The data for the new category.
  */
-categoryRouter.post("/", verifyToken({ role: "admin" }), createCategory);
+categoryRouter.post("/", verifyToken({ role: "admin" }), validateBody(createCategorySchema), createCategory);
 
 /** * @route PUT /:id
  * @description Updates a specific category by ID.
@@ -25,7 +27,7 @@ categoryRouter.post("/", verifyToken({ role: "admin" }), createCategory);
  * @param {Object} categoryData - The data to update the category with.
  * @middleware verifyToken({ role: "admin" }) - Ensures the user is authenticated and has the 'admin' role.
  */
-categoryRouter.put("/:id", verifyToken({ role: "admin" }), updateCategory);
+categoryRouter.put("/:id", verifyToken({ role: "admin" }), validateBody(updateCategorySchema), updateCategory);
 
 /**
  * @route DELETE /:id

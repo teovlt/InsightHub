@@ -1,5 +1,4 @@
 import { User } from "../models/userModel.js";
-import { generateAccessToken } from "../utils/generateAccessToken.js";
 import bcrypt from "bcryptjs";
 import { Constants } from "../../constants/constants.js";
 import { createLog } from "./logController.js";
@@ -8,23 +7,33 @@ import { userRoles } from "../utils/enums/userRoles.js";
 import { authTypes } from "../utils/enums/authTypes.js";
 import { saveAvatarFromUrl } from "../utils/saveAvatarFromUrl.js";
 import { generateRandomAvatar } from "../utils/generateRandomAvatar.js";
+import { clearAccessTokenCookie, setAccessTokenCookie } from "../utils/authCookie.js";
+import { verifyGoogleIdToken } from "../utils/googleAuth.js";
+import { handleServerError } from "../utils/httpErrors.js";
+import { toPublicUser } from "../utils/userData.js";
+import { parseBody } from "../middlewares/validate.js";
+import { googleLoginSchema, loginSchema, registerSchema } from "../validation/schemas.js";
+
+// Compared against when the user does not exist, so both failure paths take the same time
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("insighthub-dummy-password", 10);
 
 /**
  * Registers a new user.
+ * When an idToken is provided, the account is a Google one: the token is verified and must match the email.
  *
  * @param {Object} userData - Data for the user registration.
  * @param {string} userData.email - User's email address.
  * @param {string} userData.username - User's username.
  * @param {string} userData.password - User's password.
  * @param {string} userData.confirmPassword - Confirmation of user's password.
+ * @param {string} [userData.idToken] - Firebase ID token for a Google registration.
  * @returns {Object} JSON response with user details or error message.
  */
 export const register = async (req, res) => {
-  const { name, forename, email, username, photoURL, password, confirmPassword } = req.body;
+  const { data, status, error } = parseBody(registerSchema, req.body);
+  if (error) return res.status(status).json(error);
 
-  if (!username || !email || !password || !confirmPassword || !name || !forename) {
-    return res.status(422).json({ error: "server.global.errors.missing_fields" });
-  }
+  const { name, forename, email, username, password, confirmPassword, idToken } = data;
 
   if (!Constants.REGEX_PASSWORD.test(password)) {
     return res.status(400).json({
@@ -37,6 +46,14 @@ export const register = async (req, res) => {
   }
 
   try {
+    let googleProfile = null;
+    if (idToken) {
+      googleProfile = await verifyGoogleIdToken(idToken);
+      if (!googleProfile || googleProfile.email !== email.toLowerCase()) {
+        return res.status(401).json({ error: "server.auth.errors.google_token_invalid" });
+      }
+    }
+
     if (await User.findOne({ email: email.toLowerCase() })) {
       return res.status(409).json({ error: "server.auth.errors.email_taken" });
     } else if (await User.findOne({ username: username.toLowerCase() })) {
@@ -49,24 +66,16 @@ export const register = async (req, res) => {
       password: hashedPassword,
       name,
       forename,
-      auth_type: photoURL ? authTypes.GOOGLE : authTypes.LOCAL,
+      auth_type: googleProfile ? authTypes.GOOGLE : authTypes.LOCAL,
     });
 
-    if (photoURL) {
-      try {
-        const firebaseAvatarUrl = await saveAvatarFromUrl(photoURL, user._id);
-        if (firebaseAvatarUrl) {
-          user.avatar = firebaseAvatarUrl;
-          await user.save();
-        }
-      } catch (err) {
-        console.error("Failed to upload avatar to Firebase:", err.message);
-      }
-    } else {
-      const avatarUrl = generateRandomAvatar(user.username);
-      const publicUrl = await saveAvatarFromUrl(avatarUrl, user._id, "svg");
-      user.avatar = publicUrl;
+    try {
+      user.avatar = googleProfile?.picture
+        ? await saveAvatarFromUrl(googleProfile.picture, user._id)
+        : await saveAvatarFromUrl(generateRandomAvatar(user.username), user._id, "svg");
       await user.save();
+    } catch (err) {
+      console.error("Failed to upload avatar to Firebase:", err.message);
     }
 
     const userCount = await User.countDocuments();
@@ -75,14 +84,7 @@ export const register = async (req, res) => {
       await user.save();
     }
 
-    const accessToken = generateAccessToken(user._id);
-
-    // res.cookie("__access__token", accessToken, {
-    //   maxAge: Constants.MAX_AGE,
-    //   httpOnly: true,
-    //   sameSite: "None",
-    //   secure: true,
-    // });
+    setAccessTokenCookie(res, user);
 
     createLog({
       message: `New user ${user.username} registered successfully`,
@@ -90,11 +92,9 @@ export const register = async (req, res) => {
       level: logLevels.INFO,
     });
 
-    const { password: userPassword, ...userWithoutPassword } = user._doc;
-
-    res.status(201).json({ user: userWithoutPassword, message: "server.auth.messages.register_success", accessToken });
+    res.status(201).json({ user: toPublicUser(user), message: "server.auth.messages.register_success" });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return handleServerError(res, err);
   }
 };
 
@@ -107,7 +107,10 @@ export const register = async (req, res) => {
  * @returns {Object} JSON response with user details or error message.
  */
 export const login = async (req, res) => {
-  const { username, password, email } = req.body;
+  const { data, status, error } = parseBody(loginSchema, req.body);
+  if (error) return res.status(status).json(error);
+
+  const { username, password, email } = data;
 
   if (!password || (!username && !email)) {
     return res.status(422).json({ error: "server.global.errors.missing_fields" });
@@ -116,35 +119,26 @@ export const login = async (req, res) => {
   try {
     const user = await User.findOne({
       $or: [...(username ? [{ username: username.toLowerCase() }] : []), ...(email ? [{ email: email.toLowerCase() }] : [])],
-    }).select("+password");
+    }).select("+password +tokenVersion");
 
-    if (!user) {
-      return res.status(400).json({ error: "server.global.errors.no_such_user" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      createLog({
-        message: `Invalid credentials while trying to login`,
-        userId: user._id,
-        level: logLevels.ERROR,
-      });
+    // Same answer whether the account exists or not, to avoid user enumeration
+    const isMatch = await bcrypt.compare(password, user?.password ?? DUMMY_PASSWORD_HASH);
+    if (!user || !isMatch) {
+      if (user) {
+        createLog({
+          message: `Invalid credentials while trying to login`,
+          userId: user._id,
+          level: logLevels.ERROR,
+        });
+      }
       return res.status(400).json({ error: "server.auth.errors.invalid_credentials" });
     }
 
-    const accessToken = generateAccessToken(user._id);
-    // res.cookie("__access__token", accessToken, {
-    //   maxAge: Constants.MAX_AGE,
-    //   httpOnly: true,
-    //   sameSite: "None",
-    //   secure: true,
-    // });
+    setAccessTokenCookie(res, user);
 
-    const { password: userPassword, ...userWithoutPassword } = user._doc;
-
-    res.status(201).json({ user: userWithoutPassword, message: "server.auth.messages.login_success", accessToken });
+    res.status(200).json({ user: toPublicUser(user), message: "server.auth.messages.login_success" });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return handleServerError(res, err);
   }
 };
 
@@ -154,11 +148,8 @@ export const login = async (req, res) => {
  * @returns {Object} JSON response with success message.
  */
 export const logout = async (req, res) => {
-  try {
-    res.status(200).json({ message: "server.auth.messages.logout_success" });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
+  clearAccessTokenCookie(res);
+  res.status(200).json({ message: "server.auth.messages.logout_success" });
 };
 
 /**
@@ -168,47 +159,36 @@ export const logout = async (req, res) => {
  * @returns {Object} JSON response with user details or error message.
  */
 export const getConnectedUser = async (req, res) => {
-  const id = req.userId;
-
-  try {
-    const user = await User.findById(id);
-    res.status(200).json(user);
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
+  res.status(200).json(toPublicUser(req.user));
 };
 
 /**
- * Signs in a user using Google OAuth.
+ * Signs in a user using Google: the Firebase ID token is verified server-side and the email is read from it.
  *
- * @param {Object} req - Request object containing user details from Google.
+ * @param {Object} req - Request object containing the Firebase ID token.
  * @param {Object} res - Response object to send the result.
  * @returns {Object} JSON response with user details or error message.
  */
 export const signInWithGoogle = async (req, res) => {
-  const { email } = req.body;
+  const { data, status, error } = parseBody(googleLoginSchema, req.body);
+  if (error) return res.status(status).json(error);
 
   try {
-    if (!email) {
-      return res.status(422).json({ error: "server.global.errors.missing_fields" });
+    const profile = await verifyGoogleIdToken(data.idToken);
+    if (!profile) {
+      return res.status(401).json({ error: "server.auth.errors.google_token_invalid" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: profile.email }).select("+tokenVersion");
     if (!user) {
       // Do not change the error message, this is intentional to redirect to register
       return res.status(404).json({ error: "User not found, lets register !" });
     }
 
-    const accessToken = generateAccessToken(user._id);
-    // res.cookie("__access__token", accessToken, {
-    //   maxAge: Constants.MAX_AGE,
-    //   httpOnly: true,
-    //   sameSite: "None",
-    //   secure: true,
-    // });
+    setAccessTokenCookie(res, user);
 
-    return res.status(201).json({ user, message: "server.auth.messages.login_success", accessToken });
+    return res.status(200).json({ user: toPublicUser(user), message: "server.auth.messages.login_success" });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return handleServerError(res, err);
   }
 };

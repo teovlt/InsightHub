@@ -130,7 +130,12 @@
     "global": {
       "errors": {
         "missing_fields": "Please fill in all required fields.",
-        "no_such_user": "No such user found."
+        "no_such_user": "No such user found.",
+        "internal": "Something went wrong, please try again later.",
+        "invalid_id": "Invalid identifier.",
+        "invalid_fields": "Some fields are invalid.",
+        "forbidden": "You are not allowed to do this.",
+        "too_many_requests": "Too many attempts, please try again later."
       }
     },
     "auth": {
@@ -139,7 +144,8 @@
         "password_no_match": "Passwords do not match",
         "email_taken": "This email is already taken",
         "username_taken": "This username is already taken",
-        "invalid_credentials": "Invalid credentials"
+        "invalid_credentials": "Invalid credentials",
+        "google_token_invalid": "Google authentication failed, please try again."
       },
       "messages": {
         "register_success": "Registered successfully",
@@ -150,7 +156,7 @@
     "upload": {
       "errors": {
         "no_file": "No file uploaded",
-        "invalid_file_type": "Invalid file type. Only jpg, jpeg, png, gif, and svg are allowed",
+        "invalid_file_type": "Invalid file type. Only jpg, jpeg, png, gif and webp are allowed",
         "limit": "File size exceeds the allowed limit."
       },
       "messages": {

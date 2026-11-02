@@ -1,4 +1,8 @@
+import { Category } from "../models/categoryModel.js";
 import { Stat } from "../models/statModel.js";
+import { handleServerError } from "../utils/httpErrors.js";
+
+// Every query below is scoped to req.userId: a user can only read or change their own stats.
 
 /**
  * Create a new stat.
@@ -11,11 +15,11 @@ export const createStat = async (req, res) => {
   const { name, description, value, unit, categoryId, hided } = req.body;
   const userId = req.userId;
 
-  if (!name || !value || !categoryId) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
-
   try {
+    if (!(await Category.exists({ _id: categoryId }))) {
+      return res.status(404).json({ error: "No such category" });
+    }
+
     const existingStat = await Stat.findOne({
       userId,
       categoryId,
@@ -42,7 +46,7 @@ export const createStat = async (req, res) => {
 
     res.status(201).json({ stat, message: "Stat created successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -54,7 +58,7 @@ export const deleteStat = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const stat = await Stat.findById(id);
+    const stat = await Stat.findOne({ _id: id, userId: req.userId });
 
     if (!stat) {
       return res.status(400).json({ error: "No such stat" });
@@ -68,7 +72,7 @@ export const deleteStat = async (req, res) => {
 
     res.status(200).json({ message: "Stat deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -82,14 +86,10 @@ export const deleteStat = async (req, res) => {
  */
 export const updateStat = async (req, res) => {
   const { id } = req.params;
-  const { name, description, value, unit, categoryId, hided } = req.body;
-
-  if (!value || !categoryId) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
+  const { name, description, value, unit, hided } = req.body;
 
   try {
-    const oldStat = await Stat.findOne({ _id: id, current: true });
+    const oldStat = await Stat.findOne({ _id: id, userId: req.userId, current: true });
 
     if (!oldStat) {
       return res.status(404).json({ error: "No such current stat" });
@@ -155,7 +155,7 @@ export const updateStat = async (req, res) => {
       });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -172,7 +172,7 @@ export const rollbackStat = async (req, res) => {
 
   try {
     // Trouver la stat courante (celle qu'on veut rollback)
-    const currentStat = await Stat.findById(id);
+    const currentStat = await Stat.findOne({ _id: id, userId: req.userId });
     if (!currentStat) {
       return res.status(404).json({ error: "Stat not found" });
     }
@@ -203,6 +203,6 @@ export const rollbackStat = async (req, res) => {
 
     res.status(200).json({ message: "Rollback successful", stat: previousStat });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };

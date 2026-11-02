@@ -4,14 +4,17 @@ import { userRoles } from "../utils/enums/userRoles.js";
 import { createLog } from "./logController.js";
 import { logLevels } from "../utils/enums/logLevel.js";
 
-import fs from "fs";
-import path from "path";
 import { generateRandomPassword } from "../utils/generateRandomPassword.js";
 import { Constants } from "../../constants/constants.js";
 import { authTypes } from "../utils/enums/authTypes.js";
 import { saveAvatarFromUrl } from "../utils/saveAvatarFromUrl.js";
 import { generateRandomAvatar } from "../utils/generateRandomAvatar.js";
-import { bucket } from "../lib/firebase.js";
+import { handleServerError } from "../utils/httpErrors.js";
+import { getPagination } from "../utils/pagination.js";
+import { deleteUserData, toPublicUser } from "../utils/userData.js";
+import { clearAccessTokenCookie, setAccessTokenCookie } from "../utils/authCookie.js";
+import { parseBody } from "../middlewares/validate.js";
+import { adminUpdateUserSchema, deleteAccountSchema, selfUpdateUserSchema, updatePasswordSchema } from "../validation/schemas.js";
 
 /**
  * @function getUser
@@ -27,7 +30,7 @@ export const getUser = async (req, res) => {
     }
     res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -37,20 +40,16 @@ export const getUser = async (req, res) => {
  * @returns {Object} JSON response with a list of users or error message.
  */
 export const getUsers = async (req, res) => {
-  const size = parseInt(req.query.size);
-  const page = parseInt(req.query.page);
+  const { size, skip } = getPagination(req.query);
 
   try {
-    const users = await User.find({})
-      .sort({ createdAt: -1 })
-      .skip(page * size)
-      .limit(size);
+    const users = await User.find({}).sort({ createdAt: -1 }).skip(skip).limit(size);
 
     const count = await User.countDocuments();
 
     res.status(200).json({ users, count });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -63,8 +62,8 @@ export const createUser = async (req, res) => {
   const { name, forename, email, username, password, role } = req.body;
   const userId = req.userId;
 
-  if (!email || !username || !password || !name || !forename) {
-    return res.status(400).json({ error: "Missing fields" });
+  if (!Constants.REGEX_PASSWORD.test(password)) {
+    return res.status(400).json({ error: "server.users.errors.regex_error" });
   }
 
   try {
@@ -73,10 +72,6 @@ export const createUser = async (req, res) => {
 
     if (existingUserByEmail) return res.status(409).json({ error: "Email already taken" });
     if (existingUserByUsername) return res.status(409).json({ error: "Username already taken" });
-
-    if (role && !Object.values(userRoles).includes(role)) {
-      return res.status(400).json({ error: "Invalid role" });
-    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
@@ -88,12 +83,12 @@ export const createUser = async (req, res) => {
       forename,
     });
 
-    const avatarUrl = generateRandomAvatar(user.username);
-    const publicUrl = await saveAvatarFromUrl(avatarUrl, user._id, "svg");
-    user.avatar = publicUrl;
-    await user.save();
-
-    const { password: userPassword, ...userWithoutPassword } = user._doc;
+    try {
+      user.avatar = await saveAvatarFromUrl(generateRandomAvatar(user.username), user._id, "svg");
+      await user.save();
+    } catch (err) {
+      console.error("Failed to upload avatar to Firebase:", err.message);
+    }
 
     createLog({
       message: `User '${username}' created successfully`,
@@ -101,77 +96,76 @@ export const createUser = async (req, res) => {
       level: logLevels.INFO,
     });
 
-    res.status(201).json({ user: userWithoutPassword, message: "User created successfully" });
+    res.status(201).json({ user: toPublicUser(user), message: "User created successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
 /**
  * @function updateUser
- * @description Updates a user's details by ID.
+ * @description Updates a user's details by ID. Users may only update their own profile fields;
+ * admins may update anyone, including role and password.
  * @returns {Object} JSON response with updated user details or error message.
  */
 export const updateUser = async (req, res) => {
   const { id } = req.params;
   const userId = req.userId;
-  const { name, forename, email, username, password, role } = req.body;
+  const isAdmin = req.user.role === userRoles.ADMIN;
+
+  if (!isAdmin && id !== userId) {
+    return res.status(403).json({ error: "server.global.errors.forbidden" });
+  }
+
+  const { data, status, error } = parseBody(isAdmin ? adminUpdateUserSchema : selfUpdateUserSchema, req.body);
+  if (error) return res.status(status).json(error);
 
   try {
-    if (email) {
-      const existingUserByEmail = await User.findOne({ email: email.toLowerCase(), _id: { $ne: id } });
+    const update = { ...data };
+
+    if (update.email) {
+      update.email = update.email.toLowerCase();
+      const existingUserByEmail = await User.findOne({ email: update.email, _id: { $ne: id } });
       if (existingUserByEmail) return res.status(409).json({ error: "server.users.errors.email_taken" });
     }
 
-    if (username) {
-      const existingUserByUsername = await User.findOne({ username: username.toLowerCase(), _id: { $ne: id } });
+    if (update.username) {
+      update.username = update.username.toLowerCase();
+      const existingUserByUsername = await User.findOne({ username: update.username, _id: { $ne: id } });
       if (existingUserByUsername) return res.status(409).json({ error: "server.users.errors.username_taken" });
     }
 
-    const actionUser = await User.findById(userId);
-
-    if (actionUser.role == userRoles.ADMIN) {
-      if (role && !Object.values(userRoles).includes(role)) {
-        return res.status(400).json({ error: "server.users.errors.invalid_role" });
+    if (update.password) {
+      if (!Constants.REGEX_PASSWORD.test(update.password)) {
+        return res.status(400).json({ error: "server.users.errors.regex_error" });
       }
+      update.password = await bcrypt.hash(update.password, 10);
+      // A password reset by an admin signs the user out everywhere
+      update.$inc = { tokenVersion: 1 };
+    } else {
+      delete update.password;
+    }
 
-      if (password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        req.body.password = hashedPassword;
-      }
+    const user = await User.findOneAndUpdate({ _id: id }, update, { new: true, runValidators: true });
+    if (!user) return res.status(404).json({ error: "server.global.errors.no_such_user" });
 
+    if (isAdmin) {
       createLog({
-        message: `User '${username}' updated successfully`,
+        message: `User '${user.username}' updated successfully`,
         userId: userId,
         level: logLevels.INFO,
       });
-    } else {
-      delete req.body.role;
-      delete req.body.password;
     }
 
-    const user = await User.findOneAndUpdate(
-      { _id: id },
-      {
-        ...req.body,
-        ...(req.body.email && { email: req.body.email.toLowerCase() }),
-        ...(req.body.username && { username: req.body.username.toLowerCase() }),
-      },
-      { new: true },
-    );
-    if (!user) return res.status(404).json({ error: "server.global.errors.no_such_user" });
-
-    const { password: userPassword, ...userWithoutPassword } = user._doc;
-
-    res.status(200).json({ user: userWithoutPassword, message: "server.users.messages.user_updated" });
+    res.status(200).json({ user: toPublicUser(user), message: "server.users.messages.user_updated" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
 /**
  * @function deleteUser
- * @description Deletes a user by ID.
+ * @description Deletes a user by ID, with everything they own.
  * @returns {Object} JSON response with success message or error message.
  */
 export const deleteUser = async (req, res) => {
@@ -180,11 +174,7 @@ export const deleteUser = async (req, res) => {
     const user = await User.findOneAndDelete({ _id: id });
     if (!user) return res.status(400).json({ error: "No such user" });
 
-    if (user.avatar) {
-      const oldFileName = user.avatar.split("/").pop();
-      const oldFile = bucket.file(`avatars/${oldFileName}`);
-      await oldFile.delete().catch(() => {});
-    }
+    await deleteUserData(user);
 
     createLog({
       message: `User '${user.username}' deleted successfully`,
@@ -194,7 +184,7 @@ export const deleteUser = async (req, res) => {
 
     res.status(200).json({ user, message: "User deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -209,8 +199,8 @@ export const generateUserPassword = async (req, res) => {
 
 /**
  * @function updatePassword
- * @description Updates the password of a user by ID.
- * @param {string} req.params.id - The ID of the user whose password is being updated.
+ * @description Updates the password of the connected user. Other sessions are revoked and the current one gets a fresh token.
+ * @param {string} req.params.id - The ID of the user whose password is being updated (must be the connected user).
  * @param {string} req.body.currentPassword - The user's current password.
  * @param {string} req.body.newPassword - The new password.
  * @param {string} req.body.newPasswordConfirm - Confirmation of the new password.
@@ -218,15 +208,18 @@ export const generateUserPassword = async (req, res) => {
  */
 export const updatePassword = async (req, res) => {
   const { id } = req.params;
-  const { currentPassword, newPassword, newPasswordConfirm } = req.body;
+
+  if (id !== req.userId) {
+    return res.status(403).json({ error: "server.global.errors.forbidden" });
+  }
+
+  const { data, status, error } = parseBody(updatePasswordSchema, req.body);
+  if (error) return res.status(status).json(error);
+  const { currentPassword, newPassword, newPasswordConfirm } = data;
 
   try {
     const user = await User.findById(id).select("+password");
     if (!user) return res.status(400).json({ error: "server.global.errors.no_such_user" });
-
-    if (!currentPassword || !newPassword || !newPasswordConfirm) {
-      return res.status(400).json({ error: "server.global.errors.missing_fields" });
-    }
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) return res.status(400).json({ error: "server.users.errors.actual_password_incorrect" });
@@ -242,38 +235,40 @@ export const updatePassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await User.updateOne({ _id: id }, { password: hashedPassword });
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { password: hashedPassword, $inc: { tokenVersion: 1 } },
+      { new: true },
+    ).select("+tokenVersion");
+
+    setAccessTokenCookie(res, updatedUser);
 
     res.status(200).json({ message: "server.users.messages.password_updated" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
 /**
  * @function deleteAccount
- * @description Deletes a user account by ID after verifying the password.
+ * @description Deletes the connected user's account, with everything they own, after verifying the password.
  * @param {string} req.body.password - The user's password for account deletion.
  * @returns {Object} JSON response with success or error message.
  */
 export const deleteAccount = async (req, res) => {
   const userId = req.userId;
-  const { password } = req.body;
+
+  const { data, status, error } = parseBody(deleteAccountSchema, req.body);
+  if (error) return res.status(status).json(error);
 
   try {
-    if (!password) return res.status(400).json({ error: "server.global.errors.missing_fields" });
-
     const user = await User.findById(userId).select("+password");
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) return res.status(400).json({ error: "server.users.errors.password_incorrect" });
 
-    if (user.avatar) {
-      const oldAvatarPath = path.join(process.cwd(), "uploads", "users", "avatars", path.basename(user.avatar));
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath);
-      }
-    }
+    await User.findByIdAndDelete(userId);
+    await deleteUserData(user);
 
     createLog({
       message: `User '${user.username}' deleted their account`,
@@ -281,12 +276,11 @@ export const deleteAccount = async (req, res) => {
       level: logLevels.INFO,
     });
 
-    await User.findByIdAndDelete(userId);
-    res.clearCookie("__access__token");
+    clearAccessTokenCookie(res);
 
     res.status(200).json({ message: "server.users.messages.user_deleted" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };
 
@@ -295,33 +289,16 @@ export const deleteAccount = async (req, res) => {
  * @returns {Object} JSON response with statistics formatted for chart display.
  */
 export const getAuthTypesStat = async (req, res) => {
-  const validAuthTypes = Object.values(authTypes);
-
   try {
-    const users = await User.find({ auth_type: { $in: validAuthTypes } });
-
-    // Intitialize stats object with valid auth types
-    const stats = {};
-    validAuthTypes.forEach((type) => {
-      stats[type] = 0;
-    });
-
-    // Count users per auth type
-    users.forEach((user) => {
-      stats[user.auth_type]++;
-    });
-
-    // Transform stats into chart data format
-    const chartData = {
-      data: Object.entries(stats).map(([type, count]) => ({
+    const data = await Promise.all(
+      Object.values(authTypes).map(async (type) => ({
         label: type.charAt(0).toUpperCase() + type.slice(1), // ex: "google" -> "Google"
-        value: count,
+        value: await User.countDocuments({ auth_type: type }),
       })),
-      valueFormatter: (number) => `${number}%`,
-    };
+    );
 
-    res.status(200).json(chartData);
+    res.status(200).json({ data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    handleServerError(res, err);
   }
 };

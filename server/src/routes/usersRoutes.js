@@ -11,6 +11,9 @@ import {
   getAuthTypesStat,
 } from "../controllers/userController.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
+import { credentialsLimiter } from "../middlewares/rateLimiters.js";
+import { validateBody } from "../middlewares/validate.js";
+import { createUserSchema } from "../validation/schemas.js";
 
 export const userRouter = new express.Router();
 
@@ -33,11 +36,11 @@ userRouter.get("/", verifyToken({ role: "admin" }), getUsers);
  * @description Creates a new user with the provided data.
  * @middleware verifyToken({ role: "admin" }) - Ensures the user has an admin role to access this route.
  */
-userRouter.post("/", verifyToken({ role: "admin" }), createUser);
+userRouter.post("/", verifyToken({ role: "admin" }), validateBody(createUserSchema), createUser);
 
 /**
  * @route PUT /:id
- * @description Updates an existing user by their ID.
+ * @description Updates an existing user by their ID (own profile, or any user for admins).
  * @param {string} id - The ID of the user to update.
  * @middleware verifyToken() - Ensures the user is authenticated to access this route.
  */
@@ -64,17 +67,17 @@ userRouter.get("/utils/generatePassword", verifyToken({ role: "admin" }), genera
  * @param {string} id - The ID of the user to update the password for.
  * @middleware verifyToken() - Ensures the user is authenticated to access this route.
  */
-userRouter.put("/:id/password", verifyToken(), updatePassword);
+userRouter.put("/:id/password", verifyToken(), credentialsLimiter, updatePassword);
 
 /**
  * @route DELETE /delete/account
  * @description Deletes the account of the currently authenticated user.
  * @middleware verifyToken() - Ensures the user is authenticated to access this route.
  */
-userRouter.delete("/delete/account", verifyToken(), deleteAccount);
+userRouter.delete("/delete/account", verifyToken(), credentialsLimiter, deleteAccount);
 
 /** * @route GET /stats/authTypes
  * @description Retrieves statistics about the different authentication types used by users.
- * @middleware verifyToken("admin") - Ensures the user has an admin role to access this route.
+ * @middleware verifyToken({ role: "admin" }) - Ensures the user has an admin role to access this route.
  */
-userRouter.get("/stats/authTypes", verifyToken("admin"), getAuthTypesStat);
+userRouter.get("/stats/authTypes", verifyToken({ role: "admin" }), getAuthTypesStat);

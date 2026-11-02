@@ -1,9 +1,6 @@
 import { describe, it, expect, vitest, beforeEach } from "vitest";
-import "dotenv/config";
 import request from "supertest";
 import { User } from "../../../src/models/userModel.js";
-import { logout } from "../../../src/controllers/authenticationController.js";
-import { generateAccessToken } from "../../../src/utils/generateAccessToken.js";
 
 //Import server and app
 import { app } from "../../../src/app.js";
@@ -12,63 +9,82 @@ import {
   badPasswordRegisterUser,
   registerUser,
   regularUser,
-  stablePhotoURL,
+  userWithHashPassword,
   userWithSameEmail,
   userWithSameUsername,
 } from "../../fixtures/users.js";
 import { authTypes } from "../../../src/utils/enums/authTypes.js";
-import { saveAvatarFromUrl } from "../../../src/utils/saveAvatarFromUrl.js";
+import { userRoles } from "../../../src/utils/enums/userRoles.js";
+import { authCookie, getAuthSetCookie, mockGoogleToken } from "../../helpers.js";
 
 describe("POST /api/auth/register", () => {
-  it("should return a 201 status, create an account and stock the token into the cookies", async () => {
+  it("should return a 201 status, create an account and store the token in an httpOnly cookie", async () => {
     const response = await request(app).post("/api/auth/register").send(registerUser);
     expect(response.status).toBe(201);
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=")).toBe(true);
+    const cookie = getAuthSetCookie(response);
+    expect(cookie).toBeDefined();
+    expect(cookie).toContain("HttpOnly");
+    expect(cookie).toContain("SameSite=Lax");
     expect(response.body.message).toBe("server.auth.messages.register_success");
     expect(response.body.user).toHaveProperty("_id" && "username" && "email");
     expect(response.body.user.auth_type).toBe(authTypes.LOCAL);
-    expect(response.body.password).toBe(undefined);
-    expect(response.body.user.avatar).toContain("uploads/users/avatars/avatar_");
+    expect(response.body.user.password).toBe(undefined);
+    expect(response.body.user.tokenVersion).toBe(undefined);
+    expect(response.body.accessToken).toBe(undefined);
+    expect(response.body.user.avatar).toContain(".svg");
   });
 
-  it("should return a 201 status, create an account and stock the token into the cookies with a photoURL", async () => {
+  it("should make the first registered user an admin, and the next ones regular users", async () => {
+    const first = await request(app).post("/api/auth/register").send(registerUser);
+    const second = await request(app)
+      .post("/api/auth/register")
+      .send({ ...registerUser, username: "second", email: "second@gmail.com" });
+
+    expect(first.body.user.role).toBe(userRoles.ADMIN);
+    expect(second.body.user.role).toBe(userRoles.USER);
+  });
+
+  it("should ignore fields the client must not set (role, auth_type, photoURL)", async () => {
     const response = await request(app)
       .post("/api/auth/register")
-      .send({
-        ...registerUser,
-        photoURL: stablePhotoURL,
-      });
+      .send({ ...registerUser, auth_type: authTypes.GOOGLE, photoURL: "https://evil.example/x.png", tokenVersion: 99 });
+
     expect(response.status).toBe(201);
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=")).toBe(true);
-    expect(response.body.message).toBe("server.auth.messages.register_success");
-    expect(response.body.user).toHaveProperty("_id" && "username" && "email" && "avatar");
+    expect(response.body.user.auth_type).toBe(authTypes.LOCAL);
+    expect(response.body.user.avatar).toContain(".svg");
+  });
+
+  it("should create a Google account when a valid ID token matches the email", async () => {
+    mockGoogleToken({ email: registerUser.email });
+
+    const response = await request(app)
+      .post("/api/auth/register")
+      .send({ ...registerUser, idToken: "valid-token" });
+
+    expect(response.status).toBe(201);
     expect(response.body.user.auth_type).toBe(authTypes.GOOGLE);
-    expect(response.body.password).toBe(undefined);
-  });
-
-  it("should attach the downloaded avatar to the user if photoURL is valid", async () => {
-    const response = await request(app)
-      .post("/api/auth/register")
-      .send({
-        ...registerUser,
-        photoURL: stablePhotoURL,
-      });
-    expect(response.status).toBe(201);
-    expect(response.body.user.avatar).toContain("uploads/users/avatars/avatar_");
     expect(response.body.user.avatar).toContain(".jpg");
   });
 
-  it("should log an error if the avatar fails to be downloaded", async () => {
+  it("should refuse a Google registration whose token was issued for another email", async () => {
+    mockGoogleToken({ email: "someone-else@gmail.com" });
+
     const response = await request(app)
       .post("/api/auth/register")
-      .send({
-        ...registerUser,
-        photoURL: "invalid-url",
-      });
-    expect(response.status).toBe(201);
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=")).toBe(true);
-    expect(response.body.message).toBe("server.auth.messages.register_success");
-    expect(response.body.user).toHaveProperty("_id" && "username" && "email");
+      .send({ ...registerUser, idToken: "valid-token" });
+
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe("server.auth.errors.google_token_invalid");
+    expect(await User.countDocuments()).toBe(0);
+  });
+
+  it("should refuse a Google registration with an invalid token", async () => {
+    const response = await request(app)
+      .post("/api/auth/register")
+      .send({ ...registerUser, idToken: "forged-token" });
+
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe("server.auth.errors.google_token_invalid");
   });
 
   it("should return a 400 status error because the password isnt strong enough", async () => {
@@ -103,7 +119,15 @@ describe("POST /api/auth/register", () => {
     expect(response.body.error).toBe("server.global.errors.missing_fields");
   });
 
-  it("should return a 500 status error because of an internal error", async () => {
+  it("should return a 400 status error when a field has the wrong type (NoSQL injection attempt)", async () => {
+    const response = await request(app)
+      .post("/api/auth/register")
+      .send({ ...registerUser, email: { $ne: null } });
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("server.global.errors.invalid_fields");
+  });
+
+  it("should return a generic 500 status error without leaking the internal error", async () => {
     vitest.spyOn(User, "findOne").mockImplementationOnce(() => {
       throw new Error("Test error");
     });
@@ -111,96 +135,81 @@ describe("POST /api/auth/register", () => {
     const response = await request(app).post("/api/auth/register").send(registerUser);
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
 describe("POST /api/auth/login", () => {
-  it("should return a 201 status, create an account and stock the token into the cookies", async () => {
-    await request(app).post("/api/auth/register").send(registerUser);
-    const response = await request(app).post("/api/auth/login").send({
-      username: "user",
-      password: "Abcdef1@",
-    });
-
-    expect(response.status).toBe(201);
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=")).toBe(true);
-    expect(response.body.message).toBe("server.auth.messages.login_success");
-    expect(response.body.user).toHaveProperty("_id" && "username" && "email");
-    expect(response.body.password).toBe(undefined);
+  beforeEach(async () => {
+    await User.create({ ...userWithHashPassword, username: "user", email: "user@gmail.com" });
   });
 
-  it("should return a 201 status when logging in with email", async () => {
-    await request(app).post("/api/auth/register").send(registerUser);
-
+  it("should return a 200 status when logging in with email and store the token in a cookie", async () => {
     const response = await request(app).post("/api/auth/login").send({
       email: "user@gmail.com",
       password: "Abcdef1@",
     });
 
-    expect(response.status).toBe(201);
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=")).toBe(true);
+    expect(response.status).toBe(200);
+    expect(getAuthSetCookie(response)).toContain("HttpOnly");
     expect(response.body.message).toBe("server.auth.messages.login_success");
     expect(response.body.user).toHaveProperty("_id" && "username" && "email");
-    expect(response.body.password).toBe(undefined);
+    expect(response.body.user.password).toBe(undefined);
+    expect(response.body.accessToken).toBe(undefined);
   });
 
-  it("should return a 201 status when logging in with username", async () => {
-    await request(app).post("/api/auth/register").send(registerUser);
-
+  it("should return a 200 status when logging in with username", async () => {
     const response = await request(app).post("/api/auth/login").send({
       username: "user",
       password: "Abcdef1@",
     });
 
-    expect(response.status).toBe(201);
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=")).toBe(true);
-    expect(response.body.message).toBe("server.auth.messages.login_success");
-    expect(response.body.user).toHaveProperty("_id" && "username" && "email");
-    expect(response.body.password).toBe(undefined);
+    expect(response.status).toBe(200);
+    expect(getAuthSetCookie(response)).toBeDefined();
   });
 
-  it("should return a 422 error status because one of the fields is missing", async () => {
-    const user = new User(regularUser);
-    await user.save();
+  it("should return a 422 error status because the password is missing", async () => {
     const response = await request(app).post("/api/auth/login").send({
       username: "test",
     });
     expect(response.status).toBe(422);
     expect(response.body.error).toBe("server.global.errors.missing_fields");
   });
-  it("should return a 422 error status because one of the fields is missing", async () => {
-    const user = new User(regularUser);
-    await user.save();
+
+  it("should return a 422 error status because the login is missing", async () => {
     const response = await request(app).post("/api/auth/login").send({
       password: "test",
     });
     expect(response.status).toBe(422);
     expect(response.body.error).toBe("server.global.errors.missing_fields");
   });
-  it("should return a 400 error status because there is no user with this username", async () => {
-    const user = new User(regularUser);
-    await user.save();
-    const response = await request(app).post("/api/auth/login").send({
+
+  it("should answer the same way for an unknown user and a wrong password (no user enumeration)", async () => {
+    const unknown = await request(app).post("/api/auth/login").send({
       username: "testFALSE",
       password: "Abcdef1@",
     });
-
-    expect(response.status).toBe(400);
-    expect(response.body.error).toBe("server.global.errors.no_such_user");
-  });
-  it("should return a 400 error status because the password is wrong", async () => {
-    const user = new User(regularUser);
-    await user.save();
-    const response = await request(app).post("/api/auth/login").send({
+    const wrongPassword = await request(app).post("/api/auth/login").send({
       username: "user",
       password: "Abcdef1@FALSE",
     });
 
-    expect(response.status).toBe(400);
-    expect(response.body.error).toBe("server.auth.errors.invalid_credentials");
+    expect(unknown.status).toBe(400);
+    expect(wrongPassword.status).toBe(400);
+    expect(unknown.body.error).toBe("server.auth.errors.invalid_credentials");
+    expect(wrongPassword.body.error).toBe("server.auth.errors.invalid_credentials");
   });
-  it("should return a 500 error status because of an internal error", async () => {
+
+  it("should reject operator objects instead of querying with them", async () => {
+    const response = await request(app)
+      .post("/api/auth/login")
+      .send({ username: { $ne: null }, password: "x" });
+
+    expect(response.status).toBe(400);
+    expect(getAuthSetCookie(response)).toBeUndefined();
+  });
+
+  it("should return a generic 500 error status because of an internal error", async () => {
     vitest.spyOn(User, "findOne").mockImplementationOnce(() => {
       throw new Error("Test error");
     });
@@ -211,108 +220,125 @@ describe("POST /api/auth/login", () => {
     });
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
-describe("GET /api/auth/login/google", () => {
-  it("should return a 201 status, create an account and stock the token into the cookies", async () => {
-    await request(app)
-      .post("/api/auth/register")
-      .send({ ...registerUser, photoURL: stablePhotoURL });
-    const response = await request(app).post("/api/auth/login/google").send({
-      email: "user@gmail.com",
-    });
+describe("POST /api/auth/login/google", () => {
+  beforeEach(async () => {
+    await User.create({ ...userWithHashPassword, username: "user", email: "user@gmail.com" });
+  });
 
-    expect(response.status).toBe(201);
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=")).toBe(true);
+  it("should log in the user whose email is in the verified token", async () => {
+    mockGoogleToken({ email: "user@gmail.com" });
+
+    const response = await request(app).post("/api/auth/login/google").send({ idToken: "valid-token" });
+
+    expect(response.status).toBe(200);
+    expect(getAuthSetCookie(response)).toBeDefined();
     expect(response.body.message).toBe("server.auth.messages.login_success");
-    expect(response.body.user).toHaveProperty("_id" && "username" && "email");
-    expect(response.body.password).toBe(undefined);
+    expect(response.body.user.email).toBe("user@gmail.com");
+  });
+
+  it("should not log in from an email in the body (account takeover)", async () => {
+    const response = await request(app).post("/api/auth/login/google").send({ email: "user@gmail.com" });
+
+    expect(response.status).toBe(422);
+    expect(getAuthSetCookie(response)).toBeUndefined();
+  });
+
+  it("should refuse an invalid token", async () => {
+    const response = await request(app).post("/api/auth/login/google").send({ idToken: "forged-token" });
+
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe("server.auth.errors.google_token_invalid");
+    expect(getAuthSetCookie(response)).toBeUndefined();
+  });
+
+  it("should refuse a token whose email is not verified", async () => {
+    mockGoogleToken({ email: "user@gmail.com", email_verified: false });
+
+    const response = await request(app).post("/api/auth/login/google").send({ idToken: "valid-token" });
+
+    expect(response.status).toBe(401);
+  });
+
+  it("should refuse a token that does not come from a Google sign-in", async () => {
+    mockGoogleToken({ email: "user@gmail.com", firebase: { sign_in_provider: "password" } });
+
+    const response = await request(app).post("/api/auth/login/google").send({ idToken: "valid-token" });
+
+    expect(response.status).toBe(401);
   });
 
   it("should return a 404 error status because the user does not exist", async () => {
-    await request(app)
-      .post("/api/auth/register")
-      .send({ ...registerUser, photoURL: stablePhotoURL });
-    const response = await request(app).post("/api/auth/login/google").send({
-      email: "inconnu@gmail.com",
-    });
+    mockGoogleToken({ email: "inconnu@gmail.com" });
+
+    const response = await request(app).post("/api/auth/login/google").send({ idToken: "valid-token" });
+
     expect(response.status).toBe(404);
     expect(response.body.error).toBe("User not found, lets register !");
   });
 
-  it("should return a 422 error status because the email is missing", async () => {
-    const response = await request(app).post("/api/auth/login/google").send({});
-    expect(response.status).toBe(422);
-    expect(response.body.error).toBe("server.global.errors.missing_fields");
-  });
-
-  it("should return a 500 error status because of an internal error", async () => {
+  it("should return a generic 500 error status because of an internal error", async () => {
+    mockGoogleToken({ email: "user@gmail.com" });
     vitest.spyOn(User, "findOne").mockImplementationOnce(() => {
       throw new Error("Test error");
     });
 
-    const response = await request(app).post("/api/auth/login/google").send({
-      email: "user@gmail.com",
-    });
+    const response = await request(app).post("/api/auth/login/google").send({ idToken: "valid-token" });
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
-describe("GET /api/auth/logout", () => {
-  it("should return a 200 status and clear the cookies", async () => {
-    const user = new User(regularUser);
-    await user.save();
-    const response = await request(app)
-      .get("/api/auth/logout")
-      .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
+describe("POST /api/auth/logout", () => {
+  it("should return a 200 status and clear the auth cookie", async () => {
+    const user = await User.create(regularUser);
+    const response = await request(app).post("/api/auth/logout").set("Cookie", authCookie(user));
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("server.auth.messages.logout_success");
-    expect(response.headers["set-cookie"][0].startsWith("__access__token=;")).toBe(true);
+    expect(getAuthSetCookie(response).startsWith("__access__token=;")).toBe(true);
   });
-  it("should return a 500 error status in case of an internal error", async () => {
-    const error = new Error("Test error");
-    const res = {
-      clearCookie: vitest.fn(() => {
-        throw error;
-      }),
-      status: vitest.fn().mockReturnThis(),
-      json: vitest.fn(),
-    };
-    await logout({}, res);
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: error.message });
+
+  it("should reject a logout triggered from another site (CSRF)", async () => {
+    const response = await request(app).post("/api/auth/logout").set("Origin", "https://evil.example");
+
+    expect(response.status).toBe(403);
+    expect(response.body.error).toBe("server.global.errors.forbidden");
   });
 });
 
 describe("GET /api/auth/me", () => {
   let user;
   beforeEach(async () => {
-    user = new User(regularUser);
-    await user.save();
+    user = await User.create(regularUser);
   });
 
   it("should return a 200 status and the connected user infos", async () => {
-    const response = await request(app)
-      .get("/api/auth/me")
-      .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
+    const response = await request(app).get("/api/auth/me").set("Cookie", authCookie(user));
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("_id" && "username" && "email");
+    expect(response.body.password).toBe(undefined);
+    expect(response.body.tokenVersion).toBe(undefined);
   });
-  it("should return a 500 status in case of an internal error", async () => {
-    vitest.spyOn(User, "findById").mockImplementationOnce(async () => {
+
+  it("should not accept a token sent in the Authorization header anymore", async () => {
+    const token = authCookie(user).split("=")[1];
+    const response = await request(app).get("/api/auth/me").set("Authorization", `Bearer ${token}`);
+    expect(response.status).toBe(401);
+  });
+
+  it("should return a generic 500 status in case of an internal error", async () => {
+    vitest.spyOn(User, "findById").mockImplementationOnce(() => {
       throw new Error("Test error");
     });
 
-    const response = await request(app)
-      .get("/api/auth/me")
-      .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
+    const response = await request(app).get("/api/auth/me").set("Cookie", authCookie(user));
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });

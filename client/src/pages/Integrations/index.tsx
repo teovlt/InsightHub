@@ -10,14 +10,12 @@ import { toast } from "sonner";
 import { IntegrationInterface } from "@/interfaces/Integration";
 import { axiosConfig } from "@/config/axiosConfig";
 import { IntegrationCard } from "./integrationCard";
-import { useAuthContext } from "@/contexts/authContext";
 
 export function IntegrationsPage() {
   const [integrations, setIntegrations] = useState<IntegrationInterface[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(false);
-  const { authUser } = useAuthContext();
 
   const handleConnect = async (integrationId: string) => {
     setLoading(true);
@@ -36,7 +34,7 @@ export function IntegrationsPage() {
         return;
       }
 
-      window.location.href = `${import.meta.env.VITE_API_URL}/api/integrations/${authUrl}?integrationId=${integrationId}&userId=${authUser?._id}`;
+      window.location.href = `${import.meta.env.VITE_API_URL}/api/integrations/${authUrl}?integrationId=${encodeURIComponent(integrationId)}`;
       toast.success(`Redirecting to ${integration.name} for authentication...`);
     } catch (error) {
       toast.error("Failed to initiate connection : " + (error as Error).message);
@@ -47,7 +45,7 @@ export function IntegrationsPage() {
 
   const handleDisconnect = async (integrationId: string) => {
     try {
-      const response = await axiosConfig.delete(`/integrations/${authUser?._id}/${integrationId}`);
+      const response = await axiosConfig.delete(`/integrations/${integrationId}/connection`);
       toast.success(response.data.message);
 
       setIntegrations((prev) =>
@@ -76,7 +74,7 @@ export function IntegrationsPage() {
   const handleSync = async (integrationId: string) => {
     try {
       setLoading(true);
-      const response = await axiosConfig.get(`/integrations/${integrationId}/sync`);
+      const response = await axiosConfig.post(`/integrations/${integrationId}/sync`);
       toast.success(response.data.message);
     } catch (error: any) {
       toast.error(error.message);
@@ -102,6 +100,13 @@ export function IntegrationsPage() {
   };
   useEffect(() => {
     fetchIntegrations();
+
+    // Set by the server when the OAuth callback fails
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error")) {
+      toast.error("Failed to connect the integration, please try again.");
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, []);
 
   const filteredIntegrations = integrations.filter((integration) => {

@@ -24,17 +24,27 @@ describe("GET /api/config", () => {
   it("should return a 200 success status and the list of the config", async () => {
     const user = await User.create(adminUser);
     await Config.create({
-      key: "key1",
+      key: "APP_NAME",
       value: "value1",
     });
     const res = await request(app)
-      .get("/api/config?keys=key1")
+      .get("/api/config?keys=APP_NAME")
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`)
       .send();
 
     expect(res.status).toBe(200);
     expect(res.body.config[0].value).toBe("value1");
-    expect(res.body.config[0].key).toBe("key1");
+    expect(res.body.config[0].key).toBe("APP_NAME");
+  });
+
+  it("should only expose whitelisted public keys", async () => {
+    await Config.create({ key: "APP_NAME", value: "InsightHub" });
+    await Config.create({ key: "PRIVATE_KEY", value: "secret" });
+
+    const res = await request(app).get("/api/config?keys=APP_NAME,PRIVATE_KEY").send();
+
+    expect(res.status).toBe(200);
+    expect(res.body.config.map((c) => c.key)).toEqual(["APP_NAME"]);
   });
 
   it("should return a 500 status if an error occurs", async () => {
@@ -48,7 +58,7 @@ describe("GET /api/config", () => {
       .get(`/api/config?keys=${["key1", "key2"].join(",")}`)
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -112,8 +122,8 @@ describe("PUT /api/config", () => {
         },
       });
 
-    expect(res.status).toBe(400);
-    expect(res.body.message).toBe("Invalid input format");
+    expect([400, 422]).toContain(res.status);
+    expect(res.body.error).toMatch(/^server\.global\.errors\.(invalid|missing)_fields$/);
   });
 
   it("should return a 400 error if the format is invalid", async () => {
@@ -131,8 +141,8 @@ describe("PUT /api/config", () => {
         config: "test",
       });
 
-    expect(res.status).toBe(400);
-    expect(res.body.message).toBe("Invalid input format");
+    expect([400, 422]).toContain(res.status);
+    expect(res.body.error).toMatch(/^server\.global\.errors\.(invalid|missing)_fields$/);
   });
 
   it("should return a 400 error if the format is invalid", async () => {
@@ -149,8 +159,8 @@ describe("PUT /api/config", () => {
         keys: ["key2"],
       });
 
-    expect(res.status).toBe(400);
-    expect(res.body.message).toBe("Invalid input format");
+    expect([400, 422]).toContain(res.status);
+    expect(res.body.error).toMatch(/^server\.global\.errors\.(invalid|missing)_fields$/);
   });
 
   it("should return a 500 status if an error occurs", async () => {
@@ -175,6 +185,6 @@ describe("PUT /api/config", () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });

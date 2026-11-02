@@ -30,16 +30,19 @@ export const SocketContextProvider: React.FC<SocketContextProviderProps> = ({ ch
 
   useEffect(() => {
     if (authUser?._id) {
+      // Authenticated by the httpOnly auth cookie
       const newSocket = io(import.meta.env.VITE_API_URL, {
-        query: { userId: authUser._id },
         withCredentials: true,
       });
 
       setSocket(newSocket);
 
+      newSocket.on("connect", () => setIsOnline(true));
+      newSocket.on("disconnect", () => setIsOnline(false));
+
+      // Only sent to admins
       newSocket.on("getOnlineUsers", (users: string[]) => {
         setOnlineUsers(users);
-        setIsOnline(users.includes(authUser._id));
       });
 
       return () => {

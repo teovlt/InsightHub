@@ -25,7 +25,7 @@ export const RegisterGoogleForm = () => {
 
   if (!userData) return null;
 
-  const { name, email, photoURL } = userData;
+  const { name, email, photoURL, idToken } = userData;
 
   const defaultValues = {
     name: name.split(" ").slice(1).join(" ") || "",
@@ -41,13 +41,13 @@ export const RegisterGoogleForm = () => {
   async function register(values: z.infer<typeof registerSchema>) {
     try {
       setLoading(true);
-      const response = await axiosConfig.post("/auth/register/", values);
+      // The server verifies the Google ID token and only accepts it for the email it was issued for
+      const response = await axiosConfig.post("/auth/register", { ...values, idToken });
       toast.success(t(response.data.message));
       setAuthUser(response.data.user);
-      localStorage.setItem("accessTokenInsightHub", response.data.accessToken);
       navigate("/");
     } catch (error: any) {
-      toast.error(t(error.response.data.error));
+      toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
     } finally {
       setLoading(false);
     }

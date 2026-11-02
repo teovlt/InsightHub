@@ -1,18 +1,30 @@
 import { User } from "../models/userModel.js";
 import { Constants } from "../../constants/constants.js";
 import { bucket } from "../lib/firebase.js";
+import { ALLOWED_AVATAR_TYPES } from "../configuration/storageConfig.js";
+import { userRoles } from "../utils/enums/userRoles.js";
+import { deleteAvatarFile, toPublicUser } from "../utils/userData.js";
+import { handleServerError } from "../utils/httpErrors.js";
 
 export const updateUserAvatar = async (req, res) => {
   try {
     const userId = req.params.id;
+
+    // Users may only change their own avatar; admins may change anyone's
+    if (userId !== req.userId && req.user.role !== userRoles.ADMIN) {
+      return res.status(403).json({ error: "server.global.errors.forbidden" });
+    }
+
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "server.global.errors.no_such_user" });
+    }
 
     if (!req.file) {
       return res.status(400).json({ error: "server.upload.errors.no_file" });
     }
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/svg+xml"];
-    if (!allowedTypes.includes(req.file.mimetype)) {
+    if (!ALLOWED_AVATAR_TYPES.includes(req.file.mimetype)) {
       return res.status(400).json({ error: "server.upload.errors.invalid_file_type" });
     }
 
@@ -20,16 +32,10 @@ export const updateUserAvatar = async (req, res) => {
       return res.status(400).json({ error: `server.upload.errors.limit` });
     }
 
-    if (user.avatar) {
-      const oldFileName = user.avatar.split("/").pop();
-      const oldFile = bucket.file(`avatars/${oldFileName}`);
-      await oldFile.delete().catch(() => {});
-    }
+    await deleteAvatarFile(user.avatar);
 
     // Nouveau nom unique
-    let extension = req.file.mimetype.split("/")[1];
-    if (extension.includes("+")) extension = extension.split("+")[0]; // svg+xml → svg
-
+    const extension = req.file.mimetype.split("/")[1];
     const filename = `avatars/${userId}_${Date.now()}.${extension}`;
 
     const blob = bucket.file(filename);
@@ -41,27 +47,27 @@ export const updateUserAvatar = async (req, res) => {
     });
 
     blobStream.on("error", (err) => {
-      console.error(err);
-      res.status(500).json({ error: "Upload error", details: err.message });
+      handleServerError(res, err);
     });
 
     blobStream.on("finish", async () => {
-      await blob.makePublic();
+      try {
+        await blob.makePublic();
 
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+        user.avatar = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+        await user.save();
 
-      user.avatar = publicUrl;
-      await user.save();
-
-      res.status(200).json({
-        message: "server.upload.messages.avatar_success",
-        user,
-      });
+        res.status(200).json({
+          message: "server.upload.messages.avatar_success",
+          user: toPublicUser(user),
+        });
+      } catch (err) {
+        handleServerError(res, err);
+      }
     });
 
     blobStream.end(req.file.buffer);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "An unexpected error occurred during file upload" });
+    handleServerError(res, error);
   }
 };

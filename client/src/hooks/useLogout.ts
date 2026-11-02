@@ -15,13 +15,12 @@ export const useLogout = () => {
   const logout = async () => {
     setLoading(true);
     try {
-      const response = await axiosConfig.get("/auth/logout");
-      localStorage.removeItem("accessTokenInsightHub");
+      const response = await axiosConfig.post("/auth/logout");
       setAuthUser(null);
       toast.success(t(response.data.message));
       navigate("/login");
     } catch (error: any) {
-      toast.error(error.response.data.error);
+      toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
     } finally {
       setLoading(false);
     }

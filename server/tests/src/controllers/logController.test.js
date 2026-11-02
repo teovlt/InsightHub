@@ -40,7 +40,7 @@ describe("GET api/logs/", () => {
       .get("/api/logs/")
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -127,7 +127,7 @@ describe("DELETE api/logs/", () => {
       .delete("/api/logs/")
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 
@@ -173,7 +173,7 @@ describe("DELETE api/logs/:id", () => {
       .delete(`/api/logs/${log._id}`)
       .set("Cookie", `__access__token=${generateAccessToken(user._id)}`);
     expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Test error");
+    expect(response.body.error).toBe("server.global.errors.internal");
   });
 });
 

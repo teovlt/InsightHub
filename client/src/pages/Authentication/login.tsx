@@ -43,10 +43,9 @@ export const Login = () => {
 
       toast.success(t(response.data.message));
       setAuthUser(response.data.user);
-      localStorage.setItem("accessTokenInsightHub", response.data.accessToken);
       navigate("/");
     } catch (error: any) {
-      toast.error(t(error.response.data.error));
+      toast.error(t(error.response?.data?.error ?? "server.global.errors.internal"));
     } finally {
       setLoading(false);
     }
