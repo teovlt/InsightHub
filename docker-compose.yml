@@ -4,7 +4,7 @@
 services:
   # MongoDB Database
   mongodb:
-    image: mongo:7
+    image: mongo:9
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-insighthub}
@@ -20,7 +20,7 @@ services:
 
   # Daily gzipped dump of the database into the "mongodb_backups" volume, kept 14 days
   mongodb-backup:
-    image: mongo:7
+    image: mongo:9
     restart: unless-stopped
     environment:
       BACKUP_URI: mongodb://${MONGO_USER:-insighthub}:${MONGO_PASSWORD:?MONGO_PASSWORD is required}@mongodb:27017/?authSource=admin
