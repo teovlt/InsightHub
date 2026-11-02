@@ -2,11 +2,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, EllipsisVertical } from "lucide-react";
+import { Copy, EllipsisVertical, Pencil, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { IntegrationInterface } from "@/interfaces/Integration";
-import * as LucideIcons from "lucide-react";
-import { LucideProps } from "lucide-react";
+import { getIcon } from "@/lib/icons";
 
 export const getColumns = (callback: (action: string, data: any) => void): ColumnDef<IntegrationInterface>[] => [
   {
@@ -14,13 +13,11 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
     header: "Name",
     cell: ({ row }) => {
       const integration = row.original;
-      const iconName = integration.icon;
-
-      const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons] as React.ElementType<LucideProps>;
+      const IconComponent = getIcon(integration.icon);
 
       return (
         <div className="flex items-center gap-2">
-          {LucideIcon ? <LucideIcon className="w-4 h-4 " /> : <span className="w-4 h-4 bg-gray-200 rounded-full" />}
+          <IconComponent className="w-4 h-4" />
           <span className="text-sm">{integration.name}</span>
         </div>
       );
@@ -79,13 +76,13 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
               <Copy className="w-4 h-4" /> Copy integration ID
             </DropdownMenuItem>
             <DropdownMenuItem className="flex gap-4" onClick={() => callback("update", integration._id)}>
-              <LucideIcons.Pencil className="w-4 h-4" /> Update this integration
+              <Pencil className="w-4 h-4" /> Update this integration
             </DropdownMenuItem>
             <DropdownMenuItem
               className="flex gap-4 text-destructive hover:text-destructive!"
               onClick={() => callback("delete", integration._id)}
             >
-              <LucideIcons.Trash className="w-4 h-4" /> Delete this integration
+              <Trash className="w-4 h-4" /> Delete this integration
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

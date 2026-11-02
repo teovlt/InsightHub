@@ -3,7 +3,8 @@ import { AppSidebar } from "./sideBar/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@radix-ui/react-separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import React from "react";
+import React, { Suspense } from "react";
+import { Loading } from "@/components/customs/loading";
 
 export const Index = () => {
   const location = useLocation();
@@ -50,7 +51,10 @@ export const Index = () => {
             </Breadcrumb>
           </div>
         </header>
-        <Outlet />
+        {/* Admin sections are lazy-loaded: keep the sidebar visible while one loads */}
+        <Suspense fallback={<Loading />}>
+          <Outlet />
+        </Suspense>
       </SidebarInset>
     </SidebarProvider>
   );

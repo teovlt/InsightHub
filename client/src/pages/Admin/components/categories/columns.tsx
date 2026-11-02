@@ -2,11 +2,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Copy, EllipsisVertical, Trash } from "lucide-react";
+import { ArrowUpDown, Copy, EllipsisVertical, Pencil, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { CategoryInterface } from "@/interfaces/Category";
-import * as LucideIcons from "lucide-react";
-import { LucideProps } from "lucide-react";
+import { getIcon } from "@/lib/icons";
 
 export const getColumns = (callback: (action: string, data: any) => void): ColumnDef<CategoryInterface>[] => [
   {
@@ -58,10 +57,7 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
     ),
     cell: ({ row }) => {
       const iconName = row.getValue("icon") as string;
-
-      const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
-
-      const IconComponent = LucideIcon as React.ElementType<LucideProps>;
+      const IconComponent = getIcon(iconName);
 
       return (
         <div className="flex items-center gap-2">
@@ -123,7 +119,7 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
               <Copy className="w-4 h-4" /> Copy category ID
             </DropdownMenuItem>
             <DropdownMenuItem className="flex gap-4" onClick={() => callback("update", category._id)}>
-              <LucideIcons.Pencil className="w-4 h-4" /> Update this category
+              <Pencil className="w-4 h-4" /> Update this category
             </DropdownMenuItem>
             <DropdownMenuItem
               className="flex gap-4 text-destructive hover:text-destructive!"

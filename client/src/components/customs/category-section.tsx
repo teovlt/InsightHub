@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import * as LucideIcons from "lucide-react";
+import { getIcon } from "@/lib/icons";
 import { CategoryInterface } from "@/interfaces/Category";
 import { generateGradientColors, getColorVariables } from "@/utils/colors";
 import { AddStatDialog } from "./addStatDialog";
@@ -11,7 +11,7 @@ interface CategorySectionProps {
 }
 
 export function CategorySection({ category, refresh }: CategorySectionProps) {
-  const IconComponent = (LucideIcons as any)[category.icon] || LucideIcons.Circle;
+  const IconComponent = getIcon(category.icon);
   const gradientColors = generateGradientColors(category.color, Math.max(4, category.stats.length)).reverse();
 
   return (

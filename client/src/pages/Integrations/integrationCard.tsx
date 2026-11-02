@@ -7,10 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { CheckCircle, Settings, Unplug, RefreshCw, MoreHorizontal } from "lucide-react";
+import { CheckCircle, Settings, Settings2, Unplug, RefreshCw, MoreHorizontal } from "lucide-react";
 import { IntegrationInterface, IntegrationStat } from "@/interfaces/Integration";
-import * as LucideIcons from "lucide-react";
-import { LucideProps } from "lucide-react";
+import { getIcon } from "@/lib/icons";
 
 interface IntegrationCardProps {
   onConnect: (integrationId: string) => void;
@@ -26,9 +25,7 @@ interface IntegrationCardProps {
 export function IntegrationCard({ integration, onConnect, onDisconnect, onToggleStat, onSync, integrationUser }: IntegrationCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const iconName = integration.icon;
-  const LucideIcon = LucideIcons[iconName as keyof typeof LucideIcons];
-  const IconComponent = LucideIcon as React.ElementType<LucideProps>;
+  const IconComponent = getIcon(integration.icon);
 
   return (
     <Card className="relative overflow-hidden">
@@ -57,7 +54,7 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm">
-                    <LucideIcons.Settings2 className="h-4 w-4" />
+                    <Settings2 className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">

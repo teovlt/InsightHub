@@ -11,64 +11,10 @@ import { IntegrationInterface } from "@/interfaces/Integration";
 import { integrationSchema, deleteInfoSchema } from "@/lib/zod/schemas/admin/zod";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import {
-  Github,
-  Slack,
-  Zap,
-  Twitter,
-  Facebook,
-  Linkedin,
-  Instagram,
-  Youtube,
-  Mail,
-  Phone,
-  Calendar,
-  Cloud,
-  Code,
-  Settings,
-  User,
-  Users,
-  Lock,
-  Star,
-  Heart,
-  ShoppingCart,
-  CreditCard,
-  MapPin,
-  Video,
-  Music,
-  Bookmark,
-  Footprints,
-} from "lucide-react";
+import { integrationIcons } from "@/lib/icons";
 import ColorPicker from "@/components/customs/colorPicker";
 
-const icons = [
-  { name: "Github", Icon: Github },
-  { name: "Slack", Icon: Slack },
-  { name: "Zap", Icon: Zap },
-  { name: "Twitter", Icon: Twitter },
-  { name: "Facebook", Icon: Facebook },
-  { name: "Linkedin", Icon: Linkedin },
-  { name: "Instagram", Icon: Instagram },
-  { name: "Youtube", Icon: Youtube },
-  { name: "Mail", Icon: Mail },
-  { name: "Phone", Icon: Phone },
-  { name: "Calendar", Icon: Calendar },
-  { name: "Cloud", Icon: Cloud },
-  { name: "Code", Icon: Code },
-  { name: "Settings", Icon: Settings },
-  { name: "User", Icon: User },
-  { name: "Users", Icon: Users },
-  { name: "Lock", Icon: Lock },
-  { name: "Star", Icon: Star },
-  { name: "Heart", Icon: Heart },
-  { name: "ShoppingCart", Icon: ShoppingCart },
-  { name: "CreditCard", Icon: CreditCard },
-  { name: "MapPin", Icon: MapPin },
-  { name: "Video", Icon: Video },
-  { name: "Music", Icon: Music },
-  { name: "Bookmark", Icon: Bookmark },
-  { name: "Footprints", Icon: Footprints },
-];
+const icons = Object.entries(integrationIcons).map(([name, Icon]) => ({ name, Icon }));
 
 interface IntegrationFormProps {
   dialog: (isOpen: boolean) => void;

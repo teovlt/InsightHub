@@ -1,11 +1,12 @@
-import { app } from "@/lib/firebase";
 import { Button } from "../ui/button";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { axiosConfig } from "@/config/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "@/contexts/authContext";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useEffect, useRef } from "react";
+
+type FirebaseModule = typeof import("@/lib/firebase");
 
 interface OauthProps {
   message: string;
@@ -15,15 +16,18 @@ export function OAuth({ message }: OauthProps) {
   const navigate = useNavigate();
   const { setAuthUser } = useAuthContext();
   const { t } = useTranslation();
+  const firebaseRef = useRef<FirebaseModule | null>(null);
 
-  const auth = getAuth(app);
+  // Firebase is only needed for Google sign-in, so it is loaded here rather than in the main bundle.
+  // Prefetching on mount lets the click open the popup right away, which popup blockers require.
+  useEffect(() => {
+    import("@/lib/firebase").then((m) => (firebaseRef.current = m)).catch(() => {});
+  }, []);
 
   const handleGoogleAuth = async () => {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-
     try {
-      const googleRes = await signInWithPopup(auth, provider);
+      const { signInWithGoogle } = firebaseRef.current ?? (await import("@/lib/firebase"));
+      const googleRes = await signInWithGoogle();
 
       const idToken = await googleRes.user.getIdToken();
       const userData = {
