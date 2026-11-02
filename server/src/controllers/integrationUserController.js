@@ -2,9 +2,7 @@ import crypto from "crypto";
 import { encrypt } from "../utils/crypto.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Integration } from "../models/integrationModel.js";
-import { getMaxStreak, getTotalCommits, getTotalStars } from "../utils/github/stats.js";
-import { Stat } from "../models/statModel.js";
-import { Category } from "../models/categoryModel.js";
+import { ensureGithubStats } from "../utils/github/integration.js";
 import { autoSyncStats } from "../utils/stats.js";
 import { handleServerError } from "../utils/httpErrors.js";
 
@@ -94,7 +92,7 @@ export const getGithubUser = async (req, res) => {
     const githubUser = await userResponse.json();
     if (!githubUser?.id) return res.status(500).json({ error: "Failed to fetch GitHub user." });
 
-    // 3️⃣ Mets à jour l'IntegrationUser de base
+    // 3️⃣ Enregistre la connexion (le token est chiffré)
     await IntegrationUser.findOneAndUpdate(
       { userId, integrationId },
       {
@@ -103,111 +101,24 @@ export const getGithubUser = async (req, res) => {
         connected: true,
         accessToken: encrypt(access_token),
         config: { githubUser },
+        $unset: { lastSyncedAt: 1 },
       },
       { upsert: true, new: true },
     );
 
-    // 5️⃣ Récupère les valeurs GitHub
-    const totalCommits = await getTotalCommits(access_token, githubUser.created_at);
-    const maxStreak = await getMaxStreak(access_token);
-    const totalStars = await getTotalStars(access_token);
+    // 4️⃣ Les stats proposées sont partagées : on ajoute seulement celles qui manquent, sans jamais changer leurs _id
+    const integration = await ensureGithubStats(integrationId);
+    const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
 
-    // 6️⃣ Supprime les stats doublons côté Integration
-    await Integration.findByIdAndUpdate(integrationId, {
-      $pull: { availableStats: { name: { $in: ["Total Commits", "Max Streak", "Total Stars"] } } },
-    });
-
-    // 7️⃣ Ajoute les nouvelles
-    await Integration.findByIdAndUpdate(integrationId, {
-      $push: {
-        availableStats: [
-          {
-            name: "Total Commits",
-            value: totalCommits,
-            dataType: "number",
-            description: "Total number of commits made by the user on GitHub.",
-          },
-          {
-            name: "Max Streak",
-            value: maxStreak,
-            dataType: "number",
-            description: "Maximum consecutive days of commits made by the user on GitHub.",
-            unit: "days",
-          },
-          {
-            name: "Total Stars",
-            value: totalStars,
-            dataType: "number",
-            description: "Total number of stars received by the user on GitHub.",
-          },
-        ],
-      },
-    });
-
-    // 8️⃣ Récupère l’intégration mise à jour pour choper les `_id`
-    const integration = await Integration.findById(integrationId).lean();
-
-    // ➜ Map nom stat -> _id du availableStat correspondant
-    const availableStatsMap = {};
-    integration.availableStats.forEach((s) => {
-      availableStatsMap[s.name] = s._id;
-    });
-
-    //Les mettre dans integrationUser
-    await IntegrationUser.findOneAndUpdate({ userId, integrationId }, { activedStat: integration.availableStats });
-
-    // 🔟 Assure la catégorie côté Stat
-    let githubCategory = await Category.findOne({
-      name: "GitHub",
-      description: "Stats fetched from your GitHub account",
-    });
-    if (!githubCategory) {
-      githubCategory = await Category.create({
-        name: "GitHub",
-        description: "Stats fetched from your GitHub account",
-        icon: "Github",
-        color: "#24292e",
-      });
+    // 5️⃣ Première connexion : tout est activé ; une reconnexion garde le choix de l'utilisateur
+    if (!integrationUser.activedStat?.length) {
+      await IntegrationUser.updateOne({ _id: integrationUser._id }, { activedStat: integration.availableStats.map((stat) => stat._id) });
     }
 
-    // 1️⃣1️⃣ Upsert des Stat personnelles avec lien vers availableStat
-    const statsData = [
-      {
-        name: "Total Commits",
-        description: "Total number of commits made by the user on GitHub.",
-        value: totalCommits.toString(),
-        unit: "",
-      },
-      {
-        name: "Max Streak",
-        description: "Maximum consecutive days of commits made by the user on GitHub.",
-        value: maxStreak.toString(),
-        unit: "days",
-      },
-      {
-        name: "Total Stars",
-        description: "Total number of stars received by the user on GitHub.",
-        value: totalStars.toString(),
-        unit: "",
-      },
-    ];
-
-    for (const stat of statsData) {
-      await Stat.findOneAndUpdate(
-        { userId, categoryId: githubCategory._id, name: stat.name },
-        {
-          $set: {
-            description: stat.description,
-            value: stat.value,
-            unit: stat.unit,
-            current: true,
-            hided: false,
-            integrationId: integrationId,
-            integrationStatId: availableStatsMap[stat.name],
-          },
-        },
-        { upsert: true, new: true },
-      );
+    // 6️⃣ Crée ou met à jour les Stat personnelles ; un échec ici n'annule pas la connexion
+    const result = await autoSyncStats(userId, integrationId, { force: true });
+    if (result.error) {
+      return res.redirect(`${getClientUrl()}/integrations?error=sync`);
     }
 
     res.redirect(`${getClientUrl()}/integrations`);
@@ -245,6 +156,8 @@ export const toggleActivedStat = async (req, res) => {
     } else {
       integrationUser.activedStat.push(statId);
     }
+    // A newly activated stat must be fetched on the next page load
+    integrationUser.lastSyncedAt = undefined;
 
     await integrationUser.save();
 
@@ -252,7 +165,10 @@ export const toggleActivedStat = async (req, res) => {
 
     return res
       .status(200)
-      .json({ integrationUser: publicIntegrationUser, message: isActive ? "Stat deactivated successfully." : "Stat activated successfully." });
+      .json({
+        integrationUser: publicIntegrationUser,
+        message: isActive ? "Stat deactivated successfully." : "Stat activated successfully.",
+      });
   } catch (error) {
     handleServerError(res, error);
   }
@@ -262,7 +178,7 @@ export const syncStatistics = async (req, res) => {
   const { integrationId } = req.params;
 
   try {
-    const result = await autoSyncStats(req.userId, integrationId);
+    const result = await autoSyncStats(req.userId, integrationId, { force: true });
     if (result.error) {
       return res.status(result.error === "IntegrationUser not found" ? 404 : 400).json({ error: result.error });
     }

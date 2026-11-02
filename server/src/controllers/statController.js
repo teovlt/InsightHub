@@ -190,7 +190,7 @@ export const rollbackStat = async (req, res) => {
       name: currentStat.name,
       current: false,
       _id: { $ne: currentStat._id },
-    }).sort({ updatedAt: -1 }); // la plus récente en updatedAt
+    }).sort({ createdAt: -1 }); // la plus récente : updatedAt bouge aussi lors d'un renommage
 
     if (!previousStat) {
       // Pas d’ancienne version dispo

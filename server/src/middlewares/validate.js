@@ -10,7 +10,9 @@ export const parseBody = (schema, payload) => {
   const result = schema.safeParse(payload ?? {});
   if (result.success) return { data: result.data };
 
-  const missing = result.error.issues.some((issue) => issue.code === "invalid_type" && issue.received === "undefined");
+  // zod 4 issues do not carry the received value: read it back from the payload
+  const valueAt = (path) => path.reduce((value, key) => value?.[key], payload);
+  const missing = result.error.issues.some((issue) => issue.code === "invalid_type" && valueAt(issue.path) === undefined);
   return {
     status: missing ? 422 : 400,
     error: {

@@ -32,8 +32,6 @@ export const updateUserAvatar = async (req, res) => {
       return res.status(400).json({ error: `server.upload.errors.limit` });
     }
 
-    await deleteAvatarFile(user.avatar);
-
     // Nouveau nom unique
     const extension = req.file.mimetype.split("/")[1];
     const filename = `avatars/${userId}_${Date.now()}.${extension}`;
@@ -54,8 +52,11 @@ export const updateUserAvatar = async (req, res) => {
       try {
         await blob.makePublic();
 
+        // The previous avatar is only removed once the new one is stored
+        const previousAvatar = user.avatar;
         user.avatar = `https://storage.googleapis.com/${bucket.name}/${filename}`;
         await user.save();
+        await deleteAvatarFile(previousAvatar);
 
         res.status(200).json({
           message: "server.upload.messages.avatar_success",

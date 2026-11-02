@@ -8,7 +8,8 @@ const LogSchema = new mongoose.Schema(
       required: true,
     },
     level: {
-      type: Object.values(logLevels),
+      type: String,
+      enum: Object.values(logLevels),
       required: true,
       default: logLevels.INFO,
     },

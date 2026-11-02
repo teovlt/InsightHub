@@ -8,6 +8,9 @@ import { connectToDatabase } from "../src/database/connectToDB.js";
 vi.mock("../src/database/connectToDB.js", () => ({
   connectToDatabase: vi.fn(),
 }));
+vi.mock("../src/database/migrations.js", () => ({
+  runMigrations: vi.fn(),
+}));
 
 describe("Server Tests", () => {
   let httpServer;

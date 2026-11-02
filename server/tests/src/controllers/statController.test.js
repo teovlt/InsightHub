@@ -42,7 +42,10 @@ describe("Stats", () => {
   });
 
   it("should reject an invalid category id", async () => {
-    const response = await request(app).post("/api/stats").set("Cookie", authCookie(owner)).send({ name: "Steps", value: "1", categoryId: "nope" });
+    const response = await request(app)
+      .post("/api/stats")
+      .set("Cookie", authCookie(owner))
+      .send({ name: "Steps", value: "1", categoryId: "nope" });
 
     expect(response.status).toBe(400);
   });
@@ -87,5 +90,27 @@ describe("Stats", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("server.global.errors.invalid_id");
+  });
+
+  it("should roll back to the previous value even after a rename", async () => {
+    let current = (await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "79" })).body.stat;
+    current = (await request(app).put(`/api/stats/${current._id}`).set("Cookie", authCookie(owner)).send({ value: "78" })).body.stat;
+    await request(app).put(`/api/stats/${current._id}`).set("Cookie", authCookie(owner)).send({ name: "Mass", value: "78" });
+    // The oldest version is now the most recently updated one
+    await Stat.collection.updateOne({ _id: stat._id }, { $set: { updatedAt: new Date(Date.now() + 60_000) } });
+
+    const response = await request(app).post(`/api/stats/rollback/${current._id}`).set("Cookie", authCookie(owner));
+
+    expect(response.status).toBe(200);
+    expect(response.body.stat.value).toBe("79");
+  });
+
+  it("should delete the stats of a deleted category", async () => {
+    await User.updateOne({ _id: other._id }, { role: "admin" });
+
+    const response = await request(app).delete(`/api/categories/${category._id}`).set("Cookie", authCookie(other));
+
+    expect(response.status).toBe(200);
+    expect(await Stat.countDocuments({ categoryId: category._id })).toBe(0);
   });
 });

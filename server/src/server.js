@@ -1,5 +1,6 @@
 import { app } from "./app.js";
 import { connectToDatabase } from "./database/connectToDB.js";
+import { runMigrations } from "./database/migrations.js";
 import { createServer } from "http";
 import { initSockets } from "./sockets/socket.js";
 
@@ -49,6 +50,7 @@ export async function initServer() {
 
   // Connect to the database
   await connectToDatabase();
+  await runMigrations();
 
   // Create an HTTP server using the Express app
   const httpServer = createServer(app);

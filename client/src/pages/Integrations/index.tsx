@@ -103,7 +103,10 @@ export function IntegrationsPage() {
 
     // Set by the server when the OAuth callback fails
     const params = new URLSearchParams(window.location.search);
-    if (params.get("error")) {
+    if (params.get("error") === "sync") {
+      toast.error('Integration connected, but the first sync failed. Try "Sync Now" in a moment.');
+      window.history.replaceState(null, "", window.location.pathname);
+    } else if (params.get("error")) {
       toast.error("Failed to connect the integration, please try again.");
       window.history.replaceState(null, "", window.location.pathname);
     }

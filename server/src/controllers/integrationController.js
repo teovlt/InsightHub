@@ -2,6 +2,7 @@ import { Integration } from "../models/integrationModel.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { handleServerError } from "../utils/httpErrors.js";
 import { getPagination } from "../utils/pagination.js";
+import { repairActivatedStats } from "../utils/stats.js";
 
 export const getIntegrations = async (req, res) => {
   const { size, skip } = getPagination(req.query);
@@ -25,6 +26,12 @@ export const getEnabledIntegrations = async (req, res) => {
 
     // 2. Connexions de l'utilisateur (sans le token chiffré)
     const userIntegrations = await IntegrationUser.find({ userId, connected: true }).select("-accessToken").lean();
+
+    // Older connections may still reference stat ids that no longer exist
+    for (const userIntegration of userIntegrations) {
+      const integration = integrations.find((i) => i._id.toString() === userIntegration.integrationId.toString());
+      if (integration) userIntegration.activedStat = await repairActivatedStats(userIntegration, integration);
+    }
 
     // 3. Création d'une map pour lookup rapide
     const connectedSet = new Set(userIntegrations.map((ui) => ui.integrationId.toString()));
@@ -50,7 +57,16 @@ export const getEnabledIntegrations = async (req, res) => {
 
 export const createIntegration = async (req, res) => {
   try {
-    const { name, description = "", icon = "", color = "", category = "", status = "available", availableStats = [], config = {} } = req.body;
+    const {
+      name,
+      description = "",
+      icon = "",
+      color = "",
+      category = "",
+      status = "available",
+      availableStats = [],
+      config = {},
+    } = req.body;
 
     const newIntegration = new Integration({
       name,

@@ -15,13 +15,13 @@ export const getCategories = async (req, res) => {
   const userId = req.userId;
 
   try {
-    const categories = await Category.find({})
-      .sort({ order: 1, createdAt: 1 })
-      .skip(skip)
-      .limit(size)
-      .lean();
+    const categories = await Category.find({}).sort({ order: 1, createdAt: 1 }).skip(skip).limit(size).lean();
 
     const categoryIds = categories.map((cat) => cat._id);
+
+    // Refresh connected integrations first (throttled by SYNC_INTERVAL) so the page shows up-to-date values
+    const connections = await IntegrationUser.find({ userId, connected: true }).select("integrationId").lean();
+    await Promise.all(connections.map((connection) => autoSyncStats(userId, connection.integrationId)));
 
     let stats = await Stat.find({
       userId: userId,
@@ -55,10 +55,6 @@ export const getCategories = async (req, res) => {
       ...cat,
       stats: statsByCategory[cat._id.toString()] || [],
     }));
-
-    integrationUsers.forEach((element) => {
-      autoSyncStats(userId, element.integrationId);
-    });
 
     const count = await Category.countDocuments();
 
@@ -130,6 +126,8 @@ export const deleteCategory = async (req, res) => {
     if (!category) {
       return res.status(400).json({ error: "No such category" });
     }
+    // Stats cannot exist without their category
+    await Stat.deleteMany({ categoryId: category._id });
     res.status(200).json({ message: "Category deleted successfully" });
   } catch (err) {
     handleServerError(res, err);
@@ -144,6 +142,7 @@ export const deleteCategory = async (req, res) => {
 export const deleteAllCategories = async (req, res) => {
   try {
     await Category.deleteMany();
+    await Stat.deleteMany();
     res.status(200).json({ message: "All categories deleted successfully" });
   } catch (err) {
     handleServerError(res, err);

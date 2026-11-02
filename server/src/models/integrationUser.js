@@ -35,6 +35,10 @@ const IntegrationUserSchema = new Schema(
     accessToken: {
       type: String,
     },
+    // Last successful sync, used to throttle automatic syncs
+    lastSyncedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
