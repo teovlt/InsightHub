@@ -19,7 +19,9 @@ import MongoStore from "connect-mongo";
 // Create the Express application instance
 export const app = express();
 
-app.set("trust proxy", 1);
+// Number of reverse proxies in front of the API (2 in production: Traefik + nginx),
+// so req.ip is the real client address used by the rate limiters
+app.set("trust proxy", parseInt(process.env.TRUST_PROXY) || 1);
 
 // Security headers; uploaded avatars must stay embeddable by the client origin
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));

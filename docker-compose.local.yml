@@ -1,0 +1,11 @@
+# Local test of the production stack (client on http://localhost:8080, API on http://localhost:3000):
+#   docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.local.yml up --build
+# with CLIENT_URL=http://localhost:8080 and API_URL=http://localhost:3000 in .env.docker. Not used by Dokploy.
+services:
+  server:
+    ports:
+      - "3000:3000"
+
+  client:
+    ports:
+      - "8080:80"

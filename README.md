@@ -40,6 +40,14 @@ Manage your productivity, visualize key metrics, and connect your favorite tools
 
 ---
 
+## 🚢 Deployment
+
+The app ships as a Docker Compose stack (nginx client, Node API, MongoDB with daily backups) deployed with Dokploy
+on `insighthub.teovillet.fr` and `api.insighthub.teovillet.fr`.
+See [DEPLOY.md](DEPLOY.md).
+
+---
+
 ## 🧑‍💻 Developed by
 
 👋 I'm **Téo Villet**, a passionate fullstack web developer and the creator of InsightHub.  

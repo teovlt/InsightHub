@@ -1,0 +1,110 @@
+# Values come from the .env next to this file (Dokploy's "Environment" tab writes it).
+# See .env.docker and DEPLOY.md. No port is published: Traefik (Dokploy) reaches the client on
+# port 80 and the server on port 3000; MongoDB is only reachable from the stack.
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-insighthub}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?MONGO_PASSWORD is required}
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Daily gzipped dump of the database into the "mongodb_backups" volume, kept 14 days
+  mongodb-backup:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      BACKUP_URI: mongodb://${MONGO_USER:-insighthub}:${MONGO_PASSWORD:?MONGO_PASSWORD is required}@mongodb:27017/?authSource=admin
+    entrypoint:
+      - sh
+      - -c
+      - |
+        while true; do
+          file=/backups/insighthub-$$(date +%F-%H%M).archive.gz
+          if mongodump --uri="$$BACKUP_URI" --db=insighthub --gzip --archive="$$file"; then
+            echo "Backup written to $$file"
+            find /backups -name 'insighthub-*.archive.gz' -mtime +14 -delete
+          else
+            echo "Backup failed" >&2
+            rm -f "$$file"
+          fi
+          sleep 86400
+        done
+    volumes:
+      - mongodb_backups:/backups
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # Backend API Server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    # Forwards SIGTERM to node so redeploys stop the server cleanly
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Traefik sits in front of the server
+      TRUST_PROXY: 1
+      # Origin allowed by CORS/CSRF checks and where OAuth flows send the user back
+      CORS_ORIGIN: ${CLIENT_URL:?CLIENT_URL is required}
+      # Public URL of this server, used for the GitHub OAuth callback
+      SELF_URL: ${API_URL:?API_URL is required}
+      MONG_URI: mongodb://${MONGO_USER:-insighthub}:${MONGO_PASSWORD:?MONGO_PASSWORD is required}@mongodb:27017/insighthub?authSource=admin
+      SECRET_ACCESS_TOKEN: ${SECRET_ACCESS_TOKEN:?SECRET_ACCESS_TOKEN is required}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      CRYPTO_SECRET: ${CRYPTO_SECRET:?CRYPTO_SECRET is required}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:?FIREBASE_PROJECT_ID is required}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:?FIREBASE_CLIENT_EMAIL is required}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:?FIREBASE_PRIVATE_KEY is required}
+      FIREBASE_BUCKET_NAME: ${FIREBASE_BUCKET_NAME:?FIREBASE_BUCKET_NAME is required}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+    # Attach the API domain to this service on port 3000 in Dokploy
+    expose:
+      - "3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # Frontend Client
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${API_URL:?API_URL is required}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET:-}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+    restart: unless-stopped
+    # Attach the app domain to this service on port 80 in Dokploy
+    expose:
+      - "80"
+    depends_on:
+      - server
+
+volumes:
+  mongodb_data:
+  mongodb_backups:

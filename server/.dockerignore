@@ -1,0 +1,10 @@
+node_modules
+coverage
+tests
+uploads
+.env
+.env.*
+Dockerfile
+.dockerignore
+vitest.config.ts
+vitest.setup.ts

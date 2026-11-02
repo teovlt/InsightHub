@@ -43,19 +43,22 @@ describe("connectToDatabase", () => {
     consoleLogSpy.mockRestore();
   });
 
-  it("should call mongoose.connect and log error message on connection failure", async () => {
+  it("should call mongoose.connect, log error message and exit on connection failure", async () => {
     process.env.MONG_URI = "mongodb://testuri";
     const error = new Error("Connection error");
     connectStub.rejects(error);
 
     const consoleErrorSpy = vi.spyOn(console, "error");
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {});
 
     await connectToDatabase();
 
     expect(connectStub.calledOnce).toBe(true);
     expect(connectStub.calledWith(process.env.MONG_URI)).toBe(true);
     expect(consoleErrorSpy).toHaveBeenCalledWith("Error connecting to the database: ", error);
+    expect(exitSpy).toHaveBeenCalledWith(1);
 
     consoleErrorSpy.mockRestore();
+    exitSpy.mockRestore();
   });
 });

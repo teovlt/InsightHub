@@ -31,18 +31,10 @@ export function checkSecrets() {
 }
 
 /**
- * Initializes the HTTP server, connects to the database, and sets up WebSockets.
+ * Checks the configuration, connects to the database, then starts the HTTP server and WebSockets.
+ * Requests are only accepted once MongoDB is reachable.
  */
-export function initServer() {
-  // Connect to the database
-  connectToDatabase();
-
-  // Create an HTTP server using the Express app
-  const httpServer = createServer(app);
-
-  // Initialize WebSocket connections
-  initSockets(httpServer);
-
+export async function initServer() {
   // Ensure the PORT environment variable is defined
   if (!process.env.PORT) {
     console.error("Please specify the port number for the HTTP server with the environment variable PORT in the .env file.");
@@ -54,6 +46,15 @@ export function initServer() {
     secretErrors.forEach((error) => console.error(error));
     process.exit(1);
   }
+
+  // Connect to the database
+  await connectToDatabase();
+
+  // Create an HTTP server using the Express app
+  const httpServer = createServer(app);
+
+  // Initialize WebSocket connections
+  initSockets(httpServer);
 
   // Start the HTTP server on the specified port
   httpServer.listen(process.env.PORT, () => {
