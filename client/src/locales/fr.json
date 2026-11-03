@@ -146,6 +146,67 @@
         "choose": "Choisis une stat",
         "value": "Nouvelle valeur",
         "submit": "Enregistrer"
+      },
+      "period": "Période",
+      "live": {
+        "on": "En direct",
+        "off": "Hors ligne",
+        "on_hint": "Les graphes se mettent à jour tout seuls quand une intégration se synchronise ou qu'une valeur change.",
+        "off_hint": "Mise à jour en direct indisponible : recharge la page pour voir les nouvelles valeurs."
+      },
+      "kpis": {
+        "updates": "Valeurs enregistrées",
+        "updates_hint": "{{manual}} à la main · {{synced}} synchro",
+        "tracked": "Stats suivies",
+        "tracked_hint": "{{synced}} synchro · {{numeric}} en graphe",
+        "goals": "Objectifs atteints",
+        "goals_hint_one": "{{count}} objectif en cours",
+        "goals_hint_other": "{{count}} objectifs en cours",
+        "goals_none": "Aucun objectif pour l'instant",
+        "streak": "Série",
+        "days_one": "{{count}} jour",
+        "days_other": "{{count}} jours",
+        "active_days_one": "{{count}} jour actif sur {{total}}",
+        "active_days_other": "{{count}} jours actifs sur {{total}}"
+      },
+      "activity": {
+        "title": "Activité",
+        "manual": "À la main",
+        "synced": "Synchro",
+        "week_of": "Semaine du {{date}}",
+        "empty": "Aucune valeur enregistrée sur cette période."
+      },
+      "by_category": {
+        "title": "Par catégorie",
+        "updates_one": "mise à jour",
+        "updates_other": "mises à jour",
+        "stats_one": "stat",
+        "stats_other": "stats",
+        "empty": "Aucune catégorie avec des stats pour l'instant."
+      },
+      "trends": {
+        "title": "Tendances",
+        "see_all": "Toutes les statistiques",
+        "auto": "Auto",
+        "empty": "Les stats numériques (142, 5:12…) ont chacune leur graphe ici.",
+        "points_zero": "Pas de changement sur la période",
+        "points_one": "{{count}} valeur sur la période",
+        "points_other": "{{count}} valeurs sur la période",
+        "goal": "Objectif {{percent}} %"
+      },
+      "movers": {
+        "title": "Plus grosses évolutions",
+        "empty": "Aucune stat n'a bougé sur cette période."
+      },
+      "heatmap": {
+        "title": "6 derniers mois",
+        "hint": "Survole un jour pour voir le détail.",
+        "less": "Moins",
+        "more": "Plus",
+        "updates_zero": "rien d'enregistré",
+        "updates_one": "{{count}} valeur",
+        "updates_other": "{{count}} valeurs",
+        "busiest": "Jour le plus actif :"
       }
     },
     "statistics": {
@@ -196,7 +257,13 @@
         "set": "Fixer un objectif",
         "none": "Pas encore d'objectif pour cette stat.",
         "text_only": "Un objectif demande un nombre ou une durée.",
-        "invalid": "Entre un nombre (12, 4,5) ou une durée (4:45)."
+        "invalid": "Entre un nombre (12, 4,5) ou une durée (4:45).",
+        "direction": "Je veux que cette stat",
+        "increase": "Monte",
+        "decrease": "Baisse",
+        "direction_auto": "Déduit de ta cible, change-le si besoin.",
+        "remaining": "encore {{value}}",
+        "reached": "Objectif atteint"
       },
       "delete_title": "Supprimer cette stat",
       "delete_description": "Supprimer « {{name}} » et tout son historique ? C'est définitif."

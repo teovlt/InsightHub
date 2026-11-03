@@ -12,6 +12,7 @@ import {
   setStatGoal,
   updateStat,
 } from "../controllers/statController.js";
+import { getStatsAnalytics } from "../controllers/statAnalyticsController.js";
 
 export const statRouter = new express.Router();
 
@@ -29,6 +30,15 @@ statRouter.post("/", verifyToken(), validateBody(createStatSchema), createStat);
  * @middleware verifyToken() - Ensures the user is authenticated.
  */
 statRouter.get("/overview", verifyToken(), getStatsOverview);
+
+/**
+ * @route GET /analytics
+ * @description Dashboard charts: daily activity, activity per category and numeric trends over a period.
+ * @param {string} [period] - 7d, 30d (default), 90d or 1y.
+ * @param {string} [tz] - IANA time zone used to bucket activity by day.
+ * @middleware verifyToken() - Ensures the user is authenticated.
+ */
+statRouter.get("/analytics", verifyToken(), getStatsAnalytics);
 
 /**
  * @route GET /:id/history

@@ -1,6 +1,11 @@
 import { Category } from "../models/categoryModel.js";
 import { Stat } from "../models/statModel.js";
 import { handleServerError } from "../utils/httpErrors.js";
+import { emitToUser } from "../sockets/socket.js";
+import { inferGoalDirection } from "../utils/goals.js";
+
+// Lets the user's other open tabs refresh their dashboard
+const notifyChange = (userId) => emitToUser(userId, "stats:updated");
 
 // Every query below is scoped to req.userId: a user can only read or change their own stats.
 
@@ -44,6 +49,7 @@ export const createStat = async (req, res) => {
       integrationStatId: null,
     });
 
+    notifyChange(userId);
     res.status(201).json({ stat, message: "Stat created successfully" });
   } catch (err) {
     handleServerError(res, err);
@@ -70,6 +76,7 @@ export const deleteStat = async (req, res) => {
       name: stat.name,
     });
 
+    notifyChange(req.userId);
     res.status(200).json({ message: "Stat deleted successfully" });
   } catch (err) {
     handleServerError(res, err);
@@ -139,6 +146,7 @@ export const updateStat = async (req, res) => {
         current: true,
       });
 
+      notifyChange(req.userId);
       return res.status(200).json({
         message: "Stat updated with history kept",
         stat: newStat,
@@ -184,6 +192,7 @@ export const rollbackStat = async (req, res) => {
 
     // Supprimer la version current
     await Stat.findByIdAndDelete(id);
+    notifyChange(req.userId);
 
     // Trouver la version la plus récente (hors current) avec même userId, category et name
     const previousStat = await Stat.findOne({
@@ -240,12 +249,13 @@ export const pinStat = async (req, res) => {
 /**
  * Set or clear the goal of a numeric stat (applies to every version).
  *
- * @param {Object} req - The request object, body { target: number|null, deadline?: date|null }.
+ * @param {Object} req - The request object, body { target: number|null, deadline?: date|null, direction?: "increase"|"decrease" }.
+ *  Without a direction, a target below the current value is a "decrease" goal.
  * @param {Object} res - The response object.
  * @returns {Object} JSON response with the updated stat or error.
  */
 export const setStatGoal = async (req, res) => {
-  const { target, deadline } = req.body;
+  const { target, deadline, direction } = req.body;
 
   try {
     const stat = await Stat.findOne({ _id: req.params.id, userId: req.userId, current: true });
@@ -256,7 +266,13 @@ export const setStatGoal = async (req, res) => {
       return res.status(400).json({ error: "Only numeric stats can have a goal" });
     }
 
-    const update = target === null ? { $unset: { goal: 1 } } : { $set: { goal: { target, deadline: deadline ?? undefined } } };
+    let update = { $unset: { goal: 1 } };
+    if (target !== null) {
+      const goalDirection = direction ?? inferGoalDirection(stat.numericValue, target);
+      // Editing a goal in the same direction keeps where it started, so its progress does not reset
+      const start = stat.goal?.direction === goalDirection && typeof stat.goal?.start === "number" ? stat.goal.start : stat.numericValue;
+      update = { $set: { goal: { target, deadline: deadline ?? undefined, direction: goalDirection, start: start ?? undefined } } };
+    }
     await Stat.updateMany(versionsOf(stat), update);
     const updated = await Stat.findById(stat._id);
 

@@ -7,6 +7,7 @@ import { Category } from "../../../src/models/categoryModel.js";
 import { Stat } from "../../../src/models/statModel.js";
 import { regularUser, userWithHashPassword } from "../../fixtures/users.js";
 import { authCookie } from "../../helpers.js";
+import { runMigrations } from "../../../src/database/migrations.js";
 
 describe("Stats", () => {
   let owner;
@@ -135,6 +136,44 @@ describe("Stats", () => {
     expect(response.body.stat.goal.target).toBe(75);
   });
 
+  it("should treat a target below the current value as a goal to go down", async () => {
+    // Weight is 80: a 75 target means losing weight
+    const response = await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 75 });
+
+    expect(response.body.stat.goal).toMatchObject({ target: 75, direction: "decrease", start: 80 });
+  });
+
+  it("should keep an explicit direction and the starting value when the goal is edited", async () => {
+    await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 75, direction: "decrease" });
+    const current = (await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "78" })).body.stat;
+
+    const response = await request(app)
+      .patch(`/api/stats/${current._id}/goal`)
+      .set("Cookie", authCookie(owner))
+      .send({ target: 74, direction: "decrease" });
+
+    expect(response.body.stat.goal).toMatchObject({ target: 74, direction: "decrease", start: 80 });
+  });
+
+  it("should count a goal to go down as reached once the value is at or below the target", async () => {
+    await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 79 });
+    const before = await request(app).get("/api/stats/analytics").set("Cookie", authCookie(owner));
+    await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "78.5" });
+    const after = await request(app).get("/api/stats/analytics").set("Cookie", authCookie(owner));
+
+    expect(before.body.kpis).toMatchObject({ goalsTotal: 1, goalsReached: 0 });
+    expect(after.body.kpis).toMatchObject({ goalsTotal: 1, goalsReached: 1 });
+  });
+
+  it("should give old goals a direction from the stat's first value", async () => {
+    await Stat.collection.updateOne({ _id: stat._id }, { $set: { value: "77", numericValue: 77, goal: { target: 76 } } });
+
+    await runMigrations();
+
+    const migrated = await Stat.findById(stat._id).lean();
+    expect(migrated.goal).toMatchObject({ target: 76, direction: "decrease", start: 77 });
+  });
+
   it("should refuse a goal on a text stat", async () => {
     const text = await Stat.create({ userId: owner._id, categoryId: category._id, name: "Mood", value: "great" });
 
@@ -183,5 +222,20 @@ describe("Stats", () => {
     expect(response.body.pinned[0].categoryId.name).toBe("Health");
     expect(response.body.goals).toHaveLength(1);
     expect(response.body.recent.every((s) => s.userId === owner._id.toString())).toBe(true);
+  });
+
+  it("should give the dashboard charts every version of the period, for the connected user only", async () => {
+    await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "79" });
+    await Stat.create({ userId: other._id, categoryId: category._id, name: "Other", value: "1" });
+
+    const response = await request(app).get("/api/stats/analytics?period=7d&tz=Europe/Paris").set("Cookie", authCookie(owner));
+
+    expect(response.status).toBe(200);
+    expect(response.body.period).toBe("7d");
+    expect(response.body.kpis).toMatchObject({ trackedStats: 1, updates: 2, manualUpdates: 2, syncedUpdates: 0, streak: 1 });
+    expect(response.body.activity.at(-1).manual).toBe(2);
+    expect(response.body.categories).toEqual([expect.objectContaining({ name: "Health", stats: 1, updates: 2 })]);
+    expect(response.body.trends[0].history.map((h) => h.numericValue)).toEqual([80, 79]);
+    expect(response.body.trends[0].change).toMatchObject({ from: 80, to: 79, value: -1 });
   });
 });

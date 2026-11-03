@@ -1,7 +1,7 @@
 import { Category } from "../models/categoryModel.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
-import { autoSyncStats } from "../utils/stats.js";
+import { autoSyncStats, getActivatedStatMap, isStatShown } from "../utils/stats.js";
 import { handleServerError } from "../utils/httpErrors.js";
 import { getPagination } from "../utils/pagination.js";
 
@@ -29,20 +29,8 @@ export const getCategories = async (req, res) => {
       current: true,
     }).lean();
 
-    const integrationUsers = await IntegrationUser.find({ userId }).lean();
-
-    const activedStatMap = {};
-    integrationUsers.forEach((iu) => {
-      if (iu.integrationId && Array.isArray(iu.activedStat)) {
-        activedStatMap[iu.integrationId.toString()] = iu.activedStat.map((id) => id.toString());
-      }
-    });
-
-    stats = stats.filter((stat) => {
-      if (!stat.integrationId) return true; // Stat locale, pas concernée
-      const activedIds = activedStatMap[stat.integrationId.toString()] || [];
-      return activedIds.includes(stat.integrationStatId?.toString());
-    });
+    const activatedMap = await getActivatedStatMap(userId);
+    stats = stats.filter((stat) => isStatShown(stat, activatedMap));
 
     const statsByCategory = {};
     stats.forEach((stat) => {

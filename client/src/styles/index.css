@@ -110,6 +110,10 @@
     --chart-3: #0f6fb8;
     --chart-4: #64748b;
     --chart-5: #7dd3fc;
+    /* Dashboard series: lime is too light on white, so light mode uses a deeper green (validated for CVD and contrast) */
+    --chart-synced: #65a30d;
+    --chart-up: #65a30d;
+    --chart-down: #94a3b8;
     --radius: 0.75rem;
     --lime: #b8f34a;
     --brand-strong: #0f6fb8;
@@ -152,6 +156,9 @@
     --chart-3: #7dd3fc;
     --chart-4: #94a3b8;
     --chart-5: #0f6fb8;
+    --chart-synced: #b8f34a;
+    --chart-up: #b8f34a;
+    --chart-down: #64748b;
     --lime: #b8f34a;
     --brand-strong: #0f6fb8;
     --card-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);

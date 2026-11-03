@@ -7,6 +7,7 @@ import { userRoles } from "../utils/enums/userRoles.js";
 const ADMINS_ROOM = "admins";
 
 let io;
+const userRoom = (userId) => `user:${userId}`;
 // userId -> Set of socket ids, so a user with several tabs stays online until the last one closes
 const userSocketMap = new Map();
 
@@ -44,6 +45,7 @@ export function initSockets(httpServer) {
     const { userId, role } = socket.data;
 
     if (role === userRoles.ADMIN) socket.join(ADMINS_ROOM);
+    socket.join(userRoom(userId));
 
     if (!userSocketMap.has(userId)) userSocketMap.set(userId, new Set());
     userSocketMap.get(userId).add(socket.id);
@@ -59,4 +61,15 @@ export function initSockets(httpServer) {
   });
 
   return io; // Return the Socket.IO server instance
+}
+
+/**
+ * @function emitToUser
+ * @description Sends an event to every open tab of a user. No-op when sockets are not initialized (tests).
+ * @param {string} userId - The recipient.
+ * @param {string} event - The event name.
+ * @param {Object} [payload] - The event data.
+ */
+export function emitToUser(userId, event, payload) {
+  io?.to(userRoom(userId.toString())).emit(event, payload);
 }

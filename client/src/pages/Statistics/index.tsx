@@ -18,7 +18,7 @@ import { axiosConfig } from "@/config/axiosConfig";
 import { CategoryInterface } from "@/interfaces/Category";
 import { StatHistoryPoint, StatInterface } from "@/interfaces/Stat";
 import { getIcon } from "@/lib/icons";
-import { dateLocale, formatNumeric, goalProgress, isNumeric, numericPoints } from "@/lib/stats";
+import { dateLocale, formatNumeric, goalProgress, goalRemaining, isGoalReached, isNumeric, numericPoints } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 import { GoalDialog } from "./goalDialog";
 
@@ -221,6 +221,8 @@ const StatDetail = ({ stat, category, onChanged, onDeleted }: StatDetailProps) =
   const fmt = (value: number) => `${formatNumeric(value, stat.type)}${stat.unit ? ` ${stat.unit}` : ""}`;
   const change = values.length > 1 ? values[values.length - 1] - values[0] : null;
   const progress = goalProgress(stat);
+  const goalReached = isGoalReached(stat);
+  const remaining = goalRemaining(stat);
 
   const patch = async (url: string, body: object) => {
     try {
@@ -390,16 +392,24 @@ const StatDetail = ({ stat, category, onChanged, onDeleted }: StatDetailProps) =
             <div className="mt-4">
               <p className="text-sm">
                 <span className="font-display text-2xl font-bold">{progress.toFixed(0)}%</span>
-                <span className="text-muted-foreground"> · {fmt(stat.goal.target)}</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  · {stat.goal.direction === "decrease" ? "↓" : "↑"} {fmt(stat.goal.target)}
+                </span>
               </p>
               <div className="mt-2 h-3 overflow-hidden rounded-full bg-secondary">
                 <div
-                  className={cn("h-full rounded-full", progress >= 100 ? "bg-lime" : "bg-accent")}
+                  className={cn("h-full rounded-full", goalReached ? "bg-lime" : "bg-accent")}
                   style={{ width: `${Math.max(progress, 3)}%` }}
                 />
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {goalReached
+                  ? t("pages.statistics.goal.reached")
+                  : remaining !== null && t("pages.statistics.goal.remaining", { value: fmt(remaining) })}
+              </p>
               {stat.goal.deadline && (
-                <p className="mt-2 text-xs text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {t("pages.dashboard.goals.deadline", {
                     date: format(new Date(stat.goal.deadline), "d MMM yyyy", { locale: dateLocale() }),
                   })}

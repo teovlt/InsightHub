@@ -61,6 +61,10 @@ const statSchema = new mongoose.Schema(
     goal: {
       target: { type: Number },
       deadline: { type: Date },
+      // "decrease" for stats where lower is better (weight, a run time). See utils/goals.js
+      direction: { type: String, enum: ["increase", "decrease"] },
+      // Value when the goal was set: progress of a "decrease" goal is measured from it
+      start: { type: Number },
     },
   },
   {

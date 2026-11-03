@@ -1,4 +1,4 @@
-import type { StatHistoryPoint, StatInterface, StatType } from "@/interfaces/Stat";
+import type { GoalDirection, StatHistoryPoint, StatInterface, StatType } from "@/interfaces/Stat";
 import { fr, enUS } from "date-fns/locale";
 import i18n from "i18next";
 
@@ -38,9 +38,35 @@ export function lastDelta(history: StatHistoryPoint[]) {
   };
 }
 
+// Same rule as the server's inferGoalDirection: a target below the current value means "lower is better".
+export const inferGoalDirection = (current: number | null | undefined, target: number): GoalDirection =>
+  current !== null && current !== undefined && target < current ? "decrease" : "increase";
+
+export function isGoalReached(stat: Pick<StatInterface, "numericValue" | "goal">) {
+  const { goal, numericValue } = stat;
+  if (!goal || numericValue === null || numericValue === undefined) return false;
+  return goal.direction === "decrease" ? numericValue <= goal.target : numericValue >= goal.target;
+}
+
+// "increase": share of the target reached. "decrease": share of the way from the starting value down to the target.
 export function goalProgress(stat: Pick<StatInterface, "numericValue" | "goal">) {
-  if (!stat.goal?.target || stat.numericValue === null || stat.numericValue === undefined) return 0;
-  return Math.max(0, Math.min(100, (stat.numericValue / stat.goal.target) * 100));
+  const { goal, numericValue } = stat;
+  if (!goal || numericValue === null || numericValue === undefined) return 0;
+  if (isGoalReached(stat)) return 100;
+  let progress: number;
+  if (goal.direction === "decrease") {
+    const start = goal.start ?? numericValue;
+    progress = start > goal.target ? ((start - numericValue) / (start - goal.target)) * 100 : 0;
+  } else {
+    progress = goal.target ? (numericValue / goal.target) * 100 : 0;
+  }
+  return Math.max(0, Math.min(99, progress));
+}
+
+// What is left before the goal, always positive, or null once reached.
+export function goalRemaining(stat: Pick<StatInterface, "numericValue" | "goal">) {
+  if (!stat.goal || stat.numericValue === null || stat.numericValue === undefined || isGoalReached(stat)) return null;
+  return Math.abs(stat.goal.target - stat.numericValue);
 }
 
 // Same rules as the server's parseStatValue: "4 210", "12,5", "5:12" (min:sec) or "1:05:12" (h:min:sec).

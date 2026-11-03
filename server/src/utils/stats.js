@@ -4,6 +4,7 @@ import { Stat } from "../models/statModel.js";
 import { decrypt } from "./crypto.js";
 import { ensureProviderCategory, getStatKey } from "../integrations/ensure.js";
 import { getProvider } from "../integrations/index.js";
+import { emitToUser } from "../sockets/socket.js";
 
 // Automatic syncs (home page) run at most this often; a manual sync always runs
 export const SYNC_INTERVAL = 30 * 60 * 1000;
@@ -42,6 +43,35 @@ export const repairActivatedStats = async (integrationUser, integration) => {
   const result = repaired.size > 0 ? [...repaired] : [...availableById.keys()];
   await IntegrationUser.updateOne({ _id: integrationUser._id }, { activedStat: result });
   return result;
+};
+
+/**
+ * @function getActivatedStatMap
+ * @description Integration stats the user has switched off stay in the database but are not shown.
+ * @param {string} userId - The user.
+ * @returns {Promise<Object<string, string[]>>} integrationId -> activated integrationStatIds.
+ */
+export const getActivatedStatMap = async (userId) => {
+  const integrationUsers = await IntegrationUser.find({ userId }).select("integrationId activedStat").lean();
+  const map = {};
+  integrationUsers.forEach((iu) => {
+    if (iu.integrationId && Array.isArray(iu.activedStat)) {
+      map[iu.integrationId.toString()] = iu.activedStat.map((id) => id.toString());
+    }
+  });
+  return map;
+};
+
+/**
+ * @function isStatShown
+ * @description Manual stats are always shown, integration stats only while activated.
+ * @param {Object} stat - Stat (lean).
+ * @param {Object<string, string[]>} activatedMap - From getActivatedStatMap.
+ * @returns {boolean}
+ */
+export const isStatShown = (stat, activatedMap) => {
+  if (!stat.integrationId) return true;
+  return (activatedMap[stat.integrationId.toString()] || []).includes(stat.integrationStatId?.toString());
 };
 
 /**
@@ -92,6 +122,7 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
     const category = await ensureProviderCategory(provider);
 
     const updatedStats = [];
+    let changed = false;
     for (const availableStat of activeStats) {
       const value = values[getStatKey(provider, availableStat)];
       if (value === null || value === undefined) continue;
@@ -108,9 +139,11 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
 
       let stat;
       if (!current) {
+        changed = true;
         stat = await Stat.create({ ...key, ...fields, value: value.toString(), hided: false, current: true });
       } else if (current.value !== value.toString()) {
         // A new value becomes a new version so the stat keeps its history (charts, trends)
+        changed = true;
         current.current = false;
         await current.save();
         stat = await Stat.create({
@@ -135,6 +168,8 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
     }
 
     await IntegrationUser.updateOne({ _id: integrationUser._id }, { lastSyncedAt: new Date() });
+    // Open dashboards refresh their charts on their own
+    if (changed) emitToUser(userId, "stats:updated", { integrationId: integrationId.toString() });
 
     return { updatedStats };
   } catch (error) {

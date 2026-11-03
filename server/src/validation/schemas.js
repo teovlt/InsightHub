@@ -78,6 +78,7 @@ export const pinStatSchema = z.object({
 export const statGoalSchema = z.object({
   target: z.number().finite().nullable(),
   deadline: z.coerce.date().nullable().optional(),
+  direction: z.enum(["increase", "decrease"]).optional(),
 });
 
 export const updateStatSchema = z.object({

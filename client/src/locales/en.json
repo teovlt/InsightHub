@@ -146,6 +146,67 @@
         "choose": "Choose a stat",
         "value": "New value",
         "submit": "Save"
+      },
+      "period": "Period",
+      "live": {
+        "on": "Live",
+        "off": "Offline",
+        "on_hint": "Charts refresh by themselves when an integration syncs or a value changes.",
+        "off_hint": "Live refresh is unavailable: reload the page to see new values."
+      },
+      "kpis": {
+        "updates": "Values logged",
+        "updates_hint": "{{manual}} manual · {{synced}} synced",
+        "tracked": "Tracked stats",
+        "tracked_hint": "{{synced}} synced · {{numeric}} charted",
+        "goals": "Goals reached",
+        "goals_hint_one": "{{count}} goal in progress",
+        "goals_hint_other": "{{count}} goals in progress",
+        "goals_none": "No goal set yet",
+        "streak": "Streak",
+        "days_one": "{{count}} day",
+        "days_other": "{{count}} days",
+        "active_days_one": "{{count}} active day out of {{total}}",
+        "active_days_other": "{{count}} active days out of {{total}}"
+      },
+      "activity": {
+        "title": "Activity",
+        "manual": "Manual",
+        "synced": "Synced",
+        "week_of": "Week of {{date}}",
+        "empty": "No value logged in this period."
+      },
+      "by_category": {
+        "title": "By category",
+        "updates_one": "update",
+        "updates_other": "updates",
+        "stats_one": "stat",
+        "stats_other": "stats",
+        "empty": "No category with stats yet."
+      },
+      "trends": {
+        "title": "Trends",
+        "see_all": "All statistics",
+        "auto": "Auto",
+        "empty": "Numeric stats (142, 5:12…) get their own chart here.",
+        "points_zero": "No change this period",
+        "points_one": "{{count}} value this period",
+        "points_other": "{{count}} values this period",
+        "goal": "Goal {{percent}}%"
+      },
+      "movers": {
+        "title": "Biggest moves",
+        "empty": "No stat changed in this period."
+      },
+      "heatmap": {
+        "title": "Last 6 months",
+        "hint": "Hover a day to see its details.",
+        "less": "Less",
+        "more": "More",
+        "updates_zero": "nothing logged",
+        "updates_one": "{{count}} value",
+        "updates_other": "{{count}} values",
+        "busiest": "Most active day:"
       }
     },
     "statistics": {
@@ -196,7 +257,13 @@
         "set": "Set a goal",
         "none": "No goal for this stat yet.",
         "text_only": "Goals need a number or a duration.",
-        "invalid": "Enter a number (12, 4.5) or a duration (4:45)."
+        "invalid": "Enter a number (12, 4.5) or a duration (4:45).",
+        "direction": "I want this stat to",
+        "increase": "Go up",
+        "decrease": "Go down",
+        "direction_auto": "Picked from your target, change it if needed.",
+        "remaining": "{{value}} to go",
+        "reached": "Goal reached"
       },
       "delete_title": "Delete this stat",
       "delete_description": "Delete \"{{name}}\" and its whole history? This cannot be undone."
