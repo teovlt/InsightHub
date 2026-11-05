@@ -147,6 +147,9 @@ Les couleurs sont définies uniquement dans `client/src/styles/index.css` (pas d
 - **Héros** (accueil) : dégradé `#1489E0 → #0F6FB8`, texte blanc, barres décoratives dont la dernière en lime,
   tuiles de résumé en verre (`bg-white/10`).
 - **Icônes de section** : tuile 48 px `rounded-2xl` teintée à 12 % de la couleur de la catégorie.
-- **Navbar** : collante, translucide (`backdrop-blur`), liens en pilules, lien actif sur fond bleu à 10 %.
+- **Navbar** : collante, fond encre (`bg-ink`) dans les deux thèmes, liens en Space Grotesk ; le lien actif est
+  souligné par une barre lime qui monte du bord inférieur (la barre du logo). Sur mobile, menu plein écran encre.
+- **Footer** : fond encre, la tagline en grand avec « ta progression » soulignée en lime, et une rangée de barres
+  montantes bleues dont la dernière est lime avec son point (le logo à grande échelle).
 - **Fond de page** : halo bleu radial très léger en haut de chaque page.
 - **États vides** : bordure pointillée, icône dans une tuile bleue, une phrase + une action.

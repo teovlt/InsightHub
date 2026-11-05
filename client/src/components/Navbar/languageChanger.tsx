@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { FR, GB } from "country-flag-icons/react/3x2";
+import { Check } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,12 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Globe } from "lucide-react";
 import { getFullNamesOfLocales, listOfLocales, saveLanguage } from "@/lib/i18n";
-import { Button } from "../ui/button";
 import { toast } from "sonner";
 
-export const LanguageChanger = ({ align = "end" }: { align?: "start" | "center" | "end" }) => {
+// Sits on the ink navbar: shows the current language code instead of a globe icon.
+export const LanguageChanger = ({ align = "end", side = "bottom" }: { align?: "start" | "center" | "end"; side?: "top" | "bottom" }) => {
   const {
     i18n: { changeLanguage, language, t },
   } = useTranslation();
@@ -28,28 +28,22 @@ export const LanguageChanger = ({ align = "end" }: { align?: "start" | "center" 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="cursor-pointer rounded-full text-muted-foreground hover:text-foreground"
+        <button
+          className="inline-flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-full px-2 font-display text-[13px] font-semibold uppercase tracking-wider text-white/60 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-lime"
           aria-label={t("navbar.language")}
         >
-          <Globe className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
+          {language.slice(0, 2)}
+        </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={align} className="w-40">
+      <DropdownMenuContent align={align} side={side} className="w-44">
         <DropdownMenuLabel>{t("navbar.language")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {listOfLocales.map((l) => (
-          <DropdownMenuItem
-            key={l}
-            onClick={() => handleChangeLanguage(l)}
-            className={`cursor-pointer flex items-center ${language === l ? "bg-secondary" : ""}`}
-          >
-            {l === "fr" && <FR />}
-            {l === "en" && <GB />}
-
-            {getFullNamesOfLocales(l)}
+          <DropdownMenuItem key={l} onClick={() => handleChangeLanguage(l)} className="flex cursor-pointer items-center">
+            {l === "fr" && <FR className="w-4 rounded-[2px]" />}
+            {l === "en" && <GB className="w-4 rounded-[2px]" />}
+            <span className="flex-1">{getFullNamesOfLocales(l)}</span>
+            {language === l && <Check className="size-4 text-accent" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -1,5 +1,6 @@
 {
   "navbar": {
+    "theme": "Toggle theme",
     "home": "Dashboard",
     "dashboard": "Dashboard",
     "account": "My account",
@@ -564,6 +565,11 @@
     }
   },
   "footer": {
-    "tagline": "Your habits, your progress, all in one place."
+    "tagline": "Your habits, your progress, all in one place.",
+    "headline": "Your habits, <hl>your progress</hl>, all in one place.",
+    "app": "The app",
+    "account": "Your account",
+    "signoff": "Track your progress, not anyone else's.",
+    "backToTop": "Back to top"
   }
 }

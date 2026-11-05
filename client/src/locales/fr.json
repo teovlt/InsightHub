@@ -1,5 +1,6 @@
 {
   "navbar": {
+    "theme": "Changer de thème",
     "home": "Tableau de bord",
     "dashboard": "Tableau de bord",
     "account": "Mon compte",
@@ -564,6 +565,11 @@
     }
   },
   "footer": {
-    "tagline": "Tes habitudes, ta progression, au même endroit."
+    "tagline": "Tes habitudes, ta progression, au même endroit.",
+    "headline": "Tes habitudes, <hl>ta progression</hl>, au même endroit.",
+    "app": "L'app",
+    "account": "Ton compte",
+    "signoff": "Suis ta progression, pas celle des autres.",
+    "backToTop": "Remonter"
   }
 }

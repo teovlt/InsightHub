@@ -2,11 +2,23 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ThemeChanger } from "./themeChanger";
 import { LanguageChanger } from "./languageChanger";
 import { useTranslation } from "react-i18next";
-import { Separator } from "../ui/separator";
-import { BarChart3, LayoutDashboard, Link2, LogIn, LogOut, Menu, Trophy, User, Wrench, X, type LucideIcon } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import {
+  BarChart3,
+  ChevronDown,
+  LayoutDashboard,
+  Link2,
+  LogIn,
+  LogOut,
+  Menu,
+  Trophy,
+  User,
+  Wrench,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
 import { useAuthContext } from "@/contexts/authContext";
 import {
   DropdownMenu,
@@ -28,16 +40,18 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+// Desktop links: the active one gets a lime bar rising from the bottom edge of the bar,
+// the same bar as in the logo. Hovering shows a faint version of it.
+const desktopLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
-    "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-    isActive ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+    "relative inline-flex h-full items-center px-3 font-display text-[15px] font-medium tracking-tight transition-colors",
+    "after:absolute after:inset-x-3 after:bottom-0 after:rounded-t-[3px] after:transition-all after:duration-300",
+    isActive ? "text-white after:h-1 after:bg-lime" : "text-white/60 hover:text-white after:h-0 after:bg-white/25 hover:after:h-0.5",
   );
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const menuRef = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
 
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -51,73 +65,79 @@ export const Navbar = () => {
     { to: "/integrations", label: t("navbar.integrations"), icon: Link2 },
     { to: "/achievements", label: t("navbar.achievements"), icon: Trophy },
     { to: "/account", label: t("navbar.profile"), icon: User },
-    ...(authUser?.role === "admin" ? [{ to: "/admin", label: t("navbar.admin"), icon: Wrench }] : []),
   ];
+  const isAdmin = authUser?.role === "admin";
 
+  // Close the mobile menu on navigation, and lock the page scroll while it is open.
+  useEffect(() => setIsOpen(false), [pathname]);
   useEffect(() => {
-    const handleClickOutside = (event: { target: any }) => {
-      if (menuRef.current && !menuRef.current.contains(event.target) && isOpen) {
-        setIsOpen(false);
-      }
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
-
-  function closeDialogAndNavigate(link: string) {
-    setIsOpen(false);
-    navigate(link);
-  }
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link to="/" className="shrink-0">
-            <Logo className="text-xl" />
+      <header className="sticky top-0 z-50 bg-ink text-white shadow-[0_1px_0_rgb(255_255_255/0.06)]">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
+          <Link to="/" className="shrink-0 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime">
+            <Logo className="text-xl text-white" />
           </Link>
 
           {/* Desktop navigation */}
           {authUser && (
-            <nav className="hidden items-center gap-1 md:flex">
+            <nav className="hidden h-full items-stretch lg:flex">
               {items.map((item) => (
-                <NavLink key={item.to} to={item.to} end={item.to === "/"} className={navLinkClass}>
+                <NavLink key={item.to} to={item.to} end={item.to === "/"} className={desktopLinkClass}>
                   {item.label}
                 </NavLink>
               ))}
+              {isAdmin && (
+                <NavLink to="/admin" className={desktopLinkClass}>
+                  <span className="rounded-md border border-white/20 px-1.5 py-0.5 text-xs uppercase tracking-wider">
+                    {t("navbar.admin")}
+                  </span>
+                </NavLink>
+              )}
             </nav>
           )}
 
-          <div className="hidden items-center gap-3 md:flex">
-            <div className="flex items-center gap-1">
-              <LanguageChanger />
-              <ThemeChanger />
-            </div>
+          <div className="ml-auto hidden items-center gap-1 lg:flex">
+            <LanguageChanger />
+            <ThemeChanger />
             {authUser ? (
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <button className="cursor-pointer rounded-full ring-offset-2 ring-offset-background transition hover:ring-2 hover:ring-accent/40">
-                    <AvatarWithStatusCell user={authUser} />
+                  <button className="ml-2 flex cursor-pointer items-center gap-2 rounded-full bg-white/5 py-1 pl-1 pr-3 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-lime">
+                    <AvatarWithStatusCell user={authUser} size="sm" ringClassName="border-ink" />
+                    <span className="max-w-28 truncate text-sm font-medium">{authUser.forename}</span>
+                    <ChevronDown className="size-3.5 text-white/50" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="font-normal">
-                    <p className="font-semibold">
+                    <p className="font-display font-semibold">
                       {authUser.forename} {authUser.name}
                     </p>
                     <p className="text-xs text-muted-foreground">@{authUser.username}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    {items.map((item) => (
-                      <DropdownMenuItem key={item.to} className="cursor-pointer" onClick={() => navigate(item.to)}>
-                        {item.label}
+                    <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/account")}>
+                      {t("navbar.profile")}
+                      <DropdownMenuShortcut>
+                        <User className="w-4 h-4" />
+                      </DropdownMenuShortcut>
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/admin")}>
+                        {t("navbar.admin")}
                         <DropdownMenuShortcut>
-                          <item.icon className="w-4 h-4" />
+                          <Wrench className="w-4 h-4" />
                         </DropdownMenuShortcut>
                       </DropdownMenuItem>
-                    ))}
+                    )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer" onClick={() => logout()} disabled={loading}>
@@ -129,71 +149,107 @@ export const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => navigate("/login")}>{t("navbar.login")}</Button>
+              <button
+                onClick={() => navigate("/login")}
+                className="ml-2 inline-flex h-9 cursor-pointer items-center gap-2 rounded-[10px] bg-lime px-4 font-display text-sm font-semibold text-ink transition hover:brightness-105"
+              >
+                {t("navbar.login")}
+              </button>
             )}
           </div>
 
           {/* Mobile menu button */}
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(!isOpen)} aria-label="Menu">
-            <Menu className="!size-5" />
-          </Button>
+          <button
+            className="ml-auto inline-flex size-10 cursor-pointer items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white lg:hidden"
+            onClick={() => setIsOpen(true)}
+            aria-label="Menu"
+            aria-expanded={isOpen}
+          >
+            <Menu className="size-5" />
+          </button>
         </div>
       </header>
 
-      {/* Mobile drawer */}
+      {/* Mobile menu: full-screen ink panel */}
       <div
         className={cn(
-          "fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm transition-opacity md:hidden",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
+          "fixed inset-0 z-50 flex flex-col bg-ink text-white transition-[opacity,transform] duration-300 ease-out lg:hidden",
+          isOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-3 opacity-0",
         )}
-      />
-      <div
-        ref={menuRef}
-        className={cn(
-          "fixed top-0 right-0 z-50 flex h-dvh w-4/5 max-w-sm flex-col border-l bg-card shadow-2xl transition-transform duration-300 ease-in-out md:hidden",
-          isOpen ? "translate-x-0" : "translate-x-full",
-        )}
+        aria-hidden={!isOpen}
       >
-        <div className="flex h-16 items-center justify-between px-4">
-          <Logo className="text-lg" />
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Close">
-            <X className="!size-5" />
-          </Button>
+        <div className="flex h-16 shrink-0 items-center justify-between px-4 sm:px-6">
+          <Logo className="text-xl text-white" />
+          <button
+            className="inline-flex size-10 cursor-pointer items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
+            onClick={() => setIsOpen(false)}
+            aria-label="Close"
+          >
+            <X className="size-5" />
+          </button>
         </div>
-        <Separator />
-        <nav className="flex flex-1 flex-col gap-1 p-4">
+
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 pt-6 sm:px-6">
           {authUser ? (
-            items.map((item) => (
+            [...items, ...(isAdmin ? [{ to: "/admin", label: t("navbar.admin"), icon: Wrench }] : [])].map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.to === "/"}
-                onClick={() => setIsOpen(false)}
-                className={(state) => cn(navLinkClass(state), "rounded-xl py-3")}
+                className={({ isActive }) =>
+                  cn(
+                    "group flex items-center gap-4 rounded-2xl py-3 pl-4 pr-3 font-display text-2xl font-semibold tracking-tight transition-colors",
+                    isActive ? "bg-white/[0.06] text-white" : "text-white/55 hover:text-white",
+                  )
+                }
               >
-                <item.icon className="w-4 h-4" />
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    <span
+                      className={cn("h-7 w-1 rounded-full transition-colors", isActive ? "bg-lime" : "bg-white/10 group-hover:bg-white/25")}
+                    />
+                    <span className="flex-1">{item.label}</span>
+                    <item.icon className={cn("size-5", isActive ? "text-lime" : "text-white/30")} />
+                  </>
+                )}
               </NavLink>
             ))
           ) : (
-            <Button onClick={() => closeDialogAndNavigate("/login")} className="justify-start">
-              <LogIn className="w-4 h-4" />
+            <button
+              onClick={() => navigate("/login")}
+              className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-lime font-display font-semibold text-ink"
+            >
+              <LogIn className="size-4" />
               {t("navbar.login")}
-            </Button>
+            </button>
           )}
         </nav>
-        <Separator />
-        <div className="flex items-center justify-between p-4">
+
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/10 px-4 py-4 sm:px-6">
+          {authUser ? (
+            <div className="flex min-w-0 items-center gap-3">
+              <AvatarWithStatusCell user={authUser} ringClassName="border-ink" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">
+                  {authUser.forename} {authUser.name}
+                </p>
+                <button
+                  onClick={() => logout()}
+                  disabled={loading}
+                  className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-white/55 transition hover:text-white"
+                >
+                  <LogOut className="size-3" />
+                  {t("navbar.logout")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <span />
+          )}
           <div className="flex items-center gap-1">
-            <LanguageChanger align="start" />
+            <LanguageChanger align="end" side="top" />
             <ThemeChanger />
           </div>
-          {authUser && (
-            <Button variant="ghost" onClick={() => logout()} disabled={loading}>
-              <LogOut className="w-4 h-4" />
-              {t("navbar.logout")}
-            </Button>
-          )}
         </div>
       </div>
     </>
