@@ -47,39 +47,10 @@ export interface StatCategoryRef {
 
 export type StatWithCategory = Omit<StatInterface, "categoryId"> & { categoryId: StatCategoryRef };
 
-// Change over the last 7 days; better follows the goal direction (lower is better for "decrease" goals)
-export interface WeekChange {
-  from: number;
-  to: number;
-  delta: number;
-  percent: number | null;
-  better: boolean;
-}
-
-export type GoalPaceStatus = "reached" | "on_track" | "behind" | "no_deadline" | "stalled";
-
-export interface OverviewMoment {
-  kind: "record" | "badge";
-  at: string;
-  // record
-  value?: number;
-  previous?: number;
-  stat?: Pick<StatWithCategory, "_id" | "name" | "unit" | "type" | "categoryId">;
-  // badge
-  achievementId?: string;
-  tier?: "bronze" | "silver" | "gold";
-  icon?: string;
-}
-
 export interface StatsOverview {
-  week: { values: number; activeDays: number; streak: { current: number; best: number; today: boolean } };
-  highlights: (StatWithCategory & { week: WeekChange })[];
-  pinned: (StatWithCategory & { history: StatHistoryPoint[]; week: WeekChange | null; best: number | null })[];
-  goals: (StatWithCategory & { pace: { status: GoalPaceStatus; eta: string | null } })[];
-  toLog: (StatWithCategory & { daysAgo: number })[];
-  moments: OverviewMoment[];
-  nextBadge: { id: string; icon: string; progress: number; next: { tier: "bronze" | "silver" | "gold"; threshold: number } } | null;
-  onboarding: { connectedApps: number; stats: number; goals: number; done: boolean };
+  pinned: (StatWithCategory & { history: StatHistoryPoint[] })[];
+  goals: StatWithCategory[];
+  recent: (StatWithCategory & { current: boolean })[];
 }
 
 export type DashboardPeriod = "7d" | "30d" | "90d" | "1y";

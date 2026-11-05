@@ -308,3 +308,42 @@ export const getStatHistory = async (req, res) => {
     handleServerError(res, err);
   }
 };
+
+/**
+ * Everything the dashboard needs in one call: pinned stats with their history,
+ * stats with a goal, and the latest changes.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} JSON response { pinned, goals, recent }.
+ */
+export const getStatsOverview = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const [pinnedStats, goals, recent] = await Promise.all([
+      Stat.find({ userId, current: true, pinned: true }).populate("categoryId", "name color icon").sort({ updatedAt: -1 }).lean(),
+      Stat.find({ userId, current: true, "goal.target": { $exists: true } })
+        .populate("categoryId", "name color icon")
+        .sort({ "goal.deadline": 1 })
+        .lean(),
+      Stat.find({ userId }).populate("categoryId", "name color icon").sort({ createdAt: -1 }).limit(12).lean(),
+    ]);
+
+    const pinned = await Promise.all(
+      pinnedStats.map(async (stat) => ({
+        ...stat,
+        history: await Stat.find(versionsOf(stat))
+          .select(HISTORY_FIELDS)
+          .sort({ createdAt: -1 })
+          .limit(30)
+          .lean()
+          .then((h) => h.reverse()),
+      })),
+    );
+
+    res.status(200).json({ pinned, goals, recent });
+  } catch (err) {
+    handleServerError(res, err);
+  }
+};
