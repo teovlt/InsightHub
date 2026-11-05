@@ -1,9 +1,7 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getRegisterSchema } from "@/lib/zod/schemas/auth/zod";
 import { useAuthContext } from "@/contexts/authContext";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
 import { axiosConfig } from "@/config/axiosConfig";
 import { toast } from "sonner";
 import { RegisterForm } from "@/components/customs/registerForm";
@@ -25,24 +23,21 @@ export const RegisterGoogleForm = () => {
 
   if (!userData) return null;
 
-  const { name, email, photoURL, idToken } = userData;
+  const { name, email, idToken } = userData;
+  const displayName: string = name ?? "";
 
   const defaultValues = {
-    name: name.split(" ").slice(1).join(" ") || "",
-    forename: name.split(" ")[0] || "",
-    username: name.replace(/\s+/g, "").toLowerCase(),
+    name: displayName.split(" ").slice(1).join(" ") || "",
+    forename: displayName.split(" ")[0] || "",
+    username: displayName.replace(/\s+/g, "").toLowerCase(),
     email: email,
-    password: "",
-    confirmPassword: "",
-    photoURL: photoURL,
   };
 
-  const registerSchema = getRegisterSchema(t);
-  async function register(values: z.infer<typeof registerSchema>) {
+  async function register(values: object) {
     try {
       setLoading(true);
-      // The server verifies the Google ID token and only accepts it for the email it was issued for
-      const response = await axiosConfig.post("/auth/register", { ...values, idToken });
+      // No password: the server verifies the Google ID token and only accepts it for the email it was issued for
+      const response = await axiosConfig.post("/auth/register", { ...values, email, idToken });
       toast.success(t(response.data.message));
       setAuthUser(response.data.user);
       navigate("/");
@@ -53,5 +48,20 @@ export const RegisterGoogleForm = () => {
     }
   }
 
-  return <RegisterForm onSubmit={register} defaultValues={defaultValues} disabledFields={["email"]} loading={loading} oauth={false} />;
+  return (
+    <RegisterForm
+      onSubmit={register}
+      title={t("pages.register.google_title")}
+      subtitle={t("pages.register.google_subtitle")}
+      defaultValues={defaultValues}
+      disabledFields={["email"]}
+      loading={loading}
+      withPassword={false}
+      footer={
+        <Link to="/login" className="font-semibold text-brand-strong underline-offset-4 hover:underline dark:text-accent">
+          {t("pages.register.back_to_login")}
+        </Link>
+      }
+    />
+  );
 };

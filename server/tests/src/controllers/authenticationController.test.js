@@ -66,6 +66,58 @@ describe("POST /api/auth/register", () => {
     expect(response.body.user.avatar).toContain(".jpg");
   });
 
+  it("should create a Google account without asking for a password", async () => {
+    mockGoogleToken({ email: registerUser.email });
+    const { password, confirmPassword, ...withoutPassword } = registerUser;
+
+    const response = await request(app)
+      .post("/api/auth/register")
+      .send({ ...withoutPassword, idToken: "valid-token" });
+
+    expect(response.status).toBe(201);
+    expect(response.body.user.auth_type).toBe(authTypes.GOOGLE);
+    expect(getAuthSetCookie(response)).toBeDefined();
+    const stored = await User.findOne({ email: registerUser.email }).select("+password");
+    expect(stored.password).toBeUndefined();
+  });
+
+  it("should not store a password sent with a Google registration", async () => {
+    mockGoogleToken({ email: registerUser.email });
+
+    await request(app)
+      .post("/api/auth/register")
+      .send({ ...registerUser, idToken: "valid-token" });
+
+    const stored = await User.findOne({ email: registerUser.email }).select("+password");
+    expect(stored.password).toBeUndefined();
+  });
+
+  it("should still require a password for an email registration", async () => {
+    const { password, confirmPassword, ...withoutPassword } = registerUser;
+
+    const response = await request(app).post("/api/auth/register").send(withoutPassword);
+
+    expect(response.status).toBe(422);
+    expect(response.body.error).toBe("server.global.errors.missing_fields");
+    expect(await User.countDocuments()).toBe(0);
+  });
+
+  it("should let a Google account without a password sign in with Google, never with a password", async () => {
+    mockGoogleToken({ email: registerUser.email });
+    const { password, confirmPassword, ...withoutPassword } = registerUser;
+    await request(app)
+      .post("/api/auth/register")
+      .send({ ...withoutPassword, idToken: "valid-token" });
+
+    mockGoogleToken({ email: registerUser.email });
+    const google = await request(app).post("/api/auth/login/google").send({ idToken: "valid-token" });
+    expect(google.status).toBe(200);
+
+    const withPassword = await request(app).post("/api/auth/login").send({ email: registerUser.email, password: "Abcdef1@" });
+    expect(withPassword.status).toBe(400);
+    expect(withPassword.body.error).toBe("server.auth.errors.invalid_credentials");
+  });
+
   it("should refuse a Google registration whose token was issued for another email", async () => {
     mockGoogleToken({ email: "someone-else@gmail.com" });
 

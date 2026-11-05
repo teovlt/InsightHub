@@ -15,6 +15,7 @@ import bcrypt from "bcryptjs";
 import { app } from "../../../src/app.js";
 import {
   adminUser,
+  googleAccount,
   invalidRoleUser,
   pathAvatarOldTest,
   regularUser,
@@ -593,6 +594,119 @@ describe("DELETE /api/users/delete/account", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("server.users.errors.password_incorrect");
+  });
+});
+
+describe("DELETE /api/users/delete/account for every account type", () => {
+  const addUserData = async (user) => {
+    await Stat.create({ userId: user._id, categoryId: new mongoose.Types.ObjectId(), name: "s", value: "1" });
+    await IntegrationUser.create({ userId: user._id, integrationId: new mongoose.Types.ObjectId(), accessToken: "x" });
+  };
+
+  const expectFullyDeleted = async (user, response) => {
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("server.users.messages.user_deleted");
+    expect(await User.findById(user._id)).toBeNull();
+    expect(await Stat.countDocuments({ userId: user._id })).toBe(0);
+    expect(await IntegrationUser.countDocuments({ userId: user._id })).toBe(0);
+    // Logged out: the cookie is cleared and the old token no longer works
+    expect(getAuthSetCookie(response)).toMatch(/Expires=Thu, 01 Jan 1970/);
+    expect((await request(app).get("/api/auth/me").set("Cookie", authCookie(user))).status).toBe(401);
+  };
+
+  it("should delete a password account with its data, avatar and session", async () => {
+    // Another admin, so this one is not the last
+    await User.create({ ...adminUser, username: "other", email: "other@gmail.com" });
+    const user = await User.create(userWithAvatarAndHashPassword);
+    await addUserData(user);
+
+    const response = await request(app).delete("/api/users/delete/account").send({ password: "Abcdef1@" }).set("Cookie", authCookie(user));
+
+    expect(bucket.file).toHaveBeenCalledWith("avatars/_test_hello-world.png");
+    await expectFullyDeleted(user, response);
+  });
+
+  it("should not accept the username instead of the password for a password account", async () => {
+    const user = await User.create(userWithHashPassword);
+
+    const response = await request(app)
+      .delete("/api/users/delete/account")
+      .send({ confirmation: user.username })
+      .set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(422);
+    expect(await User.findById(user._id)).not.toBeNull();
+  });
+
+  it("should delete a Google account confirmed with its username", async () => {
+    const user = await User.create(googleAccount);
+    await addUserData(user);
+
+    const response = await request(app)
+      .delete("/api/users/delete/account")
+      .send({ confirmation: "GoogleUser" })
+      .set("Cookie", authCookie(user));
+
+    expect(bucket.file).toHaveBeenCalledWith("avatars/avatar_google.jpg");
+    await expectFullyDeleted(user, response);
+  });
+
+  it("should delete a Google account confirmed with its email", async () => {
+    const user = await User.create(googleAccount);
+
+    const response = await request(app)
+      .delete("/api/users/delete/account")
+      .send({ confirmation: " google@gmail.com " })
+      .set("Cookie", authCookie(user));
+
+    await expectFullyDeleted(user, response);
+  });
+
+  it("should delete an older Google account that still has a password, without asking for it", async () => {
+    const user = await User.create({ ...googleAccount, password: await bcrypt.hash("Abcdef1@", 10) });
+
+    const response = await request(app)
+      .delete("/api/users/delete/account")
+      .send({ confirmation: googleAccount.username })
+      .set("Cookie", authCookie(user));
+
+    await expectFullyDeleted(user, response);
+  });
+
+  it("should keep a Google account when the confirmation does not match", async () => {
+    const user = await User.create(googleAccount);
+    await addUserData(user);
+
+    const response = await request(app)
+      .delete("/api/users/delete/account")
+      .send({ confirmation: "someone-else" })
+      .set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("server.users.errors.confirmation_incorrect");
+    expect(await User.findById(user._id)).not.toBeNull();
+    expect(await Stat.countDocuments({ userId: user._id })).toBe(1);
+  });
+
+  it("should ask a Google account for the confirmation", async () => {
+    const user = await User.create(googleAccount);
+
+    const response = await request(app).delete("/api/users/delete/account").send({}).set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(422);
+    expect(response.body.error).toBe("server.global.errors.missing_fields");
+  });
+
+  it("should refuse to change the password of an account that has none", async () => {
+    const user = await User.create(googleAccount);
+
+    const response = await request(app)
+      .put(`/api/users/${user._id}/password`)
+      .send({ currentPassword: "x", newPassword: "Abcdef1@", newPasswordConfirm: "Abcdef1@" })
+      .set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("server.users.errors.no_password");
   });
 });
 

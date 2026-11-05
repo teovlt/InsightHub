@@ -19,14 +19,15 @@ const DUMMY_PASSWORD_HASH = bcrypt.hashSync("insighthub-dummy-password", 10);
 
 /**
  * Registers a new user.
- * When an idToken is provided, the account is a Google one: the token is verified and must match the email.
+ * When an idToken is provided, the account is a Google one: the token is verified and must match the email,
+ * and no password is asked or stored.
  *
  * @param {Object} userData - Data for the user registration.
  * @param {string} userData.email - User's email address.
  * @param {string} userData.username - User's username.
- * @param {string} userData.password - User's password.
- * @param {string} userData.confirmPassword - Confirmation of user's password.
- * @param {string} [userData.idToken] - Firebase ID token for a Google registration.
+ * @param {string} [userData.password] - User's password (email sign-up only).
+ * @param {string} [userData.confirmPassword] - Confirmation of user's password (email sign-up only).
+ * @param {string} [userData.idToken] - Firebase ID token for a Google registration, which needs no password.
  * @returns {Object} JSON response with user details or error message.
  */
 export const register = async (req, res) => {
@@ -35,14 +36,20 @@ export const register = async (req, res) => {
 
   const { name, forename, email, username, password, confirmPassword, idToken } = data;
 
-  if (!Constants.REGEX_PASSWORD.test(password)) {
-    return res.status(400).json({
-      error: "server.auth.errors.regex",
-    });
-  }
+  if (!idToken) {
+    if (password === undefined || confirmPassword === undefined) {
+      return res.status(422).json({ error: "server.global.errors.missing_fields" });
+    }
 
-  if (password !== confirmPassword) {
-    return res.status(400).json({ error: "server.auth.errors.password_no_match" });
+    if (!Constants.REGEX_PASSWORD.test(password)) {
+      return res.status(400).json({
+        error: "server.auth.errors.regex",
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "server.auth.errors.password_no_match" });
+    }
   }
 
   try {
@@ -59,11 +66,12 @@ export const register = async (req, res) => {
     } else if (await User.findOne({ username: username.toLowerCase() })) {
       return res.status(409).json({ error: "server.auth.errors.username_taken" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // A Google account never stores a password, even if one was sent
     const user = await User.create({
       email: email.toLowerCase(),
       username: username.toLowerCase(),
-      password: hashedPassword,
+      ...(googleProfile ? {} : { password: await bcrypt.hash(password, 10) }),
       name,
       forename,
       auth_type: googleProfile ? authTypes.GOOGLE : authTypes.LOCAL,

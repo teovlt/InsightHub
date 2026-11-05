@@ -211,19 +211,22 @@ export const Account = () => {
                   )}
                 />
 
-                <FormItem>
-                  <div className="flex flex-col w-full gap-2">
-                    <FormLabel>{t("pages.account.password_label")}</FormLabel>
-                    <div className="flex items-center justify-between gap-4">
-                      <FormControl>
-                        <Input type="password" placeholder={t("pages.account.password_placeholder")} disabled />
-                      </FormControl>
-                      <Button type="button" variant="outline" onClick={() => setOpenUpdatePasswordDialog(true)} disabled={updateLoading}>
-                        {t("pages.account.change_password")}
-                      </Button>
+                {/* Google accounts sign in with Google and have no password to change */}
+                {authUser?.auth_type !== "google" && (
+                  <FormItem>
+                    <div className="flex flex-col w-full gap-2">
+                      <FormLabel>{t("pages.account.password_label")}</FormLabel>
+                      <div className="flex items-center justify-between gap-4">
+                        <FormControl>
+                          <Input type="password" placeholder={t("pages.account.password_placeholder")} disabled />
+                        </FormControl>
+                        <Button type="button" variant="outline" onClick={() => setOpenUpdatePasswordDialog(true)} disabled={updateLoading}>
+                          {t("pages.account.change_password")}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </FormItem>
+                  </FormItem>
+                )}
 
                 <CardFooter className="justify-end px-0">
                   <Button type="submit" disabled={updateLoading} className="w-full sm:w-auto sm:px-8">

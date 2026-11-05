@@ -29,9 +29,12 @@ const UserSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    // Google accounts sign in with their Google ID token and have no password
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return this.auth_type !== authTypes.GOOGLE;
+      },
       select: false,
     },
     role: {

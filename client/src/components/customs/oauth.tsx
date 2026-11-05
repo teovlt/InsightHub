@@ -59,10 +59,12 @@ export function OAuth({ message }: OauthProps) {
   return (
     <Button
       type="button"
+      variant="outline"
+      size="lg"
       onClick={handleGoogleAuth}
-      className="flex items-center w-full gap-3 px-4 py-2 text-black bg-white border border-gray-300 hover:bg-gray-100"
+      className="w-full gap-3 text-sm font-semibold [&_svg]:size-5"
     >
-      <svg className="w-5 h-5" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
+      <svg aria-hidden="true" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
         <path
           d="M533.5 278.4c0-17.4-1.6-34.1-4.6-50.3H272v95.1h146.9c-6.4 34-25.2 62.8-53.6 82v68.1h86.8c50.8-46.8 81.4-115.7 81.4-194.9z"
           fill="#4285F4"
@@ -77,7 +79,7 @@ export function OAuth({ message }: OauthProps) {
           fill="#EA4335"
         />
       </svg>
-      <span className="font-medium">{t(message + "_google")}</span>
+      <span>{t(message + "_google")}</span>
     </Button>
   );
 }

@@ -103,4 +103,14 @@ export const googleUser = {
   email: "google@gmail.com",
 };
 
+// A Google account as stored since Google sign-ups stopped asking for a password
+export const googleAccount = {
+  name: "Google",
+  forename: "user",
+  username: "googleuser",
+  email: "google@gmail.com",
+  auth_type: "google",
+  avatar: "https://storage.googleapis.com/test-bucket/avatars/avatar_google.jpg",
+};
+
 export const stablePhotoURL = "https://raw.githubusercontent.com/github/explore/main/topics/javascript/javascript.png";

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { getLoginSchema } from "@/lib/zod/schemas/auth/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { OAuth } from "@/components/customs/oauth";
-import { Logo } from "@/components/customs/logo";
+import { AuthDivider, AuthLayout } from "@/components/customs/authLayout";
+import { Loader2 } from "lucide-react";
 
 export const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -52,68 +53,63 @@ export const Login = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh gap-6 px-2 py-4 md:px-10 md:py-10">
-      <Logo className="self-center text-3xl sm:text-4xl" markClassName="w-10 h-10" />
-      <div className="flex flex-col w-full max-w-md gap-6 bg-card p-4 md:p-8 lg:rounded-2xl lg:shadow">
-        <div className="text-center">
-          <h1 className="text-xl md:text-2xl font-semibold">{t("pages.login.welcome_back")}</h1>
-        </div>
-        <div className="flex flex-col items-center gap-6">
-          <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(login)} className="w-full space-y-4">
-              <FormField
-                control={loginForm.control}
-                name="loginName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("pages.login.field")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormDescription>{t("pages.login.field_description")}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <AuthLayout
+      title={t("pages.login.welcome_back")}
+      subtitle={t("pages.login.subtitle")}
+      footer={
+        <>
+          {t("pages.login.no_account")}{" "}
+          <Link to="/register" className="font-semibold text-brand-strong underline-offset-4 hover:underline dark:text-accent">
+            {t("pages.login.sign_up")}
+          </Link>
+        </>
+      }
+    >
+      <div className="space-y-6">
+        {import.meta.env.VITE_FIREBASE_API_KEY && (
+          <>
+            <OAuth message="pages.login.login_button" />
+            <AuthDivider label={t("pages.login.or_with_email")} />
+          </>
+        )}
 
-              <FormField
-                control={loginForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("pages.login.password")}</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormDescription>{t("pages.login.password_description")}</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button type="submit" className="w-full" disabled={loading}>
-                {t("pages.login.login_button")}
-              </Button>
-
-              {import.meta.env.VITE_FIREBASE_API_KEY && (
-                <>
-                  <div className="relative text-sm text-center after:border-border after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                    <span className="relative z-10 px-2 bg-card text-muted-foreground">{t("pages.login.or_continue_with")}</span>
-                  </div>
-                  <OAuth message="pages.login.login_button" />
-                </>
+        <Form {...loginForm}>
+          <form onSubmit={loginForm.handleSubmit(login)} className="space-y-4">
+            <FormField
+              control={loginForm.control}
+              name="loginName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("pages.login.field")}</FormLabel>
+                  <FormControl>
+                    <Input autoComplete="username" autoCapitalize="none" placeholder={t("pages.login.field_placeholder")} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </form>
-          </Form>
+            />
 
-          <div className="text-sm text-center md:text-base">
-            {t("pages.login.no_account")}{" "}
-            <Link to="/register" className="underline underline-offset-4 text-accent">
-              {t("pages.login.sign_up")}
-            </Link>
-          </div>
-        </div>
+            <FormField
+              control={loginForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("pages.login.password")}</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="current-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="animate-spin" />}
+              {t("pages.login.login_button")}
+            </Button>
+          </form>
+        </Form>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

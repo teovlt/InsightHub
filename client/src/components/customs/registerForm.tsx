@@ -1,140 +1,127 @@
+import { ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getRegisterSchema } from "@/lib/zod/schemas/auth/zod";
+import { getGoogleRegisterSchema, getRegisterSchema } from "@/lib/zod/schemas/auth/zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { Loader2 } from "lucide-react";
 import { OAuth } from "./oauth";
-import { Link } from "react-router-dom";
-import { Logo } from "@/components/customs/logo";
+import { AuthDivider, AuthLayout } from "./authLayout";
+
+type RegisterValues = z.infer<ReturnType<typeof getRegisterSchema>>;
+type FieldName = keyof RegisterValues;
 
 type RegisterFormProps = {
-  onSubmit: (values: z.infer<any>) => Promise<void>;
-  defaultValues?: Partial<z.infer<any>>;
-  disabledFields?: string[];
-  submitLabel?: string;
+  onSubmit: (values: Partial<RegisterValues>) => Promise<void>;
+  title: string;
+  subtitle?: string;
+  footer?: ReactNode;
+  defaultValues?: Partial<RegisterValues>;
+  disabledFields?: FieldName[];
   loading?: boolean;
   oauth?: boolean;
+  // A Google sign-up signs in with Google, so it never asks for a password
+  withPassword?: boolean;
+};
+
+const AUTOCOMPLETE: Record<FieldName, string> = {
+  forename: "given-name",
+  name: "family-name",
+  username: "username",
+  email: "email",
+  password: "new-password",
+  confirmPassword: "new-password",
 };
 
 export const RegisterForm = ({
   onSubmit,
+  title,
+  subtitle,
+  footer,
   defaultValues = {},
   disabledFields = [],
-  submitLabel,
   loading = false,
   oauth = false,
+  withPassword = true,
 }: RegisterFormProps) => {
   const { t } = useTranslation();
 
-  // Si tu veux, adapte ton schema pour autoriser ou non le password selon showPassword
-  const registerSchema = getRegisterSchema(t);
+  const registerSchema = withPassword ? getRegisterSchema(t) : getGoogleRegisterSchema(t);
 
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<RegisterValues>({
+    // The Google schema is the same minus the password fields
+    resolver: zodResolver(registerSchema as ReturnType<typeof getRegisterSchema>),
     defaultValues: {
       name: "",
       forename: "",
       username: "",
       email: "",
-      password: "",
-      confirmPassword: "",
+      ...(withPassword ? { password: "", confirmPassword: "" } : {}),
       ...defaultValues,
     },
   });
 
+  const renderField = (fieldName: FieldName, description?: string) => (
+    <FormField
+      key={fieldName}
+      control={form.control}
+      name={fieldName}
+      render={({ field }) => (
+        <FormItem className="w-full">
+          <FormLabel>{t(`pages.register.${fieldName}`)}</FormLabel>
+          <FormControl>
+            <Input
+              {...field}
+              type={fieldName.toLowerCase().includes("password") ? "password" : fieldName === "email" ? "email" : "text"}
+              autoComplete={AUTOCOMPLETE[fieldName]}
+              autoCapitalize={fieldName === "username" || fieldName === "email" ? "none" : undefined}
+              disabled={disabledFields.includes(fieldName)}
+            />
+          </FormControl>
+          {description && <FormDescription>{description}</FormDescription>}
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh gap-6 px-2 py-4 md:px-10 md:py-10">
-      <Logo className="self-center text-3xl sm:text-4xl" markClassName="w-10 h-10" />
-      <div className="flex flex-col w-full max-w-2xl gap-6 bg-card p-4 md:p-8 sm:rounded-2xl sm:shadow">
-        <div className="text-center">
-          <h1 className="text-xl md:text-2xl">{oauth ? t("pages.register.title") : t("pages.register.password_creation")}</h1>
-        </div>
-        <div className="flex flex-col items-center gap-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                {["forename", "name"].map((fieldName) => (
-                  <FormField
-                    key={fieldName}
-                    control={form.control}
-                    name={fieldName as any}
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormLabel>{t(`pages.register.${fieldName}`)}</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled={disabledFields.includes(fieldName)} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
+    <AuthLayout title={title} subtitle={subtitle} footer={footer} wide>
+      <div className="space-y-6">
+        {import.meta.env.VITE_FIREBASE_API_KEY && oauth && (
+          <>
+            <OAuth message="pages.register.register" />
+            <AuthDivider label={t("pages.login.or_with_email")} />
+          </>
+        )}
 
-              {["username", "email"].map((fieldName) => (
-                <FormField
-                  key={fieldName}
-                  control={form.control}
-                  name={fieldName as any}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t(`pages.register.${fieldName}`)}</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled={disabledFields.includes(fieldName)} />
-                      </FormControl>
-                      {fieldName === "username" && <FormDescription>{t("pages.register.username_description")}</FormDescription>}
-                      {fieldName === "email" && <FormDescription>{t("pages.register.email_description")}</FormDescription>}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-
-              {["password", "confirmPassword"].map((fieldName) => (
-                <FormField
-                  key={fieldName}
-                  control={form.control}
-                  name={fieldName as any}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t(`pages.register.${fieldName}`)}</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} disabled={disabledFields.includes(fieldName)} />
-                      </FormControl>
-                      <FormDescription>{t(`pages.register.${fieldName}_description`)}</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-
-              <Button type="submit" className="w-full" disabled={loading}>
-                {submitLabel || t("pages.register.register")}
-              </Button>
-
-              {import.meta.env.VITE_FIREBASE_API_KEY && oauth && (
-                <>
-                  <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                    <span className="relative z-10 bg-card px-2 text-muted-foreground">{t("pages.login.or_continue_with")}</span>
-                  </div>
-                  <OAuth message="pages.register.register" />
-                </>
-              )}
-            </form>
-          </Form>
-          {oauth && (
-            <div className="text-center text-sm md:text-base">
-              {t("pages.register.already_have_account")}{" "}
-              <Link to="/login" className="underline underline-offset-4 text-accent">
-                {t("pages.register.login")}
-              </Link>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {renderField("forename")}
+              {renderField("name")}
             </div>
-          )}
-        </div>
+            {renderField("username", t("pages.register.username_description"))}
+            {renderField("email", disabledFields.includes("email") ? t("pages.register.email_from_google") : undefined)}
+
+            {withPassword && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {renderField("password")}
+                {renderField("confirmPassword")}
+                <p className="text-[0.8rem] text-muted-foreground sm:col-span-2">{t("pages.register.password_description")}</p>
+              </div>
+            )}
+
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="animate-spin" />}
+              {t("pages.register.register")}
+            </Button>
+          </form>
+        </Form>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

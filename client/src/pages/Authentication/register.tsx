@@ -1,13 +1,10 @@
-import { getRegisterSchema } from "@/lib/zod/schemas/auth/zod";
-import { useNavigate } from "react-router-dom";
-import { z } from "zod";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthContext } from "@/contexts/authContext";
 import { axiosConfig } from "@/config/axiosConfig";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RegisterForm } from "@/components/customs/registerForm";
-import { Link } from "react-router-dom";
 
 export const Register = () => {
   const [loading, setLoading] = useState(false);
@@ -16,9 +13,7 @@ export const Register = () => {
   const { setAuthUser } = useAuthContext();
   const { t } = useTranslation();
 
-  const registerSchema = getRegisterSchema(t);
-
-  async function register(values: z.infer<typeof registerSchema>) {
+  async function register(values: object) {
     try {
       setLoading(true);
       const response = await axiosConfig.post("/auth/register", values);
@@ -33,8 +28,20 @@ export const Register = () => {
   }
 
   return (
-    <>
-      <RegisterForm onSubmit={register} disabledFields={[]} loading={loading} oauth={true} />
-    </>
+    <RegisterForm
+      onSubmit={register}
+      title={t("pages.register.title")}
+      subtitle={t("pages.register.subtitle")}
+      loading={loading}
+      oauth
+      footer={
+        <>
+          {t("pages.register.already_have_account")}{" "}
+          <Link to="/login" className="font-semibold text-brand-strong underline-offset-4 hover:underline dark:text-accent">
+            {t("pages.register.login")}
+          </Link>
+        </>
+      }
+    />
   );
 };

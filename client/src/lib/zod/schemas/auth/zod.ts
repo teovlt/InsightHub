@@ -12,29 +12,33 @@ export const getLoginSchema = (t: (key: string) => string) =>
       .max(255, { message: t("pages.login.errors.password_max") }),
   });
 
+// Profile fields shared by both sign-ups. A Google sign-up stops here: the account has no password.
+export const getGoogleRegisterSchema = (t: (key: string) => string) =>
+  z.object({
+    name: z
+      .string()
+      .min(2, { message: t("pages.register.errors.name_min") })
+      .max(25, { message: t("pages.register.errors.name_max") }),
+    forename: z
+      .string()
+      .min(2, { message: t("pages.register.errors.forename_min") })
+      .max(25, { message: t("pages.register.errors.forename_max") }),
+    username: z
+      .string()
+      .min(2, { message: t("pages.register.errors.username_min") })
+      .max(25, { message: t("pages.register.errors.username_max") })
+      .regex(/^[^A-Z\s]+$/, { message: t("pages.register.errors.username_no_spaces") }),
+    email: z.string().email({ message: t("pages.register.errors.invalid_email") }),
+  });
+
 export const getRegisterSchema = (t: (key: string) => string) =>
-  z
-    .object({
-      name: z
-        .string()
-        .min(2, { message: t("pages.register.errors.name_min") })
-        .max(25, { message: t("pages.register.errors.name_max") }),
-      forename: z
-        .string()
-        .min(2, { message: t("pages.register.errors.forename_min") })
-        .max(25, { message: t("pages.register.errors.forename_max") }),
-      username: z
-        .string()
-        .min(2, { message: t("pages.register.errors.username_min") })
-        .max(25, { message: t("pages.register.errors.username_max") })
-        .regex(/^[^A-Z\s]+$/, { message: t("pages.register.errors.username_no_spaces") }),
-      email: z.string().email({ message: t("pages.register.errors.invalid_email") }),
+  getGoogleRegisterSchema(t)
+    .extend({
       password: z
         .string()
         .max(255, { message: t("pages.register.errors.password_max") })
         .min(1, { message: t("pages.register.errors.password_invalid") }),
       confirmPassword: z.string(),
-      photoURL: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t("pages.register.errors.passwords_mismatch"),

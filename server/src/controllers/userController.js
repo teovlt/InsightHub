@@ -242,6 +242,7 @@ export const updatePassword = async (req, res) => {
   try {
     const user = await User.findById(id).select("+password");
     if (!user) return res.status(400).json({ error: "server.global.errors.no_such_user" });
+    if (!user.password) return res.status(400).json({ error: "server.users.errors.no_password" });
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) return res.status(400).json({ error: "server.users.errors.actual_password_incorrect" });
@@ -271,8 +272,10 @@ export const updatePassword = async (req, res) => {
 
 /**
  * @function deleteAccount
- * @description Deletes the connected user's account, with everything they own, after verifying the password.
- * @param {string} req.body.password - The user's password for account deletion.
+ * @description Deletes the connected user's account, with everything they own, then logs them out.
+ * A password account confirms with its password; a Google account by typing its username or email.
+ * @param {string} [req.body.password] - The user's password.
+ * @param {string} [req.body.confirmation] - The user's username or email, for Google accounts.
  * @returns {Object} JSON response with success or error message.
  */
 export const deleteAccount = async (req, res) => {
@@ -283,9 +286,21 @@ export const deleteAccount = async (req, res) => {
 
   try {
     const user = await User.findById(userId).select("+password");
+    if (!user) return res.status(404).json({ error: "server.global.errors.no_such_user" });
 
-    const isMatch = await bcrypt.compare(data.password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "server.users.errors.password_incorrect" });
+    // A Google account is already proven by its Google session: typing its name guards against a slip.
+    // Older Google accounts may still hold a password from before, it is not asked for.
+    if (user.auth_type !== authTypes.GOOGLE && user.password) {
+      if (!data.password) return res.status(422).json({ error: "server.global.errors.missing_fields" });
+      const isMatch = await bcrypt.compare(data.password, user.password);
+      if (!isMatch) return res.status(400).json({ error: "server.users.errors.password_incorrect" });
+    } else {
+      if (!data.confirmation) return res.status(422).json({ error: "server.global.errors.missing_fields" });
+      const typed = data.confirmation.toLowerCase();
+      if (typed !== user.username && typed !== user.email) {
+        return res.status(400).json({ error: "server.users.errors.confirmation_incorrect" });
+      }
+    }
 
     if (await isLastAdmin(user)) return res.status(400).json({ error: "server.users.errors.last_admin" });
 

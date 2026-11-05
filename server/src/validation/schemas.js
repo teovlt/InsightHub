@@ -14,8 +14,9 @@ export const registerSchema = z.object({
   forename: trimmed(50),
   username: trimmed(30),
   email: z.string().trim().email().max(254),
-  password: z.string().max(255),
-  confirmPassword: z.string().max(255),
+  // Only required for email sign-ups: a Google sign-up (idToken) has no password
+  password: z.string().max(255).optional(),
+  confirmPassword: z.string().max(255).optional(),
   idToken: z.string().max(4096).optional(),
 });
 
@@ -56,8 +57,10 @@ export const updatePasswordSchema = z.object({
   newPasswordConfirm: z.string().max(255),
 });
 
+// Password accounts confirm with their password, Google accounts by typing their username or email
 export const deleteAccountSchema = z.object({
-  password: z.string().max(255),
+  password: z.string().max(255).optional(),
+  confirmation: z.string().trim().max(254).optional(),
 });
 
 const statValue = z.union([z.string().trim().min(1).max(100), z.number()]).transform(String);

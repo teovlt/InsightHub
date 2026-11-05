@@ -34,10 +34,19 @@ export const getUpdatePasswordSchema = (t: (key: string) => string) =>
       path: ["newPasswordConfirm"],
     });
 
-export const getDeleteAccountSchema = (t: (key: string) => string) =>
+// Password accounts confirm with their password; Google accounts have none, so they type their username or email
+export const getDeleteAccountSchema = (t: (key: string) => string, user: { username: string; email: string; isGoogle: boolean }) =>
   z.object({
     checkApproval: z.boolean().refine((val) => val === true, {
       message: t("pages.account.errors.check_approval"),
     }),
-    password: z.string().min(6, { message: t("pages.account.errors.password_min") }),
+    password: user.isGoogle ? z.string().optional() : z.string().min(1, { message: t("pages.account.errors.password_required") }),
+    confirmation: user.isGoogle
+      ? z
+          .string()
+          .trim()
+          .refine((value) => [user.username, user.email].includes(value.toLowerCase()), {
+            message: t("pages.account.errors.confirmation_mismatch"),
+          })
+      : z.string().optional(),
   });
