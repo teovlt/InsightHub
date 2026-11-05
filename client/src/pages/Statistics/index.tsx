@@ -1,9 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Edit, Eye, EyeOff, Pin, PinOff, Plus, RotateCcw, Search, Target, Trash2, Zap } from "lucide-react";
+import { ArrowRight, Edit, Eye, EyeOff, Pin, PinOff, Plus, RotateCcw, Search, Target, Trash2, Zap } from "lucide-react";
 import { Page, PageHeader } from "@/components/customs/page";
 import { AddStatDialog } from "@/components/customs/addStatDialog";
 import { EditStatDialog } from "@/components/customs/editStatDialog";
@@ -67,7 +67,11 @@ export const Statistics = () => {
     fetchCategories();
   }, []);
 
-  const filtered = categories
+  // Categories are shared by everyone (integrations create theirs): only show those this user has stats in
+  const filledCategories = categories.filter((category) => category.stats.length > 0);
+  const hasSyncedStat = allStats.some((entry) => entry.stat.integrationId);
+
+  const filtered = filledCategories
     .filter((category) => activeCategory === "all" || category._id === activeCategory)
     .map((category) => ({
       ...category,
@@ -95,87 +99,151 @@ export const Statistics = () => {
         }
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
-        {/* Stat list */}
-        <Card className="overflow-hidden lg:sticky lg:top-24">
-          <div className="space-y-3 border-b p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("pages.statistics.search")} className="pl-9" />
+      {!loading && filledCategories.length === 0 ? (
+        <Card className="flex flex-col items-center gap-6 p-8 text-center md:p-12">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-lime text-[#0f172a]">
+            <Zap className="h-7 w-7" />
+          </div>
+          <div className="max-w-xl space-y-2">
+            <h2 className="text-xl font-bold tracking-tight">{t("pages.statistics.empty.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("pages.statistics.empty.description")}</p>
+          </div>
+          <div className="grid w-full max-w-2xl gap-3 text-left sm:grid-cols-2">
+            <div className="rounded-xl border p-4">
+              <p className="flex items-center gap-2 font-semibold">
+                <Zap className="h-4 w-4 text-accent" />
+                {t("pages.statistics.empty.auto_title")}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("pages.statistics.empty.auto_description")}</p>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              <FilterChip active={activeCategory === "all"} onClick={() => setActiveCategory("all")}>
-                {t("pages.dashboard.categories.all")}
-              </FilterChip>
-              {categories.map((category) => (
-                <FilterChip key={category._id} active={activeCategory === category._id} onClick={() => setActiveCategory(category._id)}>
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: category.color }} />
-                  {category.name}
-                </FilterChip>
-              ))}
+            <div className="rounded-xl border p-4">
+              <p className="flex items-center gap-2 font-semibold">
+                <Plus className="h-4 w-4 text-accent" />
+                {t("pages.statistics.empty.manual_title")}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("pages.statistics.empty.manual_description")}</p>
             </div>
           </div>
-          <div className="max-h-[60vh] overflow-y-auto p-2 lg:max-h-[calc(100dvh-20rem)]">
-            {loading ? (
-              <div className="space-y-2 p-2">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12" />
-                ))}
-              </div>
-            ) : filtered.length > 0 ? (
-              filtered.map((category) => (
-                <div key={category._id} className="mb-2">
-                  <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category.name}</p>
-                  {category.stats.map((stat) => (
-                    <button
-                      key={stat._id}
-                      onClick={() => setSearchParams({ stat: stat._id })}
-                      className={cn(
-                        "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
-                        stat._id === selectedId ? "bg-accent/10" : "hover:bg-secondary",
-                      )}
-                    >
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: category.color }} />
-                      <span className={cn("min-w-0 flex-1 truncate text-sm", stat._id === selectedId && "font-semibold text-accent")}>
-                        {stat.name}
-                      </span>
-                      {stat.pinned && <Pin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-                      {stat.integrationId && <Zap className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-                      <span className="max-w-[40%] shrink-0 truncate text-sm font-semibold">
-                        {stat.hided ? "••••" : stat.value}
-                        {stat.unit && <span className="ml-1 text-xs font-normal text-muted-foreground">{stat.unit}</span>}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              ))
-            ) : (
-              <p className="p-6 text-center text-sm text-muted-foreground">{t("pages.statistics.no_stats")}</p>
-            )}
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button asChild>
+              <Link to="/integrations">
+                <Zap />
+                {t("pages.statistics.empty.connect")}
+              </Link>
+            </Button>
+            <AddStatDialog
+              categories={categories}
+              refrechStats={() => fetchCategories()}
+              trigger={
+                <Button variant="outline">
+                  <Plus />
+                  {t("pages.statistics.empty.create")}
+                </Button>
+              }
+            />
           </div>
         </Card>
+      ) : (
+        <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
+          {/* Stat list */}
+          <Card className="overflow-hidden lg:sticky lg:top-24">
+            <div className="space-y-3 border-b p-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("pages.statistics.search")}
+                  className="pl-9"
+                />
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <FilterChip active={activeCategory === "all"} onClick={() => setActiveCategory("all")}>
+                  {t("pages.dashboard.categories.all")}
+                </FilterChip>
+                {filledCategories.map((category) => (
+                  <FilterChip key={category._id} active={activeCategory === category._id} onClick={() => setActiveCategory(category._id)}>
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: category.color }} />
+                    {category.name}
+                  </FilterChip>
+                ))}
+              </div>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-2 lg:max-h-[calc(100dvh-20rem)]">
+              {loading ? (
+                <div className="space-y-2 p-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12" />
+                  ))}
+                </div>
+              ) : filtered.length > 0 ? (
+                filtered.map((category) => (
+                  <div key={category._id} className="mb-2">
+                    <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category.name}</p>
+                    {category.stats.map((stat) => (
+                      <button
+                        key={stat._id}
+                        onClick={() => setSearchParams({ stat: stat._id })}
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
+                          stat._id === selectedId ? "bg-accent/10" : "hover:bg-secondary",
+                        )}
+                      >
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: category.color }} />
+                        <span className={cn("min-w-0 flex-1 truncate text-sm", stat._id === selectedId && "font-semibold text-accent")}>
+                          {stat.name}
+                        </span>
+                        {stat.pinned && <Pin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+                        {stat.integrationId && <Zap className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+                        <span className="max-w-[40%] shrink-0 truncate text-sm font-semibold">
+                          {stat.hided ? "••••" : stat.value}
+                          {stat.unit && <span className="ml-1 text-xs font-normal text-muted-foreground">{stat.unit}</span>}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ))
+              ) : (
+                <p className="p-6 text-center text-sm text-muted-foreground">{t("pages.statistics.no_stats")}</p>
+              )}
+            </div>
+            {!loading && !hasSyncedStat && (
+              <Link
+                to="/integrations"
+                className="flex items-start gap-3 border-t bg-secondary/40 p-4 text-left transition-colors hover:bg-secondary"
+              >
+                <Zap className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <span className="min-w-0 flex-1 text-sm">
+                  <span className="font-semibold">{t("pages.statistics.auto_hint.title")}</span>
+                  <span className="block text-muted-foreground">{t("pages.statistics.auto_hint.description")}</span>
+                </span>
+                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            )}
+          </Card>
 
-        {/* Detail */}
-        {selected ? (
-          <StatDetail
-            key={selected.stat._id}
-            stat={selected.stat}
-            category={selected.category}
-            onChanged={() => fetchCategories({ categoryId: selected.stat.categoryId, name: selected.stat.name })}
-            onDeleted={() => {
-              setSearchParams({}, { replace: true });
-              fetchCategories();
-            }}
-          />
-        ) : (
-          !loading && (
-            <Card className="hidden flex-col items-center justify-center gap-2 p-12 text-center lg:flex">
-              <p className="font-semibold">{t("pages.statistics.pick_title")}</p>
-              <p className="text-sm text-muted-foreground">{t("pages.statistics.pick_description")}</p>
-            </Card>
-          )
-        )}
-      </div>
+          {/* Detail */}
+          {selected ? (
+            <StatDetail
+              key={selected.stat._id}
+              stat={selected.stat}
+              category={selected.category}
+              onChanged={() => fetchCategories({ categoryId: selected.stat.categoryId, name: selected.stat.name })}
+              onDeleted={() => {
+                setSearchParams({}, { replace: true });
+                fetchCategories();
+              }}
+            />
+          ) : (
+            !loading && (
+              <Card className="hidden flex-col items-center justify-center gap-2 p-12 text-center lg:flex">
+                <p className="font-semibold">{t("pages.statistics.pick_title")}</p>
+                <p className="text-sm text-muted-foreground">{t("pages.statistics.pick_description")}</p>
+              </Card>
+            )
+          )}
+        </div>
+      )}
     </Page>
   );
 };

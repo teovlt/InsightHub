@@ -249,7 +249,21 @@
         "reached": "Objectif atteint"
       },
       "delete_title": "Supprimer cette stat",
-      "delete_description": "Supprimer « {{name}} » et tout son historique ? C'est définitif."
+      "delete_description": "Supprimer « {{name}} » et tout son historique ? C'est définitif.",
+      "empty": {
+        "title": "Tu ne suis encore aucune stat",
+        "description": "Deux façons de commencer : laisse tes apps remplir tes stats toutes seules, ou ajoute à la main ce que tu veux suivre.",
+        "auto_title": "Stats automatiques",
+        "auto_description": "Connecte GitHub, Strava, Spotify… Tes stats se créent et se mettent à jour toutes seules, sans rien saisir.",
+        "manual_title": "Stats manuelles",
+        "manual_description": "Pages lues, séances de sport, heures de révision : crée une stat et mets-la à jour quand tu veux.",
+        "connect": "Connecter une app",
+        "create": "Créer une stat"
+      },
+      "auto_hint": {
+        "title": "Automatise tes stats",
+        "description": "Connecte une app (GitHub, Strava…) et ses stats se mettent à jour toutes seules."
+      }
     },
     "auth": {
       "subtitle": "Sport, lecture, études, code : suis ce qui compte pour toi et vois-toi avancer.",

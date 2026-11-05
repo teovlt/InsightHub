@@ -249,7 +249,21 @@
         "reached": "Goal reached"
       },
       "delete_title": "Delete this stat",
-      "delete_description": "Delete \"{{name}}\" and its whole history? This cannot be undone."
+      "delete_description": "Delete \"{{name}}\" and its whole history? This cannot be undone.",
+      "empty": {
+        "title": "You're not tracking any stat yet",
+        "description": "Two ways to start: let your apps fill your stats on their own, or add by hand what you want to track.",
+        "auto_title": "Automatic stats",
+        "auto_description": "Connect GitHub, Strava, Spotify… Your stats are created and kept up to date automatically, nothing to type.",
+        "manual_title": "Manual stats",
+        "manual_description": "Pages read, workouts, study hours: create a stat and update it whenever you like.",
+        "connect": "Connect an app",
+        "create": "Create a stat"
+      },
+      "auto_hint": {
+        "title": "Automate your stats",
+        "description": "Connect an app (GitHub, Strava…) and its stats update on their own."
+      }
     },
     "auth": {
       "subtitle": "Sport, reading, studies, code: track what matters to you and see yourself move forward.",
