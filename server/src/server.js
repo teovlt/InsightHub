@@ -4,6 +4,7 @@ import { runMigrations } from "./database/migrations.js";
 import { ensureProviderIntegrations } from "./integrations/index.js";
 import { createServer } from "http";
 import { initSockets } from "./sockets/socket.js";
+import { startScheduler } from "./integrations/scheduler.js";
 
 const MIN_SECRET_LENGTH = 32;
 
@@ -60,6 +61,11 @@ export async function initServer() {
 
   // Initialize WebSocket connections
   initSockets(httpServer);
+
+  // Syncs connected integrations without the user opening the dashboard (BACKGROUND_SYNC=false turns it off)
+  if (process.env.NODE_ENV !== "test" && process.env.BACKGROUND_SYNC !== "false") {
+    startScheduler();
+  }
 
   // Start the HTTP server on the specified port
   httpServer.listen(process.env.PORT, () => {
