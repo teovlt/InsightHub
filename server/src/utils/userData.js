@@ -1,6 +1,7 @@
 import { bucket } from "../lib/firebase.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
+import { UserAchievement } from "../models/userAchievementModel.js";
 
 /**
  * @function toPublicUser
@@ -37,6 +38,7 @@ export const deleteUserData = async (user) => {
   await Promise.all([
     Stat.deleteMany({ userId: user._id }),
     IntegrationUser.deleteMany({ userId: user._id }),
+    UserAchievement.deleteMany({ userId: user._id }),
     deleteAvatarFile(user.avatar),
   ]);
 };

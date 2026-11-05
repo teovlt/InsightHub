@@ -1,6 +1,7 @@
 import { Router } from "./router/routes.js";
 import { useAuthContext } from "./contexts/authContext.js";
 import { Loading } from "./components/customs/loading.js";
+import { AchievementListener } from "./components/customs/achievementListener.js";
 import "./styles/index.css";
 
 function App() {
@@ -10,7 +11,12 @@ function App() {
     return <Loading />;
   }
 
-  return <Router />;
+  return (
+    <>
+      <Router />
+      <AchievementListener />
+    </>
+  );
 }
 
 export default App;

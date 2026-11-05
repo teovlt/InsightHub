@@ -25,7 +25,7 @@ code, musique…) et tu vois — et montres — ta progression.**
 
 ### Structure de l'app
 
-Navigation : **Tableau de bord · Statistiques · Intégrations · Profil** (+ Admin pour les admins).
+Navigation : **Tableau de bord · Statistiques · Intégrations · Succès · Profil** (+ Admin pour les admins).
 
 - **Tableau de bord** : lecture seule. Stats épinglées avec tendance, objectifs, activité récente, toutes les stats
   par catégorie, et un seul geste d'écriture : « Ajouter une valeur ».

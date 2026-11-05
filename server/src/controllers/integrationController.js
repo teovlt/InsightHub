@@ -139,9 +139,9 @@ export const disconnect = async (req, res) => {
       { new: true },
     );
     if (!integrationUser) {
-      return res.status(404).json({ error: "Integration connection not found." });
+      return res.status(404).json({ error: "server.integrations.errors.not_connected" });
     }
-    res.status(200).json({ message: "Integration disconnected successfully." });
+    res.status(200).json({ message: "server.integrations.messages.disconnected" });
   } catch (err) {
     handleServerError(res, err);
   }

@@ -17,6 +17,7 @@ const RegisterGoogleForm = lazyNamed(() => import("@/pages/Authentication/regist
 const Statistics = lazyNamed(() => import("@/pages/Statistics"), "Statistics");
 const Account = lazyNamed(() => import("@/pages/Account"), "Account");
 const IntegrationsPage = lazyNamed(() => import("@/pages/Integrations"), "IntegrationsPage");
+const Achievements = lazyNamed(() => import("@/pages/Achievements"), "Achievements");
 const Index = lazyNamed(() => import("@/pages/Admin"), "Index");
 const Dashboard = lazyNamed(() => import("@/pages/Admin/components/dashboard"), "Dashboard");
 const Users = lazyNamed(() => import("@/pages/Admin/components/users"), "Users");
@@ -101,6 +102,14 @@ export const Router = () => {
           element={
             <ProtectedRoute authRequired={true}>
               <IntegrationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/achievements"
+          element={
+            <ProtectedRoute authRequired={true}>
+              <Achievements />
             </ProtectedRoute>
           }
         />

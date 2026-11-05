@@ -4,14 +4,15 @@
     "dashboard": "Tableau de bord",
     "account": "Mon compte",
     "login": "Se connecter",
-    "language": "Langage",
-    "languageChanged": "Langage changé en français.",
+    "language": "Langue",
+    "languageChanged": "Langue passée en français.",
     "changingLanguage": "Changement de langage...",
     "logout": "Se déconnecter",
     "profile": "Profil",
     "statistics": "Statistiques",
     "integrations": "Intégrations",
-    "admin": "Admin"
+    "admin": "Admin",
+    "achievements": "Succès"
   },
   "pages": {
     "account": {
@@ -263,7 +264,115 @@
         "streak": "12 jours"
       }
     },
+    "achievements": {
+      "title": "Tes succès",
+      "description": "Chaque habitude tenue te rapporte un badge. Bronze, argent, or : à toi de tous les débloquer.",
+      "summary": "badges débloqués. Continue comme ça !",
+      "summary_empty": "Ton premier badge est tout proche : connecte une app ou crée une stat.",
+      "unlocked": "Débloqués",
+      "locked": "À débloquer",
+      "unlocked_on": "Débloqué le {{date}}",
+      "all_tiers": "Tous les paliers sont à toi. Chapeau !",
+      "recent_title": "Derniers succès",
+      "recent_description": "Tes badges les plus récents.",
+      "recent_empty": "Pas encore de badge. Le premier arrive vite !",
+      "see_all": "Voir tout",
+      "tiers": {
+        "bronze": "Bronze",
+        "silver": "Argent",
+        "gold": "Or"
+      },
+      "toast": {
+        "title": "Nouveau badge : {{name}}",
+        "description": "Palier {{tier}} débloqué. Bien joué !",
+        "action": "Voir"
+      },
+      "items": {
+        "apps_connected": {
+          "name": "Tout connecté",
+          "description": "Connecte tes apps : tes stats arrivent toutes seules.",
+          "progress": "Apps connectées : {{value}}/{{target}}"
+        },
+        "first_sync": {
+          "name": "Première synchro",
+          "description": "Laisse une app remplir tes stats pour la première fois.",
+          "progress": "Apps synchronisées : {{value}}/{{target}}"
+        },
+        "goals_reached": {
+          "name": "Dans le mille 🎯",
+          "description": "Atteins les objectifs que tu t'es fixés.",
+          "progress": "Objectifs atteints : {{value}}/{{target}}"
+        },
+        "stats_created": {
+          "name": "Collectionneur",
+          "description": "Suis tout ce qui compte pour toi : sport, lecture, code…",
+          "progress": "Stats suivies : {{value}}/{{target}}"
+        },
+        "days_logged": {
+          "name": "Régulier",
+          "description": "Ajoute des valeurs, jour après jour.",
+          "progress": "Jours avec une valeur : {{value}}/{{target}}"
+        },
+        "streak": {
+          "name": "En feu 🔥",
+          "description": "Ajoute une valeur plusieurs jours d'affilée.",
+          "progress": "Meilleure série : {{value}}/{{target}} jours"
+        }
+      }
+    },
     "integrations": {
+      "eyebrow": "Intégrations",
+      "title": "Connecte tes apps",
+      "description": "Branche les apps que tu utilises déjà : tes stats se mettent à jour toutes seules. Fini la saisie à la main.",
+      "overview": {
+        "connected": "Apps connectées",
+        "active_stats": "Stats actives",
+        "available": "Apps disponibles"
+      },
+      "search_placeholder": "Cherche une intégration...",
+      "all": "Toutes",
+      "connected": "Connectées",
+      "available": "Disponibles",
+      "help": {
+        "title": "Comment ça marche ?",
+        "description": "Quand tu connectes une app, on crée les stats qui vont avec dans ton tableau de bord. Choisis celles à suivre : elles se mettent à jour toutes seules toutes les quelques heures, même site fermé. Besoin de la dernière valeur ? Lance « Synchroniser ».",
+        "badges": {
+          "sync": "Synchro automatique",
+          "categories": "Catégories automatiques",
+          "history": "Historique"
+        }
+      },
+      "card": {
+        "connected": "Connectée",
+        "api_key": "Clé API",
+        "username_only": "Pseudo seulement",
+        "sync_now": "Synchroniser",
+        "configure": "Choisir les stats",
+        "disconnect": "Déconnecter",
+        "connect": "Connecter",
+        "available_stats": "Stats disponibles",
+        "unit": "Unité : {{unit}}",
+        "enabled_stats_one": "<strong>{{count}}</strong> stat active, elle arrive direct dans ton tableau de bord",
+        "enabled_stats_other": "<strong>{{count}}</strong> stats actives, elles arrivent direct dans ton tableau de bord"
+      },
+      "dialog": {
+        "title": "Connecter {{name}}",
+        "key_description": "Colle ta clé perso. On la vérifie auprès du service, puis on la garde chiffrée, juste pour lire tes stats.",
+        "public_description": "Ton profil doit être public : on lit seulement tes stats publiques.",
+        "username_description": "Entre ton pseudo. Ton profil doit être public : on lit seulement tes stats publiques.",
+        "api_key": "Clé API",
+        "username": "Pseudo",
+        "where": "Où la trouver ?",
+        "connect": "Connecter"
+      },
+      "toasts": {
+        "not_found": "Cette intégration est introuvable.",
+        "no_auth_url": "Cette intégration n'est pas encore prête à se connecter.",
+        "redirecting": "Direction {{name}} pour te connecter...",
+        "connect_failed": "La connexion n'a pas marché. Réessaie dans un instant.",
+        "load_failed": "Impossible de charger les intégrations. Réessaie dans un instant.",
+        "first_sync_failed": "App connectée, mais la première synchro a échoué. Lance « Synchroniser » dans un moment."
+      },
       "synced_ago": "Synchronisé {{when}}",
       "never_synced": "Pas encore synchronisé",
       "auto_sync": "Se met à jour tout seul toutes les quelques heures"
@@ -339,6 +448,25 @@
         "user_updated": "Utilisateur mis à jour avec succès",
         "password_updated": "Mot de passe mis à jour avec succès",
         "user_deleted": "Utilisateur supprimé avec succès"
+      }
+    },
+    "integrations": {
+      "errors": {
+        "not_found": "Cette intégration est introuvable.",
+        "not_connected": "Cette app n'est pas connectée.",
+        "stat_not_found": "Cette stat n'existe pas pour cette app.",
+        "oauth_only": "Cette app se connecte via sa propre page de connexion.",
+        "unreachable": "Impossible de joindre {{name}}. Réessaie dans un instant.",
+        "no_active_stats": "Active au moins une stat pour lancer la synchro.",
+        "sync_failed": "La synchro a échoué. Réessaie dans un instant."
+      },
+      "messages": {
+        "connected": "{{name}} est connecté. Tes stats arrivent !",
+        "connected_sync_failed": "{{name}} est connecté, mais la première synchro a échoué. Lance « Synchroniser » dans un moment.",
+        "disconnected": "App déconnectée.",
+        "stat_activated": "Stat activée.",
+        "stat_deactivated": "Stat désactivée.",
+        "synced": "Stats synchronisées. À jour !"
       }
     }
   },

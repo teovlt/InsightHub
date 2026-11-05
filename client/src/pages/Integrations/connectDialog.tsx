@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { ExternalLink, KeyRound, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,8 +16,20 @@ interface ConnectDialogProps {
   onConnected: () => void;
 }
 
+// Server replies carry a translation key ("server.*") with optional params; other texts (provider errors) are shown as-is
+export function serverText(
+  t: TFunction,
+  data: { message?: string; error?: string; params?: Record<string, string> } | undefined,
+  field: "message" | "error" = "message",
+) {
+  const text = data?.[field];
+  if (!text) return field === "error" ? t("server.global.errors.internal") : "";
+  return text.startsWith("server.") ? t(text, data?.params) : text;
+}
+
 // Connection for integrations that only need a username or a personal API key (no OAuth redirect)
 export function ConnectDialog({ integration, onOpenChange, onConnected }: ConnectDialogProps) {
+  const { t } = useTranslation();
   const [credential, setCredential] = useState("");
   const [loading, setLoading] = useState(false);
   const isKey = integration?.authType === "apiKey";
@@ -31,11 +45,13 @@ export function ConnectDialog({ integration, onOpenChange, onConnected }: Connec
     try {
       setLoading(true);
       const response = await axiosConfig.post(`/integrations/${integration._id}/connection`, { credential: credential.trim() });
-      toast.success(response.data.message);
+      toast.success(serverText(t, response.data));
       onOpenChange(false);
       onConnected();
     } catch (error: any) {
-      toast.error(error.response?.data?.error ?? "Connection failed, please try again.");
+      toast.error(
+        error.response?.data?.error ? serverText(t, error.response.data, "error") : t("pages.integrations.toasts.connect_failed"),
+      );
     } finally {
       setLoading(false);
     }
@@ -46,13 +62,13 @@ export function ConnectDialog({ integration, onOpenChange, onConnected }: Connec
       <DialogContent className="sm:max-w-[440px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Connect {integration?.name}</DialogTitle>
+            <DialogTitle>{t("pages.integrations.dialog.title", { name: integration?.name })}</DialogTitle>
             <DialogDescription>
               {isKey
-                ? "Paste your personal key. It is checked with the service, then stored encrypted and only used to read your stats."
+                ? t("pages.integrations.dialog.key_description")
                 : integration?.credentialSteps?.length
-                  ? "Your profile must be public: only public stats are read."
-                  : "Enter your username. Your profile must be public: only public stats are read."}
+                  ? t("pages.integrations.dialog.public_description")
+                  : t("pages.integrations.dialog.username_description")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2 py-5">
@@ -68,7 +84,9 @@ export function ConnectDialog({ integration, onOpenChange, onConnected }: Connec
                 ))}
               </ol>
             )}
-            <Label htmlFor="integration-credential">{integration?.credentialLabel ?? (isKey ? "API key" : "Username")}</Label>
+            <Label htmlFor="integration-credential">
+              {integration?.credentialLabel ?? (isKey ? t("pages.integrations.dialog.api_key") : t("pages.integrations.dialog.username"))}
+            </Label>
             <div className="relative">
               {isKey && <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />}
               <Input
@@ -90,7 +108,7 @@ export function ConnectDialog({ integration, onOpenChange, onConnected }: Connec
                 rel="noreferrer"
                 className="inline-flex w-fit items-center gap-1 text-xs font-medium text-accent hover:underline"
               >
-                Where do I find it?
+                {t("pages.integrations.dialog.where")}
                 <ExternalLink className="h-3 w-3" />
               </a>
             )}
@@ -98,7 +116,7 @@ export function ConnectDialog({ integration, onOpenChange, onConnected }: Connec
           <DialogFooter>
             <Button type="submit" disabled={loading || !credential.trim()}>
               {loading && <Loader2 className="animate-spin" />}
-              Connect
+              {t("pages.integrations.dialog.connect")}
             </Button>
           </DialogFooter>
         </form>

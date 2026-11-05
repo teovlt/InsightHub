@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import { categoryRouter } from "./categoryRoutes.js";
 import { statRouter } from "./statRoutes.js";
 import { integrationRouter } from "./integrationRoutes.js";
+import { achievementRouter } from "./achievementRoutes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -21,6 +22,7 @@ router.use("/api/logs", logRouter); // Logging routes
 router.use("/api/categories", categoryRouter); // Category routes
 router.use("/api/stats", statRouter); // Stat routes
 router.use("/api/integrations", integrationRouter); // Integration routes
+router.use("/api/achievements", achievementRouter); // Achievement routes
 
 // UPLOADS routes
 router.use("/api/uploads", uploadRouter); // File upload routes

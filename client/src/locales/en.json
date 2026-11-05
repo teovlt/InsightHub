@@ -11,7 +11,8 @@
     "profile": "Profile",
     "statistics": "Statistics",
     "integrations": "Integrations",
-    "admin": "Admin"
+    "admin": "Admin",
+    "achievements": "Achievements"
   },
   "pages": {
     "account": {
@@ -263,7 +264,115 @@
         "streak": "12 days"
       }
     },
+    "achievements": {
+      "title": "Your achievements",
+      "description": "Every habit you keep earns you a badge. Bronze, silver, gold: go unlock them all.",
+      "summary": "badges unlocked. Keep it up!",
+      "summary_empty": "Your first badge is close: connect an app or create a stat.",
+      "unlocked": "Unlocked",
+      "locked": "Up next",
+      "unlocked_on": "Unlocked on {{date}}",
+      "all_tiers": "Every tier is yours. Nice work!",
+      "recent_title": "Latest achievements",
+      "recent_description": "Your most recent badges.",
+      "recent_empty": "No badge yet. The first one comes fast!",
+      "see_all": "See all",
+      "tiers": {
+        "bronze": "Bronze",
+        "silver": "Silver",
+        "gold": "Gold"
+      },
+      "toast": {
+        "title": "New badge: {{name}}",
+        "description": "{{tier}} tier unlocked. Well done!",
+        "action": "View"
+      },
+      "items": {
+        "apps_connected": {
+          "name": "All plugged in",
+          "description": "Connect your apps and your stats fill in on their own.",
+          "progress": "Apps connected: {{value}}/{{target}}"
+        },
+        "first_sync": {
+          "name": "First sync",
+          "description": "Let an app fill in your stats for the first time.",
+          "progress": "Apps synced: {{value}}/{{target}}"
+        },
+        "goals_reached": {
+          "name": "Bullseye 🎯",
+          "description": "Hit the goals you set for yourself.",
+          "progress": "Goals reached: {{value}}/{{target}}"
+        },
+        "stats_created": {
+          "name": "Collector",
+          "description": "Track everything that matters to you: sport, reading, code…",
+          "progress": "Stats tracked: {{value}}/{{target}}"
+        },
+        "days_logged": {
+          "name": "Regular",
+          "description": "Add values, day after day.",
+          "progress": "Days with a value: {{value}}/{{target}}"
+        },
+        "streak": {
+          "name": "On fire 🔥",
+          "description": "Add a value several days in a row.",
+          "progress": "Best streak: {{value}}/{{target}} days"
+        }
+      }
+    },
     "integrations": {
+      "eyebrow": "Integrations",
+      "title": "Connect your apps",
+      "description": "Plug in the apps you already use and your stats update on their own. No more manual entry.",
+      "overview": {
+        "connected": "Connected apps",
+        "active_stats": "Active stats",
+        "available": "Available apps"
+      },
+      "search_placeholder": "Search integrations...",
+      "all": "All",
+      "connected": "Connected",
+      "available": "Available",
+      "help": {
+        "title": "How integrations work",
+        "description": "When you connect an app, we automatically create the matching stats in your dashboard. Pick which stats to track: they update on their own every few hours, even when the site is closed. Need it now? Use \"Sync now\".",
+        "badges": {
+          "sync": "Automatic sync",
+          "categories": "Automatic categorization",
+          "history": "Historical data"
+        }
+      },
+      "card": {
+        "connected": "Connected",
+        "api_key": "API key",
+        "username_only": "Username only",
+        "sync_now": "Sync now",
+        "configure": "Configure stats",
+        "disconnect": "Disconnect",
+        "connect": "Connect",
+        "available_stats": "Available stats",
+        "unit": "Unit: {{unit}}",
+        "enabled_stats_one": "<strong>{{count}}</strong> stat enabled and syncing to your dashboard",
+        "enabled_stats_other": "<strong>{{count}}</strong> stats enabled and syncing to your dashboard"
+      },
+      "dialog": {
+        "title": "Connect {{name}}",
+        "key_description": "Paste your personal key. It is checked with the service, then stored encrypted and only used to read your stats.",
+        "public_description": "Your profile must be public: only public stats are read.",
+        "username_description": "Enter your username. Your profile must be public: only public stats are read.",
+        "api_key": "API key",
+        "username": "Username",
+        "where": "Where do I find it?",
+        "connect": "Connect"
+      },
+      "toasts": {
+        "not_found": "Integration not found.",
+        "no_auth_url": "This integration is not ready to connect yet.",
+        "redirecting": "Redirecting to {{name}} to sign in...",
+        "connect_failed": "Connection failed, please try again.",
+        "load_failed": "Failed to load integrations, please try again.",
+        "first_sync_failed": "App connected, but the first sync failed. Try \"Sync now\" in a moment."
+      },
       "synced_ago": "Synced {{when}}",
       "never_synced": "Not synced yet",
       "auto_sync": "Refreshes on its own every few hours"
@@ -339,6 +448,25 @@
         "user_updated": "User updated successfully",
         "password_updated": "Password updated successfully",
         "user_deleted": "User deleted successfully"
+      }
+    },
+    "integrations": {
+      "errors": {
+        "not_found": "Integration not found.",
+        "not_connected": "This app is not connected.",
+        "stat_not_found": "This stat does not exist for this app.",
+        "oauth_only": "This app connects through its own sign-in page.",
+        "unreachable": "{{name}} could not be reached, try again in a moment.",
+        "no_active_stats": "Turn on at least one stat to sync.",
+        "sync_failed": "Sync failed, try again in a moment."
+      },
+      "messages": {
+        "connected": "{{name}} connected.",
+        "connected_sync_failed": "{{name}} connected, but the first sync failed. Try \"Sync now\" in a moment.",
+        "disconnected": "App disconnected.",
+        "stat_activated": "Stat turned on.",
+        "stat_deactivated": "Stat turned off.",
+        "synced": "Stats synced."
       }
     }
   },
