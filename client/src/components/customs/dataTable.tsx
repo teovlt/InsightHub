@@ -83,8 +83,8 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="overflow-hidden border rounded-md">
-      <div className="flex flex-col items-center justify-between gap-4 p-4 text-2xl md:flex-row">
+    <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card">
+      <div className="flex flex-col items-center justify-between gap-4 p-4 md:flex-row">
         <div className="flex flex-col w-full gap-4 md:flex-row">
           <Input
             placeholder={searchPlaceholder}

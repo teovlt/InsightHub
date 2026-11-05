@@ -10,6 +10,7 @@ import { categoryRouter } from "./categoryRoutes.js";
 import { statRouter } from "./statRoutes.js";
 import { integrationRouter } from "./integrationRoutes.js";
 import { achievementRouter } from "./achievementRoutes.js";
+import { adminRouter } from "./adminRoutes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -23,6 +24,7 @@ router.use("/api/categories", categoryRouter); // Category routes
 router.use("/api/stats", statRouter); // Stat routes
 router.use("/api/integrations", integrationRouter); // Integration routes
 router.use("/api/achievements", achievementRouter); // Achievement routes
+router.use("/api/admin", adminRouter); // Admin dashboard
 
 // UPLOADS routes
 router.use("/api/uploads", uploadRouter); // File upload routes

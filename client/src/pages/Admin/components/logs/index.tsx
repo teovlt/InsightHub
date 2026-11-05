@@ -53,7 +53,7 @@ export const Logs = () => {
 
   return (
     <div>
-      <div className="container px-4 mx-auto">
+      <div>
         <DataTable
           columns={getColumns(deleteLog)}
           data={logs}

@@ -54,22 +54,6 @@ export const Router = () => {
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute authRequired={true} role="admin">
-              <Index />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="users" element={<Users />} />
-          <Route path="logs" element={<Logs />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="integrations" element={<Integrations />} />
-        </Route>
       </Route>
 
       <Route element={<LayoutWrapper />}>
@@ -113,6 +97,21 @@ export const Router = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute authRequired={true} role="admin">
+              <Index />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="logs" element={<Logs />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="integrations" element={<Integrations />} />
+        </Route>
       </Route>
     </Routes>
   );

@@ -415,6 +415,55 @@
       "synced_ago": "Synced {{when}}",
       "never_synced": "Not synced yet",
       "auto_sync": "Refreshes on its own every few hours"
+    },
+    "admin": {
+      "eyebrow": "Admin",
+      "title": "Run InsightHub",
+      "description": "Who signs up, what they track, and what needs a look.",
+      "sections": {
+        "dashboard": "Overview",
+        "users": "Users",
+        "integrations": "Integrations",
+        "categories": "Categories",
+        "logs": "Logs"
+      },
+      "dashboard": {
+        "users": "Users",
+        "new_month": "+{{count}} in 30 days",
+        "new_week": "New this week",
+        "active_week": "Active this week",
+        "active_share": "{{percent}}% of users logged a value",
+        "online": "Online now",
+        "signups_title": "Sign-ups",
+        "signups_hint_one": "{{count}} new account in 30 days",
+        "signups_hint_other": "{{count}} new accounts in 30 days",
+        "today": "Today",
+        "auth_title": "Sign-in method",
+        "auth": {
+          "local": "Email and password",
+          "google": "Google"
+        },
+        "content": {
+          "stats": "Tracked stats",
+          "values_week": "Values this week",
+          "goals": "Goals set",
+          "badges": "Badges unlocked"
+        },
+        "integrations_title": "Integrations",
+        "connections_one": "{{count}} connection",
+        "connections_other": "{{count}} connections",
+        "failing_one": "{{count}} failing",
+        "failing_other": "{{count}} failing",
+        "healthy": "All syncs OK",
+        "status": {
+          "disabled": "Disabled",
+          "deprecated": "Deprecated"
+        },
+        "problems_title": "Errors and warnings",
+        "problems_week_one": "{{count}} this week",
+        "problems_week_other": "{{count}} this week",
+        "no_problems": "Nothing to report. All good!"
+      }
     }
   },
   "components": {

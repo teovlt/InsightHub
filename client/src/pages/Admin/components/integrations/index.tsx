@@ -51,7 +51,7 @@ export const Integrations = () => {
 
   return (
     <div>
-      <div className="container px-4 mx-auto">
+      <div>
         <DataTable
           columns={getColumns(callback)}
           data={integrations}

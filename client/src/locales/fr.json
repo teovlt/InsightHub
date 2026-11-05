@@ -415,6 +415,55 @@
       "synced_ago": "Synchronisé {{when}}",
       "never_synced": "Pas encore synchronisé",
       "auto_sync": "Se met à jour tout seul toutes les quelques heures"
+    },
+    "admin": {
+      "eyebrow": "Admin",
+      "title": "Piloter InsightHub",
+      "description": "Qui s'inscrit, ce qui est suivi, et ce qui mérite un coup d'œil.",
+      "sections": {
+        "dashboard": "Vue d'ensemble",
+        "users": "Utilisateurs",
+        "integrations": "Intégrations",
+        "categories": "Catégories",
+        "logs": "Logs"
+      },
+      "dashboard": {
+        "users": "Utilisateurs",
+        "new_month": "+{{count}} en 30 jours",
+        "new_week": "Nouveaux cette semaine",
+        "active_week": "Actifs cette semaine",
+        "active_share": "{{percent}} % des comptes ont ajouté une valeur",
+        "online": "En ligne",
+        "signups_title": "Inscriptions",
+        "signups_hint_one": "{{count}} nouveau compte en 30 jours",
+        "signups_hint_other": "{{count}} nouveaux comptes en 30 jours",
+        "today": "Aujourd'hui",
+        "auth_title": "Mode de connexion",
+        "auth": {
+          "local": "Email et mot de passe",
+          "google": "Google"
+        },
+        "content": {
+          "stats": "Stats suivies",
+          "values_week": "Valeurs cette semaine",
+          "goals": "Objectifs fixés",
+          "badges": "Badges débloqués"
+        },
+        "integrations_title": "Intégrations",
+        "connections_one": "{{count}} connexion",
+        "connections_other": "{{count}} connexions",
+        "failing_one": "{{count}} en échec",
+        "failing_other": "{{count}} en échec",
+        "healthy": "Synchros OK",
+        "status": {
+          "disabled": "Désactivée",
+          "deprecated": "Obsolète"
+        },
+        "problems_title": "Erreurs et alertes",
+        "problems_week_one": "{{count}} cette semaine",
+        "problems_week_other": "{{count}} cette semaine",
+        "no_problems": "Rien à signaler. Tout roule !"
+      }
     }
   },
   "components": {

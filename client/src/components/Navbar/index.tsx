@@ -51,7 +51,7 @@ export const Navbar = () => {
     { to: "/integrations", label: t("navbar.integrations"), icon: Link2 },
     { to: "/achievements", label: t("navbar.achievements"), icon: Trophy },
     { to: "/account", label: t("navbar.profile"), icon: User },
-    ...(authUser?.role === "admin" ? [{ to: "/admin/dashboard", label: t("navbar.admin"), icon: Wrench }] : []),
+    ...(authUser?.role === "admin" ? [{ to: "/admin", label: t("navbar.admin"), icon: Wrench }] : []),
   ];
 
   useEffect(() => {
