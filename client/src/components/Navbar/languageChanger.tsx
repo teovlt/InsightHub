@@ -9,36 +9,42 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Globe } from "lucide-react";
-import { getFullNamesOfLocales, listOfLocales } from "@/lib/i18n";
+import { getFullNamesOfLocales, listOfLocales, saveLanguage } from "@/lib/i18n";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 
-export const LanguageChanger = () => {
+export const LanguageChanger = ({ align = "end" }: { align?: "start" | "center" | "end" }) => {
   const {
     i18n: { changeLanguage, language, t },
   } = useTranslation();
 
-  const handleChangeLanguage = (l: string) => {
-    localStorage.setItem("i18nextLng", l);
-    changeLanguage(l);
+  const handleChangeLanguage = async (l: string) => {
+    if (l === language) return;
+    saveLanguage(l);
+    await changeLanguage(l);
     toast.success(t("navbar.languageChanged"));
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild className="cursor-pointer text-primary">
-        <Button variant="outline" size="sm">
-          <Globe className="w-5 h-5" />
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="cursor-pointer rounded-full text-muted-foreground hover:text-foreground"
+          aria-label={t("navbar.language")}
+        >
+          <Globe className="h-[1.2rem] w-[1.2rem]" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-40">
+      <DropdownMenuContent align={align} className="w-40">
         <DropdownMenuLabel>{t("navbar.language")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {listOfLocales.map((l) => (
           <DropdownMenuItem
             key={l}
             onClick={() => handleChangeLanguage(l)}
-            className={` cursor-pointer flex items-center ${language === l ? "bg-secondary" : ""}`}
+            className={`cursor-pointer flex items-center ${language === l ? "bg-secondary" : ""}`}
           >
             {l === "fr" && <FR />}
             {l === "en" && <GB />}
