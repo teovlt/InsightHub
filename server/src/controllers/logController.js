@@ -4,17 +4,20 @@ import { handleServerError } from "../utils/httpErrors.js";
 import { getPagination } from "../utils/pagination.js";
 
 /**
- * Retrieves logs from the database.
+ * Retrieves logs from the database, newest first (?page, ?size, ?level=info|warn|error|debug).
  *
  * @returns {Object} JSON response with logs or error message.
  */
 export const getLogs = async (req, res) => {
   const { size, skip } = getPagination(req.query);
 
-  try {
-    const logs = await Log.find({}).sort({ createdAt: -1 }).populate("user").skip(skip).limit(size);
+  // ?level=error keeps one level; unknown values are ignored
+  const filter = Object.values(logLevels).includes(req.query.level) ? { level: req.query.level } : {};
 
-    const count = await Log.countDocuments();
+  try {
+    const logs = await Log.find(filter).sort({ createdAt: -1 }).populate("user").skip(skip).limit(size);
+
+    const count = await Log.countDocuments(filter);
 
     res.status(200).json({ logs, count });
   } catch (err) {

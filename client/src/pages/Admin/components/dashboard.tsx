@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
-import { Activity, AlertTriangle, ArrowRight, CheckCircle2, Radio, UserPlus, Users } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, CheckCircle2, Radio, RefreshCw, UserPlus, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { axiosConfig } from "@/config/axiosConfig";
@@ -26,13 +27,33 @@ export const Dashboard = () => {
   const { t } = useTranslation();
   const { onlineUsers } = useSocketContext();
   const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
-  useEffect(() => {
+  const fetchOverview = () =>
     axiosConfig
       .get("/admin/overview")
       .then((response) => setOverview(response.data))
       .catch((error) => toast.error(error.response?.data?.error));
+
+  useEffect(() => {
+    fetchOverview();
   }, []);
+
+  // The server answers once the sync is queued: give it a few seconds, then refresh the health list
+  const syncAll = async () => {
+    try {
+      setSyncing(true);
+      const response = await axiosConfig.post("/admin/sync");
+      toast.success(t("pages.admin.dashboard.sync_started", { count: response.data.queued }));
+      setTimeout(() => {
+        fetchOverview();
+        setSyncing(false);
+      }, 5000);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error);
+      setSyncing(false);
+    }
+  };
 
   if (!overview) {
     return (
@@ -149,6 +170,10 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="p-5 sm:p-6">
           <Heading title={t("pages.admin.dashboard.integrations_title")} to="/admin/integrations" />
+          <Button variant="outline" size="sm" className="mt-3" onClick={syncAll} disabled={syncing}>
+            <RefreshCw className={cn(syncing && "animate-spin")} />
+            {t("pages.admin.dashboard.sync_all")}
+          </Button>
           <div className="mt-4 divide-y divide-border/70">
             {integrations.map((integration) => {
               const Icon = getIcon(integration.icon);
@@ -249,7 +274,7 @@ const Heading = ({ title, hint, to }: { title: string; hint?: string; to?: strin
       </div>
       {to && (
         <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-accent hover:underline">
-          {t("pages.dashboard.see_all")}
+          {t("pages.admin.dashboard.see_all")}
           <ArrowRight className="h-4 w-4" />
         </Link>
       )}

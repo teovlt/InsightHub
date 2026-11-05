@@ -1,5 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
+import i18n from "i18next";
+import { dateLocale } from "@/lib/stats";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, Copy, EllipsisVertical, Pencil, Trash } from "lucide-react";
@@ -85,6 +87,27 @@ export const getColumns = (callback: (action: string, data: any) => void): Colum
       return <div>{formatted}</div>;
     },
     meta: { label: "Joined" },
+  },
+  {
+    id: "activity",
+    header: () => i18n.t("pages.admin.users.activity"),
+    cell: ({ row }) => {
+      const activity = row.original.activity;
+      if (!activity) return null;
+      return (
+        <div className="space-y-0.5 whitespace-nowrap text-sm">
+          <p>{i18n.t("pages.admin.users.activity_counts", { stats: activity.stats, apps: activity.apps })}</p>
+          <p className="text-xs text-muted-foreground">
+            {activity.lastActivity
+              ? i18n.t("pages.admin.users.last_value", {
+                  when: formatDistanceToNow(new Date(activity.lastActivity), { addSuffix: true, locale: dateLocale() }),
+                })
+              : i18n.t("pages.admin.users.no_value")}
+          </p>
+        </div>
+      );
+    },
+    meta: { label: "Activity" },
   },
   {
     id: "actions",

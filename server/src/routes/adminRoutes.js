@@ -1,5 +1,5 @@
 import express from "express";
-import { getAdminOverview } from "../controllers/adminController.js";
+import { getAdminOverview, syncAllIntegrations } from "../controllers/adminController.js";
 import { verifyToken } from "../middlewares/verifyToken.js";
 
 export const adminRouter = new express.Router();
@@ -10,3 +10,10 @@ export const adminRouter = new express.Router();
  * @middleware verifyToken({ role: "admin" }) - Ensures the user is authenticated and has the 'admin' role.
  */
 adminRouter.get("/overview", verifyToken({ role: "admin" }), getAdminOverview);
+
+/**
+ * @route POST /sync
+ * @description Syncs every connected integration now, in the background.
+ * @middleware verifyToken({ role: "admin" }) - Ensures the user is authenticated and has the 'admin' role.
+ */
+adminRouter.post("/sync", verifyToken({ role: "admin" }), syncAllIntegrations);

@@ -21,19 +21,27 @@ let timer = null;
  * @description Connected integrations whose data is older than the background interval and that were not attempted recently.
  * Never synced first, then the oldest. Integrations an admin disabled are left out.
  * @param {Date} [now]
+ * @param {Object} [options]
+ * @param {boolean} [options.all=false] - Every connected integration, however recent its last sync.
  * @returns {Promise<Object[]>} IntegrationUser documents (lean, userId and integrationId only).
  */
-export const findDueConnections = async (now = new Date()) => {
+export const findDueConnections = async (now = new Date(), { all = false } = {}) => {
   const available = await Integration.find({ status: "available" }).select("_id").lean();
   if (available.length === 0) return [];
 
   const staleBefore = new Date(now.getTime() - getBackgroundSyncInterval());
   const retryBefore = new Date(now.getTime() - RETRY_DELAY);
 
-  return IntegrationUser.find({
+  const base = {
     connected: true,
     accessToken: { $exists: true, $ne: null },
     integrationId: { $in: available.map((integration) => integration._id) },
+  };
+  // An admin asking for a sync wants every connection, fresh or not
+  if (all) return IntegrationUser.find(base).sort({ lastSyncedAt: 1 }).select("userId integrationId").lean();
+
+  return IntegrationUser.find({
+    ...base,
     $and: [
       { $or: [{ lastSyncedAt: { $exists: false } }, { lastSyncedAt: null }, { lastSyncedAt: { $lt: staleBefore } }] },
       { $or: [{ lastSyncAttemptAt: { $exists: false } }, { lastSyncAttemptAt: null }, { lastSyncAttemptAt: { $lt: retryBefore } }] },
@@ -47,18 +55,18 @@ export const findDueConnections = async (now = new Date()) => {
 
 /**
  * @function runBackgroundSync
- * @description Refreshes every due connection. Overlapping runs are skipped.
+ * @description Refreshes every due connection (every connection with all: true). Overlapping runs are skipped.
  * Open dashboards are told about new values by autoSyncStats (socket "stats:updated").
  * @returns {Promise<{ synced: number, failed: number, skipped?: boolean }>}
  */
-export const runBackgroundSync = async () => {
+export const runBackgroundSync = async ({ all = false } = {}) => {
   if (running) return { synced: 0, failed: 0, skipped: true };
   running = true;
 
   let synced = 0;
   let failed = 0;
   try {
-    const due = await findDueConnections();
+    const due = await findDueConnections(new Date(), { all });
     for (const connection of due) {
       // Recorded first, so a failing service is not called again before RETRY_DELAY
       await IntegrationUser.updateOne({ _id: connection._id }, { lastSyncAttemptAt: new Date() });

@@ -6,6 +6,7 @@ import { Log } from "../models/logModel.js";
 import { UserAchievement } from "../models/userAchievementModel.js";
 import { authTypes } from "../utils/enums/authTypes.js";
 import { handleServerError } from "../utils/httpErrors.js";
+import { findDueConnections, runBackgroundSync } from "../integrations/scheduler.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 const SIGNUP_DAYS = 30;
@@ -87,6 +88,24 @@ export const getAdminOverview = async (req, res) => {
       integrations: perIntegration.sort((a, b) => b.connections - a.connections),
       logs: { problemsWeek, latest: latestProblems },
     });
+  } catch (err) {
+    handleServerError(res, err);
+  }
+};
+
+/**
+ * Syncs every connected integration now, without waiting for the background job.
+ * Answers right away (202) with the number of connections queued; the sync runs in the background
+ * and open dashboards refresh on their own (socket "stats:updated").
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ */
+export const syncAllIntegrations = async (req, res) => {
+  try {
+    const queued = (await findDueConnections(new Date(), { all: true })).length;
+    runBackgroundSync({ all: true }).catch((err) => console.error("Admin sync:", err.message));
+    res.status(202).json({ queued });
   } catch (err) {
     handleServerError(res, err);
   }

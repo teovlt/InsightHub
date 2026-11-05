@@ -423,7 +423,27 @@
         "problems_title": "Errors and warnings",
         "problems_week_one": "{{count}} this week",
         "problems_week_other": "{{count}} this week",
-        "no_problems": "Nothing to report. All good!"
+        "no_problems": "Nothing to report. All good!",
+        "see_all": "See all",
+        "sync_all": "Sync every connection now",
+        "sync_started_one": "{{count}} connection is syncing.",
+        "sync_started_other": "{{count}} connections are syncing."
+      },
+      "logs": {
+        "level": "Log level",
+        "levels": {
+          "all": "All",
+          "error": "Errors",
+          "warn": "Warnings",
+          "info": "Info",
+          "debug": "Debug"
+        }
+      },
+      "users": {
+        "activity": "Activity",
+        "activity_counts": "{{stats}} stats · {{apps}} apps",
+        "last_value": "Last value {{when}}",
+        "no_value": "No value yet"
       }
     }
   },

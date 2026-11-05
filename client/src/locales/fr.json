@@ -423,7 +423,27 @@
         "problems_title": "Erreurs et alertes",
         "problems_week_one": "{{count}} cette semaine",
         "problems_week_other": "{{count}} cette semaine",
-        "no_problems": "Rien à signaler. Tout roule !"
+        "no_problems": "Rien à signaler. Tout roule !",
+        "see_all": "Voir tout",
+        "sync_all": "Synchroniser toutes les connexions",
+        "sync_started_one": "{{count}} connexion en cours de synchro.",
+        "sync_started_other": "{{count}} connexions en cours de synchro."
+      },
+      "logs": {
+        "level": "Niveau de log",
+        "levels": {
+          "all": "Tous",
+          "error": "Erreurs",
+          "warn": "Alertes",
+          "info": "Infos",
+          "debug": "Debug"
+        }
+      },
+      "users": {
+        "activity": "Activité",
+        "activity_counts": "{{stats}} stats · {{apps}} apps",
+        "last_value": "Dernière valeur {{when}}",
+        "no_value": "Aucune valeur"
       }
     }
   },

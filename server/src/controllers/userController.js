@@ -1,4 +1,6 @@
 import { User } from "../models/userModel.js";
+import { Stat } from "../models/statModel.js";
+import { IntegrationUser } from "../models/integrationUser.js";
 import bcrypt from "bcryptjs";
 import { userRoles } from "../utils/enums/userRoles.js";
 import { createLog } from "./logController.js";
@@ -51,11 +53,32 @@ export const getUsers = async (req, res) => {
   const { size, skip } = getPagination(req.query);
 
   try {
-    const users = await User.find({}).sort({ createdAt: -1 }).skip(skip).limit(size);
+    const users = await User.find({}).sort({ createdAt: -1 }).skip(skip).limit(size).lean();
+    const ids = users.map((user) => user._id);
 
-    const count = await User.countDocuments();
+    const [count, statRows, connectionRows] = await Promise.all([
+      User.countDocuments(),
+      // Tracked stats (current versions) and the last value logged, per user of the page
+      Stat.aggregate([
+        { $match: { userId: { $in: ids } } },
+        { $group: { _id: "$userId", stats: { $sum: { $cond: ["$current", 1, 0] } }, lastActivity: { $max: "$createdAt" } } },
+      ]),
+      IntegrationUser.aggregate([{ $match: { userId: { $in: ids }, connected: true } }, { $group: { _id: "$userId", apps: { $sum: 1 } } }]),
+    ]);
+    const statsBy = new Map(statRows.map((row) => [row._id.toString(), row]));
+    const appsBy = new Map(connectionRows.map((row) => [row._id.toString(), row.apps]));
 
-    res.status(200).json({ users, count });
+    res.status(200).json({
+      users: users.map((user) => ({
+        ...user,
+        activity: {
+          stats: statsBy.get(user._id.toString())?.stats ?? 0,
+          lastActivity: statsBy.get(user._id.toString())?.lastActivity ?? null,
+          apps: appsBy.get(user._id.toString()) ?? 0,
+        },
+      })),
+      count,
+    });
   } catch (err) {
     handleServerError(res, err);
   }
