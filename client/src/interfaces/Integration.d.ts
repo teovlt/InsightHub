@@ -10,6 +10,8 @@ export interface IntegrationInterface {
   authType?: "oauth" | "username" | "apiKey";
   credentialLabel?: string;
   credentialHelp?: string;
+  credentialPlaceholder?: string;
+  credentialSteps?: string[];
   availableStats?: IntegrationStat[];
   config?: {
     authUrl?: string;

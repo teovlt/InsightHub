@@ -74,6 +74,8 @@ export const ensureProviderIntegrations = async () => {
       authType: provider.auth,
       credentialLabel: provider.credentialLabel,
       credentialHelp: provider.credentialHelp,
+      credentialPlaceholder: provider.credentialPlaceholder,
+      credentialSteps: provider.credentialSteps ?? [],
       "config.docsUrl": provider.docsUrl,
       ...(provider.authUrl && { "config.authUrl": provider.authUrl }),
     };
@@ -91,6 +93,8 @@ export const ensureProviderIntegrations = async () => {
         authType: provider.auth,
         credentialLabel: provider.credentialLabel,
         credentialHelp: provider.credentialHelp,
+        credentialPlaceholder: provider.credentialPlaceholder,
+        credentialSteps: provider.credentialSteps ?? [],
         config: { authUrl: provider.authUrl, docsUrl: provider.docsUrl },
       });
     } else {

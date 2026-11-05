@@ -7,7 +7,7 @@ import { IntegrationUser } from "../../../src/models/integrationUser.js";
 import { Stat } from "../../../src/models/statModel.js";
 import { decrypt } from "../../../src/utils/crypto.js";
 import { ensureProviderIntegrations, PROVIDERS } from "../../../src/integrations/index.js";
-import { chesscom, lichess } from "../../../src/integrations/providers/games.js";
+import { chesscom, lichess, steam } from "../../../src/integrations/providers/games.js";
 import { codewars, leetcode, monkeytype, wakatime } from "../../../src/integrations/providers/code.js";
 import { duolingo, openlibrary } from "../../../src/integrations/providers/life.js";
 import { regularUser } from "../../fixtures/users.js";
@@ -48,6 +48,24 @@ describe("Providers", () => {
   it("should refuse an unknown Chess.com username", async () => {
     mockFetch({});
     await expect(chesscom.verify("nobody")).rejects.toThrow("No Chess.com player");
+  });
+
+  it("should find a Steam profile from its link, custom URL name or SteamID64", async () => {
+    const spy = mockFetch({ "ResolveVanityURL/v1/?key=test&vanityurl=teo": { response: { success: 1, steamid: "76561198000000001" } } });
+    process.env.STEAM_API_KEY = "test";
+
+    expect(await steam.resolveId("https://steamcommunity.com/profiles/76561198000000002/")).toBe("76561198000000002");
+    expect(await steam.resolveId(" 76561198000000003 ")).toBe("76561198000000003");
+    expect(await steam.resolveId("https://steamcommunity.com/profiles/76561199141783393/")).toBe("76561199141783393");
+    expect(await steam.resolveId("steamcommunity.com/profiles/76561199141783393")).toBe("76561199141783393");
+    expect(spy).not.toHaveBeenCalled();
+    expect(await steam.resolveId("https://steamcommunity.com/id/teo/")).toBe("76561198000000001");
+    expect(await steam.resolveId("teo")).toBe("76561198000000001");
+  });
+
+  it("should explain that a Steam display name is not enough", async () => {
+    mockFetch({ ResolveVanityURL: { response: { success: 42 } } });
+    await expect(steam.resolveId("Teo le boss")).rejects.toThrow("Your display name does not work");
   });
 
   it("should read Lichess ratings and play time in hours", async () => {

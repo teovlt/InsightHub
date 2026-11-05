@@ -50,10 +50,24 @@ export function ConnectDialog({ integration, onOpenChange, onConnected }: Connec
             <DialogDescription>
               {isKey
                 ? "Paste your personal key. It is checked with the service, then stored encrypted and only used to read your stats."
-                : "Enter your username. Your profile must be public: only public stats are read."}
+                : integration?.credentialSteps?.length
+                  ? "Your profile must be public: only public stats are read."
+                  : "Enter your username. Your profile must be public: only public stats are read."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2 py-5">
+            {integration?.credentialSteps && integration.credentialSteps.length > 0 && (
+              <ol className="mb-3 space-y-2 rounded-xl bg-secondary/60 p-4 text-sm">
+                {integration.credentialSteps.map((step, index) => (
+                  <li key={index} className="flex gap-3">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white">
+                      {index + 1}
+                    </span>
+                    <span className="text-muted-foreground">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
             <Label htmlFor="integration-credential">{integration?.credentialLabel ?? (isKey ? "API key" : "Username")}</Label>
             <div className="relative">
               {isKey && <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />}
@@ -62,6 +76,7 @@ export function ConnectDialog({ integration, onOpenChange, onConnected }: Connec
                 type={isKey ? "password" : "text"}
                 autoComplete="off"
                 value={credential}
+                placeholder={integration?.credentialPlaceholder}
                 onChange={(e) => setCredential(e.target.value)}
                 className={isKey ? "pl-9" : undefined}
                 required

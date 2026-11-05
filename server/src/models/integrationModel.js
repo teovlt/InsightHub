@@ -39,6 +39,9 @@ const IntegrationSchema = new Schema(
     // What the user types to connect a "username" or "apiKey" integration, and where to find it
     credentialLabel: { type: String },
     credentialHelp: { type: String },
+    // Example shown in the empty field, and the steps to get the credential, shown in the connect dialog
+    credentialPlaceholder: { type: String },
+    credentialSteps: [{ type: String }],
     // Disabled at startup because a server key is missing (see ensureProviderIntegrations)
     autoDisabled: { type: Boolean, default: false },
     availableStats: [

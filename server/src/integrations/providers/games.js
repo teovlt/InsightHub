@@ -88,7 +88,15 @@ export const steam = {
   color: "#1b2838",
   category: "Games",
   auth: "username",
-  credentialLabel: "Steam profile name or SteamID64",
+  credentialLabel: "Your Steam profile link",
+  credentialPlaceholder: "https://steamcommunity.com/profiles/76561199…/",
+  // Opens the signed-in user's own profile
+  credentialHelp: "https://steamcommunity.com/my/profile",
+  credentialSteps: [
+    "Open your Steam profile (in the Steam app: click your name, then Profile).",
+    'Copy the link of the page: right-click it and choose "Copy Page URL", or copy it from your browser\'s address bar.',
+    "Paste it here. It looks like steamcommunity.com/profiles/7656119… or steamcommunity.com/id/yourname. Your SteamID64 works too.",
+  ],
   docsUrl: "https://steamcommunity.com/dev",
   requiresEnv: ["STEAM_API_KEY"],
   statCategory: { name: "Steam", description: "Your games on Steam", icon: "Gamepad2", color: "#2a475e" },
@@ -97,13 +105,22 @@ export const steam = {
     { id: "total_playtime", name: "Total play time", description: "Time played across all games.", unit: "h" },
     { id: "recent_playtime", name: "Play time (2 weeks)", description: "Time played in the last two weeks.", unit: "h" },
   ],
+  // Steam only finds a profile by its custom URL name (steamcommunity.com/id/<name>), not by the display name
   async resolveId(input) {
-    if (/^\d{17}$/.test(input)) return input;
+    const value = input.trim().replace(/[/?#]+$/, "");
+    const steamId = value.match(/^(?:.*\/profiles\/)?(\d{17})$/)?.[1];
+    if (steamId) return steamId;
+    const vanity = value.match(/\/id\/([^/?#]+)/)?.[1] ?? value;
+
     const key = process.env.STEAM_API_KEY;
     const data = await fetchJson(
-      `https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${key}&vanityurl=${encodeURIComponent(input)}`,
+      `https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${key}&vanityurl=${encodeURIComponent(vanity)}`,
     );
-    if (data.response?.success !== 1) throw new ProviderError("No Steam profile with this name.");
+    if (data.response?.success !== 1) {
+      throw new ProviderError(
+        `No Steam profile found for "${vanity}". Your display name does not work: paste your profile link, or your SteamID64 if you never set a custom URL.`,
+      );
+    }
     return data.response.steamid;
   },
   async verify(input) {
