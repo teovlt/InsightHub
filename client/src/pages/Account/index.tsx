@@ -20,6 +20,7 @@ import { UpdatePasswordForm } from "./components/updatePasswordForm";
 import { Dialog } from "@radix-ui/react-dialog";
 import { LogOut, Trash } from "lucide-react";
 import { DeleteAccountForm } from "./components/deleteAccountForm";
+import { RecentAchievements } from "./components/recentAchievements";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -147,96 +148,105 @@ export const Account = () => {
           </div>
         </Card>
 
-        {/* Details form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t("pages.account.details_title")}</CardTitle>
-            <CardDescription>{t("pages.account.details_description")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...updateForm}>
-              <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-6">
-                <div className="flex flex-col gap-4 md:flex-row ">
-                  <FormField
-                    control={updateForm.control}
-                    name="forename"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>{t("pages.account.forename_label")}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={updateForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>{t("pages.account.name_label")}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={updateForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("pages.account.username_label")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder="john_doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={updateForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("pages.account.email_label")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder="john.doe@gmail.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <div className="space-y-6">
+          <RecentAchievements />
 
-                {/* Google accounts sign in with Google and have no password to change */}
-                {authUser?.auth_type !== "google" && (
-                  <FormItem>
-                    <div className="flex flex-col w-full gap-2">
-                      <FormLabel>{t("pages.account.password_label")}</FormLabel>
-                      <div className="flex items-center justify-between gap-4">
+          {/* Details form */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">{t("pages.account.details_title")}</CardTitle>
+              <CardDescription>{t("pages.account.details_description")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...updateForm}>
+                <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-6">
+                  <div className="flex flex-col gap-4 md:flex-row ">
+                    <FormField
+                      control={updateForm.control}
+                      name="forename"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>{t("pages.account.forename_label")}</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={updateForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>{t("pages.account.name_label")}</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={updateForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("pages.account.username_label")}</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder={t("pages.account.password_placeholder")} disabled />
+                          <Input placeholder="john_doe" {...field} />
                         </FormControl>
-                        <Button type="button" variant="outline" onClick={() => setOpenUpdatePasswordDialog(true)} disabled={updateLoading}>
-                          {t("pages.account.change_password")}
-                        </Button>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={updateForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("pages.account.email_label")}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="john.doe@gmail.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Google accounts sign in with Google and have no password to change */}
+                  {authUser?.auth_type !== "google" && (
+                    <FormItem>
+                      <div className="flex flex-col w-full gap-2">
+                        <FormLabel>{t("pages.account.password_label")}</FormLabel>
+                        <div className="flex items-center justify-between gap-4">
+                          <FormControl>
+                            <Input type="password" placeholder={t("pages.account.password_placeholder")} disabled />
+                          </FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpenUpdatePasswordDialog(true)}
+                            disabled={updateLoading}
+                          >
+                            {t("pages.account.change_password")}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </FormItem>
-                )}
+                    </FormItem>
+                  )}
 
-                <CardFooter className="justify-end px-0">
-                  <Button type="submit" disabled={updateLoading} className="w-full sm:w-auto sm:px-8">
-                    {t("global.buttons.update")}
-                  </Button>
-                </CardFooter>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <CardFooter className="justify-end px-0">
+                    <Button type="submit" disabled={updateLoading} className="w-full sm:w-auto sm:px-8">
+                      {t("global.buttons.update")}
+                    </Button>
+                  </CardFooter>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Dialog open={openUpdatePasswordDialog} onOpenChange={setOpenUpdatePasswordDialog}>

@@ -11,7 +11,8 @@
     "profile": "Profile",
     "statistics": "Statistics",
     "integrations": "Integrations",
-    "admin": "Admin"
+    "admin": "Admin",
+    "achievements": "Achievements"
   },
   "pages": {
     "account": {
@@ -261,6 +262,62 @@
         "label": "Pages read this week",
         "value": "184",
         "streak": "12 days"
+      }
+    },
+    "achievements": {
+      "title": "Your achievements",
+      "description": "Every habit you keep earns you a badge. Bronze, silver, gold: go unlock them all.",
+      "summary": "badges unlocked. Keep it up!",
+      "summary_empty": "Your first badge is close: connect an app or create a stat.",
+      "unlocked": "Unlocked",
+      "locked": "Up next",
+      "unlocked_on": "Unlocked on {{date}}",
+      "all_tiers": "Every tier is yours. Nice work!",
+      "recent_title": "Latest achievements",
+      "recent_description": "Your most recent badges.",
+      "recent_empty": "No badge yet. The first one comes fast!",
+      "see_all": "See all",
+      "tiers": {
+        "bronze": "Bronze",
+        "silver": "Silver",
+        "gold": "Gold"
+      },
+      "toast": {
+        "title": "New badge: {{name}}!",
+        "description": "{{tier}} tier unlocked. Well done!",
+        "action": "View"
+      },
+      "items": {
+        "apps_connected": {
+          "name": "All plugged in",
+          "description": "Connect your apps and your stats fill in on their own.",
+          "progress": "Apps connected: {{value}}/{{target}}"
+        },
+        "first_sync": {
+          "name": "First sync",
+          "description": "Let an app fill in your stats for the first time.",
+          "progress": "Apps synced: {{value}}/{{target}}"
+        },
+        "goals_reached": {
+          "name": "Bullseye 🎯",
+          "description": "Hit the goals you set for yourself.",
+          "progress": "Goals reached: {{value}}/{{target}}"
+        },
+        "stats_created": {
+          "name": "Collector",
+          "description": "Track everything that matters to you: sport, reading, code…",
+          "progress": "Stats tracked: {{value}}/{{target}}"
+        },
+        "days_logged": {
+          "name": "Regular",
+          "description": "Add values, day after day.",
+          "progress": "Days with a value: {{value}}/{{target}}"
+        },
+        "streak": {
+          "name": "On fire 🔥",
+          "description": "Add a value several days in a row.",
+          "progress": "Best streak: {{value}}/{{target}} days"
+        }
       }
     }
   },

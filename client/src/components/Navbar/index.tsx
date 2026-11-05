@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ThemeChanger } from "./themeChanger";
 import { useTranslation } from "react-i18next";
 import { Separator } from "../ui/separator";
-import { BarChart3, LayoutDashboard, Link2, LogIn, LogOut, Menu, User, Wrench, X, type LucideIcon } from "lucide-react";
+import { BarChart3, LayoutDashboard, Link2, LogIn, LogOut, Menu, Trophy, User, Wrench, X, type LucideIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -48,6 +48,7 @@ export const Navbar = () => {
     { to: "/", label: t("navbar.home"), icon: LayoutDashboard },
     { to: "/statistics", label: t("navbar.statistics"), icon: BarChart3 },
     { to: "/integrations", label: t("navbar.integrations"), icon: Link2 },
+    { to: "/achievements", label: t("navbar.achievements"), icon: Trophy },
     { to: "/account", label: t("navbar.profile"), icon: User },
     ...(authUser?.role === "admin" ? [{ to: "/admin/dashboard", label: t("navbar.admin"), icon: Wrench }] : []),
   ];

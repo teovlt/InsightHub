@@ -5,6 +5,7 @@ import { decrypt } from "./crypto.js";
 import { ensureProviderCategory, getStatKey } from "../integrations/ensure.js";
 import { getProvider } from "../integrations/index.js";
 import { emitToUser } from "../sockets/socket.js";
+import { checkAchievements } from "../achievements/service.js";
 
 // Automatic syncs (home page) run at most this often; a manual sync always runs
 export const SYNC_INTERVAL = 30 * 60 * 1000;
@@ -170,6 +171,8 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
     await IntegrationUser.updateOne({ _id: integrationUser._id }, { lastSyncedAt: new Date() });
     // Open dashboards refresh their charts on their own
     if (changed) emitToUser(userId, "stats:updated", { integrationId: integrationId.toString() });
+    // Covers a first connection, a manual sync and the throttled background sync
+    await checkAchievements(userId);
 
     return { updatedStats };
   } catch (error) {

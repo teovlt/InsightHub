@@ -11,7 +11,8 @@
     "profile": "Profil",
     "statistics": "Statistiques",
     "integrations": "Intégrations",
-    "admin": "Admin"
+    "admin": "Admin",
+    "achievements": "Succès"
   },
   "pages": {
     "account": {
@@ -261,6 +262,62 @@
         "label": "Pages lues cette semaine",
         "value": "184",
         "streak": "12 jours"
+      }
+    },
+    "achievements": {
+      "title": "Tes succès",
+      "description": "Chaque habitude tenue te rapporte un badge. Bronze, argent, or : à toi de tous les débloquer.",
+      "summary": "badges débloqués. Continue comme ça !",
+      "summary_empty": "Ton premier badge est tout proche : connecte une app ou crée une stat.",
+      "unlocked": "Débloqués",
+      "locked": "À débloquer",
+      "unlocked_on": "Débloqué le {{date}}",
+      "all_tiers": "Tous les paliers sont à toi. Chapeau !",
+      "recent_title": "Derniers succès",
+      "recent_description": "Tes badges les plus récents.",
+      "recent_empty": "Pas encore de badge. Le premier arrive vite !",
+      "see_all": "Voir tout",
+      "tiers": {
+        "bronze": "Bronze",
+        "silver": "Argent",
+        "gold": "Or"
+      },
+      "toast": {
+        "title": "Nouveau badge : {{name}} !",
+        "description": "Palier {{tier}} débloqué. Bien joué !",
+        "action": "Voir"
+      },
+      "items": {
+        "apps_connected": {
+          "name": "Tout connecté",
+          "description": "Connecte tes apps : tes stats arrivent toutes seules.",
+          "progress": "Apps connectées : {{value}}/{{target}}"
+        },
+        "first_sync": {
+          "name": "Première synchro",
+          "description": "Laisse une app remplir tes stats pour la première fois.",
+          "progress": "Apps synchronisées : {{value}}/{{target}}"
+        },
+        "goals_reached": {
+          "name": "Dans le mille 🎯",
+          "description": "Atteins les objectifs que tu t'es fixés.",
+          "progress": "Objectifs atteints : {{value}}/{{target}}"
+        },
+        "stats_created": {
+          "name": "Collectionneur",
+          "description": "Suis tout ce qui compte pour toi : sport, lecture, code…",
+          "progress": "Stats suivies : {{value}}/{{target}}"
+        },
+        "days_logged": {
+          "name": "Régulier",
+          "description": "Ajoute des valeurs, jour après jour.",
+          "progress": "Jours avec une valeur : {{value}}/{{target}}"
+        },
+        "streak": {
+          "name": "En feu 🔥",
+          "description": "Ajoute une valeur plusieurs jours d'affilée.",
+          "progress": "Meilleure série : {{value}}/{{target}} jours"
+        }
       }
     }
   },

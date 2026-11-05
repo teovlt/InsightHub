@@ -3,6 +3,7 @@ import { Stat } from "../models/statModel.js";
 import { handleServerError } from "../utils/httpErrors.js";
 import { emitToUser } from "../sockets/socket.js";
 import { inferGoalDirection } from "../utils/goals.js";
+import { checkAchievements } from "../achievements/service.js";
 
 // Lets the user's other open tabs refresh their dashboard
 const notifyChange = (userId) => emitToUser(userId, "stats:updated");
@@ -50,6 +51,7 @@ export const createStat = async (req, res) => {
     });
 
     notifyChange(userId);
+    await checkAchievements(userId);
     res.status(201).json({ stat, message: "Stat created successfully" });
   } catch (err) {
     handleServerError(res, err);
@@ -147,6 +149,7 @@ export const updateStat = async (req, res) => {
       });
 
       notifyChange(req.userId);
+      await checkAchievements(req.userId);
       return res.status(200).json({
         message: "Stat updated with history kept",
         stat: newStat,
@@ -275,6 +278,8 @@ export const setStatGoal = async (req, res) => {
     }
     await Stat.updateMany(versionsOf(stat), update);
     const updated = await Stat.findById(stat._id);
+    // Setting a goal the stat already meets counts as reaching it
+    if (target !== null) await checkAchievements(req.userId);
 
     res.status(200).json({ stat: updated, message: target === null ? "Goal removed" : "Goal saved" });
   } catch (err) {
