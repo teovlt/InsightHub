@@ -106,6 +106,37 @@ describe("Stats", () => {
     expect(response.body.stat.value).toBe("79");
   });
 
+  it("should reset a stat: erase its history and restart from the new value", async () => {
+    const current = (await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "79" })).body.stat;
+    await request(app).patch(`/api/stats/${current._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 70 });
+
+    const response = await request(app).post(`/api/stats/${current._id}/reset`).set("Cookie", authCookie(owner)).send({ value: "90" });
+
+    expect(response.status).toBe(200);
+    const versions = await Stat.find({ userId: owner._id, name: "Weight" }).lean();
+    expect(versions).toHaveLength(1);
+    expect(versions[0].value).toBe("90");
+    expect(versions[0].current).toBe(true);
+    expect(versions[0].goal.target).toBe(70);
+    expect(versions[0].goal.start).toBe(90);
+  });
+
+  it("should not let another user reset a stat", async () => {
+    const response = await request(app).post(`/api/stats/${stat._id}/reset`).set("Cookie", authCookie(other)).send({ value: "0" });
+
+    expect(response.status).toBe(404);
+    expect(await Stat.exists({ _id: stat._id })).toBeTruthy();
+  });
+
+  it("should refuse to reset a synced stat", async () => {
+    await Stat.updateOne({ _id: stat._id }, { integrationId: new mongoose.Types.ObjectId() });
+
+    const response = await request(app).post(`/api/stats/${stat._id}/reset`).set("Cookie", authCookie(owner)).send({ value: "0" });
+
+    expect(response.status).toBe(400);
+    expect(await Stat.exists({ _id: stat._id })).toBeTruthy();
+  });
+
   it("should delete the stats of a deleted category", async () => {
     await User.updateOne({ _id: other._id }, { role: "admin" });
 

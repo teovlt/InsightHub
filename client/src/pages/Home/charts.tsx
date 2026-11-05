@@ -167,8 +167,9 @@ export const ActivityHeatmap = ({ days }: { days: ActivityDay[] }) => {
                       onMouseEnter={() => setHovered(day)}
                       onFocus={() => setHovered(day)}
                       className={cn(
-                        "aspect-square w-full cursor-default rounded-[3px] transition-transform hover:scale-110",
-                        hovered === day && "ring-2 ring-foreground/40",
+                        // No scale or outer ring: they would overflow the scroll container on the edge columns
+                        "aspect-square w-full cursor-default rounded-[3px] outline-none",
+                        hovered === day && "ring-2 ring-inset ring-foreground/50",
                       )}
                       style={{ backgroundColor: shades[level(total(day))] }}
                     />

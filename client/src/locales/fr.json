@@ -227,7 +227,8 @@
         "hide": "Masquer",
         "show": "Afficher",
         "rollback": "Annuler la dernière",
-        "delete": "Supprimer"
+        "delete": "Supprimer",
+        "reset": "Réinitialiser"
       },
       "goal": {
         "title": "Objectif",
@@ -263,6 +264,15 @@
       "auto_hint": {
         "title": "Automatise tes stats",
         "description": "Connecte une app (GitHub, Strava…) et ses stats se mettent à jour toutes seules."
+      },
+      "reset": {
+        "title": "Réinitialiser « {{name}} » ?",
+        "description": "La stat repart de zéro avec la valeur de départ que tu choisis. Son nom, son objectif et son épingle sont gardés.",
+        "warning_one": "Sa seule valeur enregistrée sera effacée. C'est définitif.",
+        "warning_other": "Ses {{count}} valeurs enregistrées et tout son historique seront effacés. C'est définitif.",
+        "value": "Nouvelle valeur de départ",
+        "cancel": "Annuler",
+        "confirm": "Tout effacer et réinitialiser"
       }
     },
     "auth": {

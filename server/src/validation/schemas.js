@@ -74,6 +74,10 @@ export const createStatSchema = z.object({
   hided: z.boolean().optional(),
 });
 
+export const resetStatSchema = z.object({
+  value: statValue,
+});
+
 export const pinStatSchema = z.object({
   pinned: z.boolean(),
 });

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ArrowRight, Edit, Eye, EyeOff, Pin, PinOff, Plus, RotateCcw, Search, Target, Trash2, Zap } from "lucide-react";
+import { ArrowRight, Edit, Eye, EyeOff, Pin, PinOff, Plus, RefreshCcw, RotateCcw, Search, Target, Trash2, Zap } from "lucide-react";
 import { Page, PageHeader } from "@/components/customs/page";
 import { AddStatDialog } from "@/components/customs/addStatDialog";
 import { EditStatDialog } from "@/components/customs/editStatDialog";
@@ -21,6 +21,7 @@ import { getIcon } from "@/lib/icons";
 import { dateLocale, formatNumeric, goalProgress, goalRemaining, isGoalReached, isNumeric, numericPoints } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 import { GoalDialog } from "./goalDialog";
+import { ResetStatDialog } from "./resetDialog";
 
 const StatChart = lazy(() => import("./statChart"));
 
@@ -271,7 +272,7 @@ const StatDetail = ({ stat, category, onChanged, onDeleted }: StatDetailProps) =
   const { t } = useTranslation();
   const [history, setHistory] = useState<StatHistoryPoint[]>([]);
   const [period, setPeriod] = useState<(typeof PERIODS)[number]["key"]>("all");
-  const [dialog, setDialog] = useState<"edit" | "goal" | "rollback" | "delete" | null>(null);
+  const [dialog, setDialog] = useState<"edit" | "goal" | "rollback" | "reset" | "delete" | null>(null);
   const Icon = getIcon(category.icon);
   const numeric = isNumeric(stat);
   const synced = Boolean(stat.integrationId);
@@ -381,6 +382,10 @@ const StatDetail = ({ stat, category, onChanged, onDeleted }: StatDetailProps) =
                 <Button variant="outline" size="sm" onClick={() => setDialog("rollback")} disabled={history.length < 2}>
                   <RotateCcw />
                   {t("pages.statistics.actions.rollback")}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setDialog("reset")}>
+                  <RefreshCcw />
+                  {t("pages.statistics.actions.reset")}
                 </Button>
                 <Button
                   variant="outline"
@@ -515,6 +520,13 @@ const StatDetail = ({ stat, category, onChanged, onDeleted }: StatDetailProps) =
         open={dialog === "rollback"}
         onOpenChange={(open) => setDialog(open ? "rollback" : null)}
         refresh={onChanged}
+      />
+      <ResetStatDialog
+        stat={stat}
+        entries={history.length}
+        open={dialog === "reset"}
+        onOpenChange={(open) => setDialog(open ? "reset" : null)}
+        onReset={onChanged}
       />
       <GoalDialog stat={stat} open={dialog === "goal"} onOpenChange={(open) => setDialog(open ? "goal" : null)} onSaved={onChanged} />
       <DeleteConfirmationDialog

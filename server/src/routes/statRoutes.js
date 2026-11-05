@@ -1,13 +1,14 @@
 import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { validateBody } from "../middlewares/validate.js";
-import { createStatSchema, pinStatSchema, statGoalSchema, updateStatSchema } from "../validation/schemas.js";
+import { createStatSchema, pinStatSchema, resetStatSchema, statGoalSchema, updateStatSchema } from "../validation/schemas.js";
 import {
   createStat,
   deleteStat,
   getStatHistory,
   getStatsOverview,
   pinStat,
+  resetStat,
   rollbackStat,
   setStatGoal,
   updateStat,
@@ -63,6 +64,14 @@ statRouter.patch("/:id/pin", verifyToken(), validateBody(pinStatSchema), pinStat
  * @middleware verifyToken() - Ensures the user is authenticated.
  */
 statRouter.patch("/:id/goal", verifyToken(), validateBody(statGoalSchema), setStatGoal);
+
+/**
+ * @route POST /:id/reset
+ * @description Erases the whole history of a manual stat and restarts it from body.value.
+ * @param {string} id - The ID of the current version of the stat.
+ * @middleware verifyToken() - Ensures the user is authenticated.
+ */
+statRouter.post("/:id/reset", verifyToken(), validateBody(resetStatSchema), resetStat);
 
 /**
  * @route DELETE /:id

@@ -3,6 +3,7 @@ import { Stat } from "../models/statModel.js";
 import { handleServerError } from "../utils/httpErrors.js";
 import { emitToUser } from "../sockets/socket.js";
 import { inferGoalDirection } from "../utils/goals.js";
+import { parseStatValue } from "../utils/statValue.js";
 import { checkAchievements } from "../achievements/service.js";
 
 // Lets the user's other open tabs refresh their dashboard
@@ -223,6 +224,50 @@ export const rollbackStat = async (req, res) => {
 
 // A stat is identified across its versions by owner, category and name
 const versionsOf = (stat) => ({ userId: stat.userId, categoryId: stat.categoryId, name: stat.name });
+
+/**
+ * Reset a stat: erase its whole history and restart it from a new value.
+ * Name, description, unit, pin and goal are kept. Synced stats are refused: the next sync would overwrite them.
+ *
+ * @param {Object} req - The request object with the current stat ID, body { value }.
+ * @param {Object} res - The response object.
+ * @returns {Object} JSON response with the new stat or error.
+ */
+export const resetStat = async (req, res) => {
+  try {
+    const stat = await Stat.findOne({ _id: req.params.id, userId: req.userId, current: true }).lean();
+    if (!stat) {
+      return res.status(404).json({ error: "No such current stat" });
+    }
+    if (stat.integrationId) {
+      return res.status(400).json({ error: "A synced stat cannot be reset" });
+    }
+
+    await Stat.deleteMany(versionsOf(stat));
+
+    // A kept goal measures its progress from the new starting value
+    const { numericValue } = parseStatValue(req.body.value);
+    const goal = stat.goal?.target != null ? { ...stat.goal, start: numericValue ?? stat.goal.start } : undefined;
+
+    const newStat = await Stat.create({
+      userId: stat.userId,
+      categoryId: stat.categoryId,
+      name: stat.name,
+      description: stat.description,
+      value: req.body.value,
+      unit: stat.unit,
+      hided: stat.hided,
+      pinned: stat.pinned,
+      goal,
+      current: true,
+    });
+
+    notifyChange(req.userId);
+    res.status(200).json({ message: "Stat reset successfully", stat: newStat });
+  } catch (err) {
+    handleServerError(res, err);
+  }
+};
 
 const HISTORY_FIELDS = "value numericValue createdAt";
 

@@ -227,7 +227,8 @@
         "hide": "Hide",
         "show": "Show",
         "rollback": "Undo last",
-        "delete": "Delete"
+        "delete": "Delete",
+        "reset": "Reset"
       },
       "goal": {
         "title": "Goal",
@@ -263,6 +264,15 @@
       "auto_hint": {
         "title": "Automate your stats",
         "description": "Connect an app (GitHub, Strava…) and its stats update on their own."
+      },
+      "reset": {
+        "title": "Reset “{{name}}”?",
+        "description": "The stat starts over from the starting value you choose. Its name, goal and pin are kept.",
+        "warning_one": "Its only recorded value will be erased. This cannot be undone.",
+        "warning_other": "Its {{count}} recorded values and its whole history will be erased. This cannot be undone.",
+        "value": "New starting value",
+        "cancel": "Cancel",
+        "confirm": "Erase everything and reset"
       }
     },
     "auth": {
