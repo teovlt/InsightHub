@@ -4,8 +4,17 @@ const DAY = 24 * 60 * 60 * 1000;
 
 /* Strava: OAuth, tokens expire after 6 hours and are refreshed (see integrations/oauth.js) */
 
-const strava = (path, accessToken) =>
-  fetchJson(`https://www.strava.com/api/v3${path}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+const strava = async (path, accessToken) => {
+  try {
+    return await fetchJson(`https://www.strava.com/api/v3${path}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+  } catch (err) {
+    // 401/403: a revoked access, or a permission unticked on the consent page
+    if (err instanceof ProviderError) {
+      throw new ProviderError("Strava refused access: reconnect Strava and keep every permission ticked.");
+    }
+    throw err;
+  }
+};
 
 // Every activity since the date, newest pages first; 200 is the largest page Strava allows
 const stravaActivitiesSince = async (accessToken, since) => {
@@ -56,15 +65,20 @@ export const stravaProvider = {
     { id: "longest_ride", name: "Longest ride", description: "Your longest ride ever.", unit: "km" },
   ],
   // Called once after the OAuth exchange: Strava sends the athlete with the tokens
-  async connect(accessToken, raw) {
+  // grantedScope: Strava lets the user untick permissions on its consent page, and sends back what was granted
+  async connect(accessToken, raw, { grantedScope } = {}) {
     const athlete = raw.athlete ?? (await strava("/athlete", accessToken));
     const name = [athlete.firstname, athlete.lastname].filter(Boolean).join(" ");
-    return { account: athlete.username || name || `#${athlete.id}`, config: { athleteId: athlete.id } };
+    return {
+      account: athlete.username || name || `#${athlete.id}`,
+      config: { athleteId: athlete.id, ...(grantedScope && { scope: grantedScope }) },
+    };
   },
   async fetchStats(accessToken, keys, connection) {
     const athleteId = connection.config?.athleteId ?? (await strava("/athlete", accessToken)).id;
     const wants = (...ids) => ids.some((id) => keys.includes(id));
     const values = {};
+    const sections = [];
 
     // Totals: one call. Strava only counts activities visible to "Everyone" in them.
     if (
@@ -79,35 +93,47 @@ export const stravaProvider = {
         "longest_ride",
       )
     ) {
-      const totals = await strava(`/athletes/${athleteId}/stats`, accessToken);
-      const all = [totals.all_run_totals, totals.all_ride_totals, totals.all_swim_totals];
-      Object.assign(values, {
-        run_distance_ytd: toKm(totals.ytd_run_totals?.distance),
-        ride_distance_ytd: toKm(totals.ytd_ride_totals?.distance),
-        run_distance_total: toKm(totals.all_run_totals?.distance),
-        ride_distance_total: toKm(totals.all_ride_totals?.distance),
-        swim_distance_total: toKm(totals.all_swim_totals?.distance),
-        activities_total: all.reduce((sum, total) => sum + (total?.count ?? 0), 0),
-        elevation_total: Math.round((totals.all_run_totals?.elevation_gain ?? 0) + (totals.all_ride_totals?.elevation_gain ?? 0)),
-        longest_ride: toKm(totals.biggest_ride_distance),
+      sections.push(async () => {
+        const totals = await strava(`/athletes/${athleteId}/stats`, accessToken);
+        const all = [totals.all_run_totals, totals.all_ride_totals, totals.all_swim_totals];
+        Object.assign(values, {
+          run_distance_ytd: toKm(totals.ytd_run_totals?.distance),
+          ride_distance_ytd: toKm(totals.ytd_ride_totals?.distance),
+          run_distance_total: toKm(totals.all_run_totals?.distance),
+          ride_distance_total: toKm(totals.all_ride_totals?.distance),
+          swim_distance_total: toKm(totals.all_swim_totals?.distance),
+          activities_total: all.reduce((sum, total) => sum + (total?.count ?? 0), 0),
+          elevation_total: Math.round((totals.all_run_totals?.elevation_gain ?? 0) + (totals.all_ride_totals?.elevation_gain ?? 0)),
+          longest_ride: toKm(totals.biggest_ride_distance),
+        });
       });
     }
 
     // Recent figures: the activities themselves, private ones included. A year covers any realistic weekly streak.
-    if (wants("activities_week", "week_streak", "distance_4w", "moving_time_4w")) {
-      const since = wants("week_streak")
-        ? new Date(Date.now() - 365 * DAY)
-        : new Date(Math.min(startOfWeek().getTime(), Date.now() - 28 * DAY));
-      const activities = await stravaActivitiesSince(accessToken, since);
-      const dates = activities.map((activity) => new Date(activity.start_date));
-      const recent = activities.filter((activity) => new Date(activity.start_date).getTime() >= Date.now() - 28 * DAY);
-      Object.assign(values, {
-        activities_week: dates.filter((date) => date >= startOfWeek()).length,
-        week_streak: weekStreak(dates),
-        distance_4w: toKm(recent.reduce((sum, activity) => sum + (activity.distance ?? 0), 0)),
-        moving_time_4w: toHours(recent.reduce((sum, activity) => sum + (activity.moving_time ?? 0), 0)),
+    // Without the activity permission (unticked on the consent page) Strava refuses the list: skip it instead of failing
+    const canReadActivities = !connection.config?.scope || connection.config.scope.includes("activity:read");
+    if (canReadActivities && wants("activities_week", "week_streak", "distance_4w", "moving_time_4w")) {
+      sections.push(async () => {
+        const since = wants("week_streak")
+          ? new Date(Date.now() - 365 * DAY)
+          : new Date(Math.min(startOfWeek().getTime(), Date.now() - 28 * DAY));
+        const activities = await stravaActivitiesSince(accessToken, since);
+        const dates = activities.map((activity) => new Date(activity.start_date));
+        const recent = activities.filter((activity) => new Date(activity.start_date).getTime() >= Date.now() - 28 * DAY);
+        Object.assign(values, {
+          activities_week: dates.filter((date) => date >= startOfWeek()).length,
+          week_streak: weekStreak(dates),
+          distance_4w: toKm(recent.reduce((sum, activity) => sum + (activity.distance ?? 0), 0)),
+          moving_time_4w: toHours(recent.reduce((sum, activity) => sum + (activity.moving_time ?? 0), 0)),
+        });
       });
     }
+
+    // One failing call keeps the other stats; the sync only fails when nothing could be read
+    const results = await Promise.allSettled(sections.map((section) => section()));
+    const failures = results.filter((result) => result.status === "rejected").map((result) => result.reason);
+    failures.forEach((reason) => console.error("strava:", reason.message));
+    if (failures.length > 0 && failures.length === results.length) throw failures[0];
 
     return values;
   },

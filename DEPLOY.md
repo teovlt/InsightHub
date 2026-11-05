@@ -33,6 +33,9 @@ and is still sent by the client. Avatars are still stored in Firebase Storage.
 ## 2. Update the external services
 
 - **GitHub OAuth app** → Authorization callback URL: `https://api.insighthub.teovillet.fr/api/integrations/auth/github/callback`
+- **Spotify app** (developer.spotify.com/dashboard) → Redirect URI: `https://api.insighthub.teovillet.fr/api/integrations/auth/oauth/spotify/callback`
+- **Strava app** (strava.com/settings/api) → Authorization Callback Domain: `api.insighthub.teovillet.fr`
+- OAuth callbacks always go to the **API** domain: leave `OAUTH_CALLBACK_BASE_URL` unset in production (or set it to `API_URL`).
 - **Firebase console** → Authentication → Settings → Authorized domains: add `insighthub.teovillet.fr`.
 
 ## 3. Move the existing data

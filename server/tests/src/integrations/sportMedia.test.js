@@ -106,6 +106,36 @@ describe("Strava", () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
+  it("should keep the totals when the activity list is refused", async () => {
+    mockFetch({
+      "/athletes/42/stats": { all_run_totals: { distance: 5000 } },
+      "/athlete/activities": json({ message: "Authorization Error" }, 401),
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const values = await stravaProvider.fetchStats("token", ["run_distance_total", "activities_week"], { config: { athleteId: 42 } });
+
+    expect(values.run_distance_total).toBe(5);
+    expect(values.activities_week).toBe(undefined);
+  });
+
+  it("should not ask for activities the user did not allow", async () => {
+    const spy = mockFetch({ "/athletes/42/stats": { all_run_totals: { distance: 5000 } } });
+
+    await stravaProvider.fetchStats("token", ["run_distance_total", "activities_week"], { config: { athleteId: 42, scope: "read" } });
+
+    expect(spy.mock.calls.map(([url]) => String(url)).some((url) => url.includes("/athlete/activities"))).toBe(false);
+  });
+
+  it("should explain how to fix a refused access when everything fails", async () => {
+    mockFetch({ "strava.com": json({ message: "Authorization Error" }, 401) });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(stravaProvider.fetchStats("token", ["run_distance_total"], { config: { athleteId: 42 } })).rejects.toThrow(
+      "reconnect Strava and keep every permission ticked",
+    );
+  });
+
   it("should name the account after the athlete sent with the tokens", async () => {
     expect(await stravaProvider.connect("token", { athlete: { id: 42, username: "teo_runs" } })).toEqual({
       account: "teo_runs",
@@ -315,6 +345,24 @@ describe("Generic OAuth", () => {
     expect(JSON.parse(decrypt(connection.accessToken))).toMatchObject({ accessToken: "access-1", refreshToken: "refresh-1" });
     const run = await Stat.findOne({ userId: user._id, name: "Total running", current: true }).lean();
     expect(run.value).toBe("21");
+  });
+
+  it("should show the provider's own message when a manual sync fails", async () => {
+    const integration = await Integration.findOne({ provider: "strava" });
+    await IntegrationUser.create({
+      userId: user._id,
+      integrationId: integration._id,
+      accessToken: serializeTokens({ accessToken: "a", refreshToken: "r", expiresAt: Date.now() + 3600 * 1000 }),
+      config: { athleteId: 42 },
+      activedStat: integration.availableStats.map((stat) => stat._id),
+    });
+    mockFetch({ "strava.com": json({ message: "Authorization Error" }, 401) });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await request(app).post(`/api/integrations/${integration._id}/sync`).set("Cookie", authCookie(user));
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toMatch(/reconnect Strava/);
   });
 
   it("should send the user back with error=denied when they cancel", async () => {

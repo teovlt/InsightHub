@@ -2,6 +2,7 @@ import { Integration } from "../models/integrationModel.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
 import { getCredential } from "../integrations/oauth.js";
+import { ProviderError } from "../integrations/http.js";
 import { ensureProviderCategory, getStatKey } from "../integrations/ensure.js";
 import { getProvider } from "../integrations/index.js";
 import { emitToUser } from "../sockets/socket.js";
@@ -177,6 +178,6 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
     return { updatedStats };
   } catch (error) {
     console.error("autoSyncStats:", error.message);
-    return { error: error.message };
+    return { error: error.message, ...(error instanceof ProviderError && { userMessage: error.message }) };
   }
 };

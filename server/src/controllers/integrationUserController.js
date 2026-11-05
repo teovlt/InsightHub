@@ -187,7 +187,7 @@ export const oauthCallback = async (req, res) => {
   const { userId, integrationId } = context;
   try {
     const { tokens, raw } = await exchangeCode(provider, req.query.code, getCallbackUrl(req, provider));
-    const { account, config } = await provider.connect(tokens.accessToken, raw);
+    const { account, config } = await provider.connect(tokens.accessToken, raw, { grantedScope: req.query.scope });
 
     await IntegrationUser.findOneAndUpdate(
       { userId, integrationId },
@@ -270,10 +270,11 @@ export const syncStatistics = async (req, res) => {
       if (result.error === "IntegrationUser not found") {
         return res.status(404).json({ error: "server.integrations.errors.not_connected" });
       }
+      // A ProviderError says what the user can do (reconnect, make the profile public...): show it as is
       const error =
         result.error === "No activated stats to sync"
           ? "server.integrations.errors.no_active_stats"
-          : "server.integrations.errors.sync_failed";
+          : result.userMessage || "server.integrations.errors.sync_failed";
       return res.status(400).json({ error });
     }
 
