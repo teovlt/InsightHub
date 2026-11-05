@@ -154,21 +154,6 @@
         "on_hint": "Charts refresh by themselves when an integration syncs or a value changes.",
         "off_hint": "Live refresh is unavailable: reload the page to see new values."
       },
-      "kpis": {
-        "updates": "Values logged",
-        "updates_hint": "{{manual}} manual · {{synced}} synced",
-        "tracked": "Tracked stats",
-        "tracked_hint": "{{synced}} synced · {{numeric}} charted",
-        "goals": "Goals reached",
-        "goals_hint_one": "{{count}} goal in progress",
-        "goals_hint_other": "{{count}} goals in progress",
-        "goals_none": "No goal set yet",
-        "streak": "Streak",
-        "days_one": "{{count}} day",
-        "days_other": "{{count}} days",
-        "active_days_one": "{{count}} active day out of {{total}}",
-        "active_days_other": "{{count}} active days out of {{total}}"
-      },
       "activity": {
         "title": "Activity",
         "manual": "Manual",
@@ -183,20 +168,6 @@
         "stats_one": "stat",
         "stats_other": "stats",
         "empty": "No category with stats yet."
-      },
-      "trends": {
-        "title": "Trends",
-        "see_all": "All statistics",
-        "auto": "Auto",
-        "empty": "Numeric stats (142, 5:12…) get their own chart here.",
-        "points_zero": "No change this period",
-        "points_one": "{{count}} value this period",
-        "points_other": "{{count}} values this period",
-        "goal": "Goal {{percent}}%"
-      },
-      "movers": {
-        "title": "Biggest moves",
-        "empty": "No stat changed in this period."
       },
       "heatmap": {
         "title": "Last 6 months",

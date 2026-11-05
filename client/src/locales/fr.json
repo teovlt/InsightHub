@@ -154,21 +154,6 @@
         "on_hint": "Les graphes se mettent à jour tout seuls quand une intégration se synchronise ou qu'une valeur change.",
         "off_hint": "Mise à jour en direct indisponible : recharge la page pour voir les nouvelles valeurs."
       },
-      "kpis": {
-        "updates": "Valeurs enregistrées",
-        "updates_hint": "{{manual}} à la main · {{synced}} synchro",
-        "tracked": "Stats suivies",
-        "tracked_hint": "{{synced}} synchro · {{numeric}} en graphe",
-        "goals": "Objectifs atteints",
-        "goals_hint_one": "{{count}} objectif en cours",
-        "goals_hint_other": "{{count}} objectifs en cours",
-        "goals_none": "Aucun objectif pour l'instant",
-        "streak": "Série",
-        "days_one": "{{count}} jour",
-        "days_other": "{{count}} jours",
-        "active_days_one": "{{count}} jour actif sur {{total}}",
-        "active_days_other": "{{count}} jours actifs sur {{total}}"
-      },
       "activity": {
         "title": "Activité",
         "manual": "À la main",
@@ -183,20 +168,6 @@
         "stats_one": "stat",
         "stats_other": "stats",
         "empty": "Aucune catégorie avec des stats pour l'instant."
-      },
-      "trends": {
-        "title": "Tendances",
-        "see_all": "Toutes les statistiques",
-        "auto": "Auto",
-        "empty": "Les stats numériques (142, 5:12…) ont chacune leur graphe ici.",
-        "points_zero": "Pas de changement sur la période",
-        "points_one": "{{count}} valeur sur la période",
-        "points_other": "{{count}} valeurs sur la période",
-        "goal": "Objectif {{percent}} %"
-      },
-      "movers": {
-        "title": "Plus grosses évolutions",
-        "empty": "Aucune stat n'a bougé sur cette période."
       },
       "heatmap": {
         "title": "6 derniers mois",

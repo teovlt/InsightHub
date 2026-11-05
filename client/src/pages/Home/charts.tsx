@@ -1,23 +1,9 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { addDays, format, parseISO, startOfWeek } from "date-fns";
-import type { ActivityDay, CategoryActivity, StatTrend } from "@/interfaces/Stat";
-import { dateLocale, formatNumeric } from "@/lib/stats";
+import type { ActivityDay, CategoryActivity } from "@/interfaces/Stat";
+import { dateLocale } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
 // Dashboard charts. Kept in their own module so recharts loads after the rest of the home page.
@@ -133,98 +119,6 @@ export const CategoryDonut = ({ categories, metric }: { categories: CategoryActi
   );
 };
 
-/* Trend of one numeric stat over the period, extended to now with its current value */
-
-export const TrendChart = ({ trend }: { trend: StatTrend }) => {
-  const color = trend.categoryId?.color ?? "var(--accent)";
-  const gradientId = `trend-${trend._id}`;
-  const points = useMemo(() => {
-    const list = trend.history.map((point) => ({ date: new Date(point.createdAt).getTime(), value: point.numericValue as number }));
-    if (list.length > 0) list.push({ date: Date.now(), value: list[list.length - 1].value });
-    return list;
-  }, [trend.history]);
-  const unit = trend.unit ? ` ${trend.unit}` : "";
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={points} margin={{ top: 6, right: 2, bottom: 2, left: 2 }}>
-        <defs>
-          <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.28} />
-            <stop offset="100%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <XAxis dataKey="date" type="number" scale="time" domain={["dataMin", "dataMax"]} hide />
-        <YAxis domain={["auto", "auto"]} hide />
-        <Tooltip
-          cursor={{ stroke: "var(--border)" }}
-          contentStyle={tooltipStyle}
-          labelFormatter={(value: number) => format(new Date(value), "d MMM yyyy, HH:mm", { locale: dateLocale() })}
-          formatter={(value: number) => [`${formatNumeric(value, trend.type)}${unit}`, ""]}
-          separator=""
-        />
-        {trend.goal?.target !== undefined && (
-          <ReferenceLine y={trend.goal.target} stroke="var(--chart-synced)" strokeDasharray="4 4" ifOverflow="extendDomain" />
-        )}
-        <Area
-          // Synced values are counters read at sync time: they hold until the next sync
-          type={trend.integrationId ? "stepAfter" : "monotone"}
-          dataKey="value"
-          stroke={color}
-          strokeWidth={2}
-          fill={`url(#${gradientId})`}
-          dot={false}
-          activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--card)" }}
-          isAnimationActive={false}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-};
-
-/* Biggest moves: change over the period, in percent, as diverging bars around 0 */
-
-export const MoversChart = ({ trends, onOpen }: { trends: StatTrend[]; onOpen: (id: string) => void }) => {
-  const data = trends.map((trend) => ({ id: trend._id, name: trend.name, percent: Math.round(trend.change.percent ?? 0), trend }));
-  const extent = Math.max(10, ...data.map((d) => Math.abs(d.percent)));
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} layout="vertical" margin={{ top: 0, right: 44, bottom: 0, left: 0 }} barCategoryGap="28%">
-        <XAxis type="number" domain={[-extent, extent]} hide />
-        <YAxis type="category" dataKey="name" width={110} tick={axisTick} axisLine={false} tickLine={false} interval={0} />
-        <ReferenceLine x={0} stroke="var(--border)" />
-        <Tooltip
-          cursor={{ fill: "var(--secondary)", opacity: 0.6 }}
-          contentStyle={tooltipStyle}
-          formatter={(_: number, __: string, item: { payload?: (typeof data)[number] }) => {
-            const trend = item.payload!.trend;
-            const unit = trend.unit ? ` ${trend.unit}` : "";
-            return [`${formatNumeric(trend.change.from ?? 0, trend.type)} → ${formatNumeric(trend.change.to, trend.type)}${unit}`, ""];
-          }}
-          separator=""
-        />
-        <Bar
-          dataKey="percent"
-          radius={4}
-          cursor="pointer"
-          onClick={(entry: { id: string }) => onOpen(entry.id)}
-          label={{
-            position: "right",
-            fill: "var(--muted-foreground)",
-            fontSize: 12,
-            formatter: (value: number) => `${value > 0 ? "+" : ""}${value}%`,
-          }}
-        >
-          {data.map((d) => (
-            <Cell key={d.id} fill={d.percent >= 0 ? "var(--chart-up)" : "var(--chart-down)"} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
-  );
-};
-
 /* Heatmap of the last weeks, one cell per day, Monday first */
 
 export const ActivityHeatmap = ({ days }: { days: ActivityDay[] }) => {
@@ -254,54 +148,56 @@ export const ActivityHeatmap = ({ days }: { days: ActivityDay[] }) => {
   const total = (day: ActivityDay) => day.manual + day.synced;
 
   return (
-    <div className="space-y-3">
-      <div className="overflow-x-auto pb-1">
-        <div className="flex w-full min-w-[520px] gap-[3px]" onMouseLeave={() => setHovered(null)}>
-          {weeks.map((week, w) => (
-            <div key={w} className="flex min-w-0 flex-1 flex-col gap-[3px]">
-              {/* Month label on the first week of each month */}
-              <span className="h-4 overflow-visible whitespace-nowrap text-[10px] leading-4 text-muted-foreground">
-                {week[0] && (w === 0 || parseISO(week[0].date).getDate() <= 7) ? dayLabel(week[0].date, "MMM") : ""}
-              </span>
-              {week.map((day, d) =>
-                day ? (
-                  <button
-                    key={d}
-                    type="button"
-                    aria-label={`${dayLabel(day.date, "d MMM yyyy")}: ${t("pages.dashboard.heatmap.updates", { count: total(day) })}`}
-                    onMouseEnter={() => setHovered(day)}
-                    onFocus={() => setHovered(day)}
-                    className={cn(
-                      "aspect-square w-full cursor-default rounded-[3px] transition-transform hover:scale-110",
-                      hovered === day && "ring-2 ring-foreground/40",
-                    )}
-                    style={{ backgroundColor: shades[level(total(day))] }}
-                  />
-                ) : (
-                  <span key={d} className="aspect-square w-full" />
-                ),
-              )}
-            </div>
-          ))}
+    <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
+      <div className="min-w-0 space-y-3">
+        <div className="overflow-x-auto pb-1">
+          <div className="flex w-full min-w-[520px] gap-[3px]" onMouseLeave={() => setHovered(null)}>
+            {weeks.map((week, w) => (
+              <div key={w} className="flex min-w-0 flex-1 flex-col gap-[3px]">
+                {/* Month label on the first week of each month */}
+                <span className="h-4 overflow-visible whitespace-nowrap text-[10px] leading-4 text-muted-foreground">
+                  {week[0] && (w === 0 || parseISO(week[0].date).getDate() <= 7) ? dayLabel(week[0].date, "MMM") : ""}
+                </span>
+                {week.map((day, d) =>
+                  day ? (
+                    <button
+                      key={d}
+                      type="button"
+                      aria-label={`${dayLabel(day.date, "d MMM yyyy")}: ${t("pages.dashboard.heatmap.updates", { count: total(day) })}`}
+                      onMouseEnter={() => setHovered(day)}
+                      onFocus={() => setHovered(day)}
+                      className={cn(
+                        "aspect-square w-full cursor-default rounded-[3px] transition-transform hover:scale-110",
+                        hovered === day && "ring-2 ring-foreground/40",
+                      )}
+                      style={{ backgroundColor: shades[level(total(day))] }}
+                    />
+                  ) : (
+                    <span key={d} className="aspect-square w-full" />
+                  ),
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span className="min-h-4">
-          {hovered
-            ? `${dayLabel(hovered.date, "EEEE d MMM")} · ${t("pages.dashboard.heatmap.updates", { count: total(hovered) })}${
-                total(hovered) > 0
-                  ? ` (${hovered.manual} ${t("pages.dashboard.activity.manual").toLowerCase()}, ${hovered.synced} ${t("pages.dashboard.activity.synced").toLowerCase()})`
-                  : ""
-              }`
-            : t("pages.dashboard.heatmap.hint")}
-        </span>
-        <span className="flex items-center gap-1">
-          {t("pages.dashboard.heatmap.less")}
-          {shades.map((shade) => (
-            <span key={shade} className="h-3 w-3 rounded-[3px]" style={{ backgroundColor: shade }} />
-          ))}
-          {t("pages.dashboard.heatmap.more")}
-        </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span className="min-h-4">
+            {hovered
+              ? `${dayLabel(hovered.date, "EEEE d MMM")} · ${t("pages.dashboard.heatmap.updates", { count: total(hovered) })}${
+                  total(hovered) > 0
+                    ? ` (${hovered.manual} ${t("pages.dashboard.activity.manual").toLowerCase()}, ${hovered.synced} ${t("pages.dashboard.activity.synced").toLowerCase()})`
+                    : ""
+                }`
+              : t("pages.dashboard.heatmap.hint")}
+          </span>
+          <span className="flex items-center gap-1">
+            {t("pages.dashboard.heatmap.less")}
+            {shades.map((shade) => (
+              <span key={shade} className="h-3 w-3 rounded-[3px]" style={{ backgroundColor: shade }} />
+            ))}
+            {t("pages.dashboard.heatmap.more")}
+          </span>
+        </div>
       </div>
       <WeekdayBars days={days} />
     </div>
@@ -322,11 +218,11 @@ const WeekdayBars = ({ days }: { days: ActivityDay[] }) => {
   const weekday = (i: number, pattern: string) => format(addDays(monday, i), pattern, { locale: dateLocale() });
 
   return (
-    <div className="border-t pt-4">
+    <div className="flex flex-col border-t pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
       <p className="text-sm text-muted-foreground">
         {t("pages.dashboard.heatmap.busiest")} <span className="font-semibold capitalize text-foreground">{weekday(busiest, "EEEE")}</span>
       </p>
-      <div className="mt-3 flex h-16 items-end gap-2">
+      <div className="mt-3 flex h-16 flex-1 items-end gap-2 lg:min-h-28">
         {totals.map((count, i) => (
           <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${weekday(i, "EEEE")}: ${count}`}>
             <div

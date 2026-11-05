@@ -66,36 +66,8 @@ export interface CategoryActivity extends StatCategoryRef {
   updates: number;
 }
 
-export interface StatTrend {
-  _id: string;
-  name: string;
-  unit?: string;
-  type: StatType;
-  value: string;
-  integrationId: string | null;
-  categoryId: StatCategoryRef;
-  goal?: StatGoal;
-  history: Pick<StatHistoryPoint, "numericValue" | "createdAt">[];
-  updates: number;
-  change: { from: number | null; to: number; value: number | null; percent: number | null };
-}
-
 export interface StatsAnalytics {
   period: DashboardPeriod;
-  kpis: {
-    trackedStats: number;
-    numericStats: number;
-    syncedStats: number;
-    updates: number;
-    previousUpdates: number;
-    manualUpdates: number;
-    syncedUpdates: number;
-    goalsTotal: number;
-    goalsReached: number;
-    activeDays: number;
-    streak: number;
-  };
   activity: ActivityDay[];
   categories: CategoryActivity[];
-  trends: StatTrend[];
 }

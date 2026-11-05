@@ -33,7 +33,7 @@ statRouter.get("/overview", verifyToken(), getStatsOverview);
 
 /**
  * @route GET /analytics
- * @description Dashboard charts: daily activity, activity per category and numeric trends over a period.
+ * @description Dashboard charts: daily activity and activity per category over a period.
  * @param {string} [period] - 7d, 30d (default), 90d or 1y.
  * @param {string} [tz] - IANA time zone used to bucket activity by day.
  * @middleware verifyToken() - Ensures the user is authenticated.

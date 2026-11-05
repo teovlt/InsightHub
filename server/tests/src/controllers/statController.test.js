@@ -155,16 +155,6 @@ describe("Stats", () => {
     expect(response.body.stat.goal).toMatchObject({ target: 74, direction: "decrease", start: 80 });
   });
 
-  it("should count a goal to go down as reached once the value is at or below the target", async () => {
-    await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 79 });
-    const before = await request(app).get("/api/stats/analytics").set("Cookie", authCookie(owner));
-    await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "78.5" });
-    const after = await request(app).get("/api/stats/analytics").set("Cookie", authCookie(owner));
-
-    expect(before.body.kpis).toMatchObject({ goalsTotal: 1, goalsReached: 0 });
-    expect(after.body.kpis).toMatchObject({ goalsTotal: 1, goalsReached: 1 });
-  });
-
   it("should give old goals a direction from the stat's first value", async () => {
     await Stat.collection.updateOne({ _id: stat._id }, { $set: { value: "77", numericValue: 77, goal: { target: 76 } } });
 
@@ -232,10 +222,7 @@ describe("Stats", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.period).toBe("7d");
-    expect(response.body.kpis).toMatchObject({ trackedStats: 1, updates: 2, manualUpdates: 2, syncedUpdates: 0, streak: 1 });
     expect(response.body.activity.at(-1).manual).toBe(2);
     expect(response.body.categories).toEqual([expect.objectContaining({ name: "Health", stats: 1, updates: 2 })]);
-    expect(response.body.trends[0].history.map((h) => h.numericValue)).toEqual([80, 79]);
-    expect(response.body.trends[0].change).toMatchObject({ from: 80, to: 79, value: -1 });
   });
 });
