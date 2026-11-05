@@ -137,19 +137,19 @@ export const toggleActivedStat = async (req, res) => {
     const { integrationId, statId } = req.params;
 
     if (!integrationId || !statId) {
-      return res.status(400).json({ error: "Missing integrationId or statId" });
+      return res.status(400).json({ error: "server.global.errors.missing_fields" });
     }
 
     // Récupérer l’instance IntegrationUser
     const integrationUser = await IntegrationUser.findOne({ userId, integrationId });
 
     if (!integrationUser) {
-      return res.status(404).json({ error: "IntegrationUser not found" });
+      return res.status(404).json({ error: "server.integrations.errors.not_connected" });
     }
 
     const integration = await Integration.findById(integrationId).lean();
     if (!integration?.availableStats?.some((stat) => stat._id.toString() === statId)) {
-      return res.status(404).json({ error: "Stat not found for this integration" });
+      return res.status(404).json({ error: "server.integrations.errors.stat_not_found" });
     }
 
     const isActive = integrationUser.activedStat.some((id) => id.toString() === statId);
@@ -168,7 +168,7 @@ export const toggleActivedStat = async (req, res) => {
 
     return res.status(200).json({
       integrationUser: publicIntegrationUser,
-      message: isActive ? "Stat deactivated successfully." : "Stat activated successfully.",
+      message: isActive ? "server.integrations.messages.stat_deactivated" : "server.integrations.messages.stat_activated",
     });
   } catch (error) {
     handleServerError(res, error);
@@ -181,11 +181,18 @@ export const syncStatistics = async (req, res) => {
   try {
     const result = await autoSyncStats(req.userId, integrationId, { force: true });
     if (result.error) {
-      return res.status(result.error === "IntegrationUser not found" ? 404 : 400).json({ error: result.error });
+      if (result.error === "IntegrationUser not found") {
+        return res.status(404).json({ error: "server.integrations.errors.not_connected" });
+      }
+      const error =
+        result.error === "No activated stats to sync"
+          ? "server.integrations.errors.no_active_stats"
+          : "server.integrations.errors.sync_failed";
+      return res.status(400).json({ error });
     }
 
     return res.status(200).json({
-      message: "Statistics synced successfully",
+      message: "server.integrations.messages.synced",
       updatedStats: result.updatedStats,
     });
   } catch (error) {
@@ -208,10 +215,10 @@ export const connectWithCredential = async (req, res) => {
     const integration = await Integration.findOne({ _id: integrationId, status: "available" }).lean();
     const provider = getProvider(integration);
     if (!integration || !provider) {
-      return res.status(404).json({ error: "Integration not found." });
+      return res.status(404).json({ error: "server.integrations.errors.not_found" });
     }
     if (provider.auth === "oauth") {
-      return res.status(400).json({ error: "This integration connects through its own sign-in page." });
+      return res.status(400).json({ error: "server.integrations.errors.oauth_only" });
     }
 
     let verified;
@@ -220,7 +227,7 @@ export const connectWithCredential = async (req, res) => {
     } catch (err) {
       if (err instanceof ProviderError) return res.status(400).json({ error: err.message });
       console.error(`${provider.key} verify:`, err.message);
-      return res.status(502).json({ error: `${provider.name} could not be reached, try again in a moment.` });
+      return res.status(502).json({ error: "server.integrations.errors.unreachable", params: { name: provider.name } });
     }
 
     await IntegrationUser.findOneAndUpdate(
@@ -246,9 +253,8 @@ export const connectWithCredential = async (req, res) => {
     const result = await autoSyncStats(userId, integrationId, { force: true });
 
     res.status(200).json({
-      message: result.error
-        ? `${provider.name} connected, but the first sync failed. Try "Sync now" in a moment.`
-        : `${provider.name} connected.`,
+      message: result.error ? "server.integrations.messages.connected_sync_failed" : "server.integrations.messages.connected",
+      params: { name: provider.name },
       account: verified.account,
     });
   } catch (err) {
