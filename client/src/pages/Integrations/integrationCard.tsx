@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ interface IntegrationCardProps {
 }
 
 export function IntegrationCard({ integration, onConnect, onDisconnect, onToggleStat, onSync, integrationUser }: IntegrationCardProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const IconComponent = getIcon(integration.icon);
@@ -52,11 +54,13 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
                     <CheckCircle />
                     {integration.integrationUser?.config?.account && integration.authType === "username"
                       ? integration.integrationUser.config.account
-                      : "Connected"}
+                      : t("pages.integrations.card.connected")}
                   </Badge>
                 )}
                 {!integration.isConnected && integration.authType && integration.authType !== "oauth" && (
-                  <Badge variant="outline">{integration.authType === "apiKey" ? "API key" : "Username only"}</Badge>
+                  <Badge variant="outline">
+                    {integration.authType === "apiKey" ? t("pages.integrations.card.api_key") : t("pages.integrations.card.username_only")}
+                  </Badge>
                 )}
                 {integration.category && <Badge variant="secondary">{integration.category}</Badge>}
               </div>
@@ -75,15 +79,15 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onSync(integration._id)}>
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Sync Now
+                    {t("pages.integrations.card.sync_now")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
                     <Settings className="mr-2 h-4 w-4" />
-                    Configure Stats
+                    {t("pages.integrations.card.configure")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onDisconnect(integration._id)} className="text-red-600">
                     <Unplug className="mr-2 h-4 w-4" />
-                    Disconnect
+                    {t("pages.integrations.card.disconnect")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -91,7 +95,7 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
 
             {!integration.isConnected && (
               <Button size="sm" className="rounded-full px-4" onClick={() => onConnect(integration._id)}>
-                Connect
+                {t("pages.integrations.card.connect")}
               </Button>
             )}
           </div>
@@ -103,7 +107,7 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
           <Separator className="mb-4" />
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium mb-3">Available Statistics</h4>
+              <h4 className="font-medium mb-3">{t("pages.integrations.card.available_stats")}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {integration.availableStats?.map((stat: IntegrationStat) => (
                   <div
@@ -119,7 +123,9 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
                           <Badge variant="secondary" className="text-xs">
                             {stat.updateFrequency}
                           </Badge>
-                          {stat.unit && <span className="text-xs text-muted-foreground">Unit: {stat.unit}</span>}
+                          {stat.unit && (
+                            <span className="text-xs text-muted-foreground">{t("pages.integrations.card.unit", { unit: stat.unit })}</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -137,7 +143,12 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
             {integration.integrationUser?.activedStat?.length > 0 && (
               <div className="rounded-xl border border-lime/60 bg-lime/15 p-3">
                 <p className="text-sm">
-                  ✅ <strong>{integration.integrationUser.activedStat.length}</strong> stats enabled and syncing to your dashboard
+                  ✅{" "}
+                  <Trans
+                    i18nKey="pages.integrations.card.enabled_stats"
+                    count={integration.integrationUser.activedStat.length}
+                    components={{ strong: <strong /> }}
+                  />
                 </p>
               </div>
             )}

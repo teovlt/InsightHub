@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Zap, CheckCircle, Clock, Info } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { IntegrationInterface } from "@/interfaces/Integration";
 import { axiosConfig } from "@/config/axiosConfig";
 import { IntegrationCard } from "./integrationCard";
-import { ConnectDialog } from "./connectDialog";
+import { ConnectDialog, serverText } from "./connectDialog";
 
 export function IntegrationsPage() {
+  const { t } = useTranslation();
   const [integrations, setIntegrations] = useState<IntegrationInterface[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -26,7 +28,7 @@ export function IntegrationsPage() {
       // Trouver l'intégration correspondante
       const integration = integrations.find((i) => i._id === integrationId);
       if (!integration) {
-        toast.error("Integration not found");
+        toast.error(t("pages.integrations.toasts.not_found"));
         return;
       }
 
@@ -39,14 +41,14 @@ export function IntegrationsPage() {
       // Récupérer l'URL d'auth de l'intégration
       const authUrl = integration.config?.authUrl;
       if (!authUrl) {
-        toast.error("No auth URL configured for this integration");
+        toast.error(t("pages.integrations.toasts.no_auth_url"));
         return;
       }
 
       window.location.href = `${import.meta.env.VITE_API_URL}/api/integrations/${authUrl}?integrationId=${encodeURIComponent(integrationId)}`;
-      toast.success(`Redirecting to ${integration.name} for authentication...`);
+      toast.success(t("pages.integrations.toasts.redirecting", { name: integration.name }));
     } catch (error) {
-      toast.error("Failed to initiate connection : " + (error as Error).message);
+      toast.error(t("pages.integrations.toasts.connect_failed"));
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export function IntegrationsPage() {
   const handleDisconnect = async (integrationId: string) => {
     try {
       const response = await axiosConfig.delete(`/integrations/${integrationId}/connection`);
-      toast.success(response.data.message);
+      toast.success(serverText(t, response.data));
 
       setIntegrations((prev) =>
         prev.map((integration) =>
@@ -63,7 +65,7 @@ export function IntegrationsPage() {
         ),
       );
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(serverText(t, error.response?.data, "error"));
     }
   };
 
@@ -72,9 +74,9 @@ export function IntegrationsPage() {
     try {
       const response = await axiosConfig.patch(`/integrations/${integrationId}/stat/${statId}/toggle`);
       fetchIntegrations();
-      toast.success(response.data.message);
+      toast.success(serverText(t, response.data));
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(serverText(t, error.response?.data, "error"));
     } finally {
       setLoading(false);
     }
@@ -84,9 +86,9 @@ export function IntegrationsPage() {
     try {
       setLoading(true);
       const response = await axiosConfig.post(`/integrations/${integrationId}/sync`);
-      toast.success(response.data.message);
+      toast.success(serverText(t, response.data));
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(serverText(t, error.response?.data, "error"));
     } finally {
       setLoading(false);
     }
@@ -102,7 +104,7 @@ export function IntegrationsPage() {
         })),
       );
     } catch (error) {
-      toast.error("Failed to load integrations");
+      toast.error(t("pages.integrations.toasts.load_failed"));
     } finally {
       setLoading(false);
     }
@@ -113,10 +115,10 @@ export function IntegrationsPage() {
     // Set by the server when the OAuth callback fails
     const params = new URLSearchParams(window.location.search);
     if (params.get("error") === "sync") {
-      toast.error('Integration connected, but the first sync failed. Try "Sync Now" in a moment.');
+      toast.error(t("pages.integrations.toasts.first_sync_failed"));
       window.history.replaceState(null, "", window.location.pathname);
     } else if (params.get("error")) {
-      toast.error("Failed to connect the integration, please try again.");
+      toast.error(t("pages.integrations.toasts.connect_failed"));
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
@@ -133,14 +135,24 @@ export function IntegrationsPage() {
   const availableCategories = [...new Set(integrations.map((i: IntegrationInterface) => i.category))].filter(Boolean);
 
   const overview = [
-    { label: "Connected apps", value: connectedCount, icon: CheckCircle, tone: "bg-lime/25 text-[#3f6212] dark:text-lime" },
     {
-      label: "Active stats",
+      label: t("pages.integrations.overview.connected"),
+      value: connectedCount,
+      icon: CheckCircle,
+      tone: "bg-lime/25 text-[#3f6212] dark:text-lime",
+    },
+    {
+      label: t("pages.integrations.overview.active_stats"),
       value: integrations.reduce((sum, i) => sum + (i.integrationUser?.activedStat?.length || 0), 0),
       icon: Zap,
       tone: "bg-accent/10 text-accent",
     },
-    { label: "Available apps", value: integrations.length - connectedCount, icon: Clock, tone: "bg-secondary text-muted-foreground" },
+    {
+      label: t("pages.integrations.overview.available"),
+      value: integrations.length - connectedCount,
+      icon: Clock,
+      tone: "bg-secondary text-muted-foreground",
+    },
   ];
 
   const renderCards = (list: IntegrationInterface[]) =>
@@ -159,9 +171,9 @@ export function IntegrationsPage() {
   return (
     <Page>
       <PageHeader
-        eyebrow="Integrations"
-        title="Connect your apps"
-        description="Plug in the apps you already use and your stats update on their own. No more manual entry."
+        eyebrow={t("pages.integrations.eyebrow")}
+        title={t("pages.integrations.title")}
+        description={t("pages.integrations.description")}
       />
 
       {/* Stats Overview */}
@@ -184,7 +196,7 @@ export function IntegrationsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search integrations..."
+            placeholder={t("pages.integrations.search_placeholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-11 rounded-xl pl-10"
@@ -193,7 +205,7 @@ export function IntegrationsPage() {
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full md:w-auto">
           <TabsList className="flex flex-wrap">
             <TabsTrigger className="cursor-pointer" value="all">
-              All
+              {t("pages.integrations.all")}
             </TabsTrigger>
             {availableCategories.map((category) => (
               <TabsTrigger className="cursor-pointer" key={category} value={category}>
@@ -207,7 +219,7 @@ export function IntegrationsPage() {
       {/* Connected Apps Section */}
       {connectedCount > 0 && (
         <section className="space-y-4">
-          <SectionTitle count={connectedCount}>Connected</SectionTitle>
+          <SectionTitle count={connectedCount}>{t("pages.integrations.connected")}</SectionTitle>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {renderCards(integrations.filter((i) => i.isConnected))}
           </div>
@@ -216,7 +228,7 @@ export function IntegrationsPage() {
 
       {/* Available Apps Section */}
       <section className="space-y-4">
-        <SectionTitle count={filteredIntegrations.filter((i) => !i.isConnected).length}>Available</SectionTitle>
+        <SectionTitle count={filteredIntegrations.filter((i) => !i.isConnected).length}>{t("pages.integrations.available")}</SectionTitle>
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {renderCards(filteredIntegrations.filter((i) => !i.isConnected))}
         </div>
@@ -229,15 +241,12 @@ export function IntegrationsPage() {
             <Info className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-semibold">How integrations work</h3>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              When you connect an app, we automatically create the matching stats in your dashboard. Pick which stats to track and they
-              update on their own, following each app's sync schedule.
-            </p>
+            <h3 className="font-semibold">{t("pages.integrations.help.title")}</h3>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t("pages.integrations.help.description")}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Badge variant="secondary">Real-time sync</Badge>
-              <Badge variant="secondary">Automatic categorization</Badge>
-              <Badge variant="secondary">Historical data</Badge>
+              <Badge variant="secondary">{t("pages.integrations.help.badges.sync")}</Badge>
+              <Badge variant="secondary">{t("pages.integrations.help.badges.categories")}</Badge>
+              <Badge variant="secondary">{t("pages.integrations.help.badges.history")}</Badge>
             </div>
           </div>
         </div>
