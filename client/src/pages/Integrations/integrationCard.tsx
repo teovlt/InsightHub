@@ -25,12 +25,23 @@ interface IntegrationCardProps {
   };
 }
 
+// Some providers (Steam) keep the pasted profile URL as account: show its last segment only
+const accountLabel = (account: string) => {
+  if (!/^https?:\/\//i.test(account)) return account;
+  const segments = account
+    .replace(/[?#].*$/, "")
+    .split("/")
+    .filter(Boolean);
+  return segments[segments.length - 1] ?? account;
+};
+
 export function IntegrationCard({ integration, onConnect, onDisconnect, onToggleStat, onSync, integrationUser }: IntegrationCardProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const lastSyncedAt = integration.integrationUser?.lastSyncedAt;
 
   const IconComponent = getIcon(integration.icon);
+  const account = integration.authType === "username" ? integration.integrationUser?.config?.account : null;
 
   return (
     <Card
@@ -53,11 +64,9 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
               <p className="mt-1 text-sm text-muted-foreground">{integration.description}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {integration.isConnected && (
-                  <Badge className="border-transparent bg-lime text-[#0f172a]">
+                  <Badge className="max-w-full border-transparent bg-lime text-[#0f172a]" title={account ?? undefined}>
                     <CheckCircle />
-                    {integration.integrationUser?.config?.account && integration.authType === "username"
-                      ? integration.integrationUser.config.account
-                      : t("pages.integrations.card.connected")}
+                    <span className="truncate">{account ? accountLabel(account) : t("pages.integrations.card.connected")}</span>
                   </Badge>
                 )}
                 {!integration.isConnected && integration.authType && integration.authType !== "oauth" && (
