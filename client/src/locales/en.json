@@ -262,6 +262,11 @@
         "value": "184",
         "streak": "12 days"
       }
+    },
+    "integrations": {
+      "synced_ago": "Synced {{when}}",
+      "never_synced": "Not synced yet",
+      "auto_sync": "Refreshes on its own every few hours"
     }
   },
   "components": {

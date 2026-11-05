@@ -85,6 +85,8 @@ export function IntegrationsPage() {
       setLoading(true);
       const response = await axiosConfig.post(`/integrations/${integrationId}/sync`);
       toast.success(response.data.message);
+      // Refreshes the "Synced … ago" line
+      fetchIntegrations();
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -232,10 +234,10 @@ export function IntegrationsPage() {
             <h3 className="font-semibold">How integrations work</h3>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
               When you connect an app, we automatically create the matching stats in your dashboard. Pick which stats to track and they
-              update on their own, following each app's sync schedule.
+              update on their own every few hours, even when the site is closed. Need it now? Use "Sync Now".
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Badge variant="secondary">Real-time sync</Badge>
+              <Badge variant="secondary">Automatic sync</Badge>
               <Badge variant="secondary">Automatic categorization</Badge>
               <Badge variant="secondary">Historical data</Badge>
             </div>

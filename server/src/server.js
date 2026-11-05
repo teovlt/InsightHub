@@ -2,6 +2,7 @@ import { app } from "./app.js";
 import { connectToDatabase } from "./database/connectToDB.js";
 import { runMigrations } from "./database/migrations.js";
 import { ensureProviderIntegrations } from "./integrations/index.js";
+import { startSyncScheduler } from "./integrations/scheduler.js";
 import { createServer } from "http";
 import { initSockets } from "./sockets/socket.js";
 
@@ -65,6 +66,9 @@ export async function initServer() {
   httpServer.listen(process.env.PORT, () => {
     console.log("Server listening on port", process.env.PORT, "🚀");
   });
+
+  // Integrations refresh on their own, even when nobody has the site open
+  startSyncScheduler();
 }
 
 // Start the server

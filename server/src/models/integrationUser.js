@@ -39,6 +39,10 @@ const IntegrationUserSchema = new Schema(
     lastSyncedAt: {
       type: Date,
     },
+    // Last background sync attempt, successful or not: a failing service is retried later, not on every tick
+    lastSyncAttemptAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

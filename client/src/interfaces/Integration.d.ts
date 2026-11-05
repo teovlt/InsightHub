@@ -24,6 +24,7 @@ export interface IntegrationInterface {
   integrationUser: {
     activedStat: string[];
     config?: { account?: string };
+    lastSyncedAt?: string;
   };
 }
 

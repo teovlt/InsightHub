@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { CheckCircle, Settings, Settings2, Unplug, RefreshCw, MoreHorizontal } from "lucide-react";
 import { IntegrationInterface, IntegrationStat } from "@/interfaces/Integration";
 import { getIcon } from "@/lib/icons";
+import { dateLocale } from "@/lib/stats";
 
 interface IntegrationCardProps {
   onConnect: (integrationId: string) => void;
@@ -24,6 +27,8 @@ interface IntegrationCardProps {
 
 export function IntegrationCard({ integration, onConnect, onDisconnect, onToggleStat, onSync, integrationUser }: IntegrationCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { t } = useTranslation();
+  const lastSyncedAt = integration.integrationUser?.lastSyncedAt;
 
   const IconComponent = getIcon(integration.icon);
 
@@ -60,6 +65,16 @@ export function IntegrationCard({ integration, onConnect, onDisconnect, onToggle
                 )}
                 {integration.category && <Badge variant="secondary">{integration.category}</Badge>}
               </div>
+              {integration.isConnected && (
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground" title={t("pages.integrations.auto_sync")}>
+                  <RefreshCw className="h-3 w-3" />
+                  {lastSyncedAt
+                    ? t("pages.integrations.synced_ago", {
+                        when: formatDistanceToNow(new Date(lastSyncedAt), { addSuffix: true, locale: dateLocale() }),
+                      })
+                    : t("pages.integrations.never_synced")}
+                </p>
+              )}
             </div>
           </div>
 
