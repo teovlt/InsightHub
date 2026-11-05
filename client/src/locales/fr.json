@@ -127,29 +127,29 @@
     },
     "dashboard": {
       "greeting": "Salut {{name}} 👋",
-      "subtitle": "Voilà où tu en es aujourd'hui.",
+      "subtitle": "Voilà comment se passe ta semaine.",
       "log_value": "Ajouter une valeur",
       "pinned": {
         "title": "Stats épinglées",
         "empty": "Épingle tes stats clés pour les voir ici avec leur tendance.",
-        "empty_action": "Choisir les stats à épingler"
+        "empty_action": "Choisir les stats à épingler",
+        "best": "Record : {{value}}",
+        "goal": "Objectif : {{percent}} %"
       },
       "goals": {
         "title": "Objectifs",
         "empty": "Pas encore d'objectif. Fixes-en un sur une stat depuis la page Statistiques.",
-        "done": "Objectif atteint 🎯",
-        "deadline": "d'ici le {{date}}"
-      },
-      "recent": {
-        "title": "Activité récente",
-        "empty": "Rien d'enregistré pour l'instant.",
-        "synced": "synchro"
+        "deadline": "d'ici le {{date}}",
+        "pace": {
+          "reached": "Atteint 🎯",
+          "on_track": "Dans les temps",
+          "behind": "Un peu juste",
+          "stalled": "En pause",
+          "eta": "Vers le {{date}}"
+        }
       },
       "categories": {
-        "title": "Toutes tes stats",
-        "all": "Toutes",
-        "empty": "Pas encore de stat. Crée la première ou connecte une app.",
-        "empty_action": "Créer une stat"
+        "all": "Toutes"
       },
       "quick_update": {
         "title": "Ajouter une valeur",
@@ -159,27 +159,9 @@
         "value": "Nouvelle valeur",
         "submit": "Enregistrer"
       },
-      "period": "Période",
-      "live": {
-        "on": "En direct",
-        "off": "Hors ligne",
-        "on_hint": "Les graphes se mettent à jour tout seuls quand une intégration se synchronise ou qu'une valeur change.",
-        "off_hint": "Mise à jour en direct indisponible : recharge la page pour voir les nouvelles valeurs."
-      },
       "activity": {
-        "title": "Activité",
         "manual": "À la main",
-        "synced": "Synchro",
-        "week_of": "Semaine du {{date}}",
-        "empty": "Aucune valeur enregistrée sur cette période."
-      },
-      "by_category": {
-        "title": "Par catégorie",
-        "updates_one": "mise à jour",
-        "updates_other": "mises à jour",
-        "stats_one": "stat",
-        "stats_other": "stats",
-        "empty": "Aucune catégorie avec des stats pour l'instant."
+        "synced": "Synchro"
       },
       "heatmap": {
         "title": "6 derniers mois",
@@ -189,7 +171,64 @@
         "updates_zero": "rien d'enregistré",
         "updates_one": "{{count}} valeur",
         "updates_other": "{{count}} valeurs",
-        "busiest": "Jour le plus actif :"
+        "busiest": "Jour le plus actif :",
+        "empty": "Aucune valeur pour l'instant. Ta régularité s'affichera ici."
+      },
+      "see_all": "Voir tout",
+      "week": {
+        "title": "Ta semaine",
+        "values_one": "valeur ajoutée",
+        "values_other": "valeurs ajoutées",
+        "active_days": "jours actifs",
+        "streak_one": "jour d'affilée",
+        "streak_other": "jours d'affilée",
+        "streak_going": "{{count}} jours d'affilée, continue ! 🔥",
+        "streak_keep": "Ajoute une valeur aujourd'hui pour garder ta série.",
+        "streak_started": "Premier jour de ta série. À demain !",
+        "streak_none": "Une valeur aujourd'hui et ta série repart.",
+        "best_one": "record : {{count}} jour",
+        "best_other": "record : {{count}} jours"
+      },
+      "next_badge": {
+        "title": "Prochain badge"
+      },
+      "highlights": {
+        "title": "Ça bouge cette semaine",
+        "empty": "Ajoute quelques valeurs dans la semaine pour voir ce qui bouge.",
+        "from": "{{value}} il y a une semaine"
+      },
+      "to_log": {
+        "title": "À noter",
+        "description": "Ces stats attendent leur nouvelle valeur.",
+        "action": "Noter",
+        "last_one": "{{value}}, il y a {{count}} jour",
+        "last_other": "{{value}}, il y a {{count}} jours"
+      },
+      "moments": {
+        "title": "Moments forts",
+        "empty": "Tes records et tes badges apparaîtront ici.",
+        "record": "Nouveau record : {{name}}",
+        "before": "avant {{value}}",
+        "badge": "Badge débloqué : {{name}}"
+      },
+      "onboarding": {
+        "title": "Lance-toi en 3 étapes",
+        "description": "Ton tableau de bord se remplit tout seul une fois ces étapes faites. Chacune te rapporte un badge.",
+        "progress": "{{done}}/{{total}} faites",
+        "steps": {
+          "connect": {
+            "title": "Connecte une app",
+            "description": "GitHub, Lichess, Duolingo… tes stats arrivent toutes seules."
+          },
+          "stat": {
+            "title": "Crée une stat",
+            "description": "Sport, lecture, sommeil : suis ce qui compte pour toi."
+          },
+          "goal": {
+            "title": "Fixe un objectif",
+            "description": "Une cible et une date, et on te dit si tu es dans les temps."
+          }
+        }
       }
     },
     "statistics": {

@@ -198,7 +198,7 @@ describe("Stats", () => {
     expect(response.body.history.map((h) => h.numericValue)).toEqual([80, 79]);
   });
 
-  it("should give the dashboard its pinned stats with history, goals and recent changes", async () => {
+  it("should give the dashboard its pinned stats with history and goals with their pace", async () => {
     await request(app).patch(`/api/stats/${stat._id}/pin`).set("Cookie", authCookie(owner)).send({ pinned: true });
     await request(app).patch(`/api/stats/${stat._id}/goal`).set("Cookie", authCookie(owner)).send({ target: 75 });
     await request(app).put(`/api/stats/${stat._id}`).set("Cookie", authCookie(owner)).send({ value: "79" });
@@ -211,7 +211,7 @@ describe("Stats", () => {
     expect(response.body.pinned[0].history.map((h) => h.value)).toEqual(["80", "79"]);
     expect(response.body.pinned[0].categoryId.name).toBe("Health");
     expect(response.body.goals).toHaveLength(1);
-    expect(response.body.recent.every((s) => s.userId === owner._id.toString())).toBe(true);
+    expect(response.body.goals[0].pace.status).toBe("no_deadline");
   });
 
   it("should give the dashboard charts every version of the period, for the connected user only", async () => {

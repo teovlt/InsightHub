@@ -127,29 +127,29 @@
     },
     "dashboard": {
       "greeting": "Hey {{name}} 👋",
-      "subtitle": "Here is where you stand today.",
+      "subtitle": "Here is how your week is going.",
       "log_value": "Log a value",
       "pinned": {
         "title": "Pinned stats",
         "empty": "Pin your key stats to see them here with their trend.",
-        "empty_action": "Pick stats to pin"
+        "empty_action": "Pick stats to pin",
+        "best": "Best: {{value}}",
+        "goal": "Goal: {{percent}}%"
       },
       "goals": {
         "title": "Goals",
         "empty": "No goal yet. Set one on a stat from the Statistics page.",
-        "done": "Goal reached 🎯",
-        "deadline": "by {{date}}"
-      },
-      "recent": {
-        "title": "Recent activity",
-        "empty": "Nothing logged yet.",
-        "synced": "synced"
+        "deadline": "by {{date}}",
+        "pace": {
+          "reached": "Reached 🎯",
+          "on_track": "On track",
+          "behind": "A bit tight",
+          "stalled": "On pause",
+          "eta": "Around {{date}}"
+        }
       },
       "categories": {
-        "title": "All your stats",
-        "all": "All",
-        "empty": "No stats yet. Create your first one or connect an app.",
-        "empty_action": "Create a stat"
+        "all": "All"
       },
       "quick_update": {
         "title": "Log a value",
@@ -159,27 +159,9 @@
         "value": "New value",
         "submit": "Save"
       },
-      "period": "Period",
-      "live": {
-        "on": "Live",
-        "off": "Offline",
-        "on_hint": "Charts refresh by themselves when an integration syncs or a value changes.",
-        "off_hint": "Live refresh is unavailable: reload the page to see new values."
-      },
       "activity": {
-        "title": "Activity",
         "manual": "Manual",
-        "synced": "Synced",
-        "week_of": "Week of {{date}}",
-        "empty": "No value logged in this period."
-      },
-      "by_category": {
-        "title": "By category",
-        "updates_one": "update",
-        "updates_other": "updates",
-        "stats_one": "stat",
-        "stats_other": "stats",
-        "empty": "No category with stats yet."
+        "synced": "Synced"
       },
       "heatmap": {
         "title": "Last 6 months",
@@ -189,7 +171,64 @@
         "updates_zero": "nothing logged",
         "updates_one": "{{count}} value",
         "updates_other": "{{count}} values",
-        "busiest": "Most active day:"
+        "busiest": "Most active day:",
+        "empty": "No value logged yet. Your regularity will show here."
+      },
+      "see_all": "See all",
+      "week": {
+        "title": "Your week",
+        "values_one": "value logged",
+        "values_other": "values logged",
+        "active_days": "active days",
+        "streak_one": "day in a row",
+        "streak_other": "days in a row",
+        "streak_going": "{{count}} days in a row, keep going! 🔥",
+        "streak_keep": "Log a value today to keep your streak going.",
+        "streak_started": "Day one of your streak. See you tomorrow!",
+        "streak_none": "One value today and your streak starts again.",
+        "best_one": "best: {{count}} day",
+        "best_other": "best: {{count}} days"
+      },
+      "next_badge": {
+        "title": "Next badge"
+      },
+      "highlights": {
+        "title": "Moving this week",
+        "empty": "Log a few values over the week to see what is moving.",
+        "from": "from {{value}} a week ago"
+      },
+      "to_log": {
+        "title": "To log",
+        "description": "These stats are waiting for their new value.",
+        "action": "Log",
+        "last_one": "{{value}}, {{count}} day ago",
+        "last_other": "{{value}}, {{count}} days ago"
+      },
+      "moments": {
+        "title": "Highlights",
+        "empty": "Your records and badges will show up here.",
+        "record": "New record: {{name}}",
+        "before": "was {{value}}",
+        "badge": "Badge unlocked: {{name}}"
+      },
+      "onboarding": {
+        "title": "Get set up in 3 steps",
+        "description": "Your dashboard fills in on its own once these are done. Each step earns you a badge.",
+        "progress": "{{done}}/{{total}} done",
+        "steps": {
+          "connect": {
+            "title": "Connect an app",
+            "description": "GitHub, Lichess, Duolingo… your stats arrive on their own."
+          },
+          "stat": {
+            "title": "Create a stat",
+            "description": "Sport, reading, sleep: track what matters to you."
+          },
+          "goal": {
+            "title": "Set a goal",
+            "description": "A target and a date, and we tell you if you are on track."
+          }
+        }
       }
     },
     "statistics": {

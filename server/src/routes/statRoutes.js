@@ -2,17 +2,9 @@ import express from "express";
 import { verifyToken } from "../middlewares/verifyToken.js";
 import { validateBody } from "../middlewares/validate.js";
 import { createStatSchema, pinStatSchema, statGoalSchema, updateStatSchema } from "../validation/schemas.js";
-import {
-  createStat,
-  deleteStat,
-  getStatHistory,
-  getStatsOverview,
-  pinStat,
-  rollbackStat,
-  setStatGoal,
-  updateStat,
-} from "../controllers/statController.js";
+import { createStat, deleteStat, getStatHistory, pinStat, rollbackStat, setStatGoal, updateStat } from "../controllers/statController.js";
 import { getStatsAnalytics } from "../controllers/statAnalyticsController.js";
+import { getStatsOverview } from "../controllers/statOverviewController.js";
 
 export const statRouter = new express.Router();
 
@@ -26,7 +18,8 @@ statRouter.post("/", verifyToken(), validateBody(createStatSchema), createStat);
 
 /**
  * @route GET /overview
- * @description Dashboard data: pinned stats with their history, stats with a goal, latest changes.
+ * @description Dashboard data: this week, highlights, pinned stats, goals with their pace, stats to log, moments, next badge.
+ * @param {string} [tz] - IANA time zone used for days and streaks.
  * @middleware verifyToken() - Ensures the user is authenticated.
  */
 statRouter.get("/overview", verifyToken(), getStatsOverview);

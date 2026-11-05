@@ -13,10 +13,12 @@ interface QuickUpdateDialogProps {
   categories: CategoryInterface[];
   onUpdated: () => void;
   trigger: React.ReactNode;
+  // Stat selected when the dialog opens (e.g. from the dashboard's "To log" list)
+  defaultStatId?: string;
 }
 
 // Logs a new value for an existing manual stat in two clicks; synced stats update on their own.
-export function QuickUpdateDialog({ categories, onUpdated, trigger }: QuickUpdateDialogProps) {
+export function QuickUpdateDialog({ categories, onUpdated, trigger, defaultStatId }: QuickUpdateDialogProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [statId, setStatId] = useState("");
@@ -50,7 +52,7 @@ export function QuickUpdateDialog({ categories, onUpdated, trigger }: QuickUpdat
       <DialogTrigger
         asChild
         onClick={() => {
-          setStatId("");
+          setStatId(defaultStatId ?? "");
           setValue("");
         }}
       >

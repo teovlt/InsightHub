@@ -1,123 +1,13 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { addDays, format, parseISO, startOfWeek } from "date-fns";
-import type { ActivityDay, CategoryActivity } from "@/interfaces/Stat";
+import type { ActivityDay } from "@/interfaces/Stat";
 import { dateLocale } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
-// Dashboard charts. Kept in their own module so recharts loads after the rest of the home page.
+// Dashboard activity heatmap, loaded in its own chunk after the rest of the home page.
 
-const tooltipStyle = {
-  background: "var(--popover)",
-  border: "1px solid var(--border)",
-  borderRadius: 12,
-  boxShadow: "var(--card-shadow)",
-  color: "var(--popover-foreground)",
-  fontSize: 13,
-};
-const axisTick = { fill: "var(--muted-foreground)", fontSize: 12 };
 const dayLabel = (date: string, pattern = "d MMM") => format(parseISO(date), pattern, { locale: dateLocale() });
-
-/* Activity: updates per day (or per week on long periods), manual and synced stacked */
-
-export const ActivityChart = ({ days }: { days: ActivityDay[] }) => {
-  const { t } = useTranslation();
-  // Past 90 days, daily bars get too thin to read: group by week
-  const data = useMemo(() => {
-    if (days.length <= 90) return days;
-    const weeks: ActivityDay[] = [];
-    days.forEach((day, index) => {
-      if (index % 7 === 0) weeks.push({ ...day });
-      else {
-        weeks[weeks.length - 1].manual += day.manual;
-        weeks[weeks.length - 1].synced += day.synced;
-      }
-    });
-    return weeks;
-  }, [days]);
-  const weekly = data !== days;
-
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -16 }} barCategoryGap="18%">
-        <CartesianGrid vertical={false} stroke="var(--border)" />
-        <XAxis dataKey="date" tickFormatter={(d) => dayLabel(d)} tick={axisTick} axisLine={false} tickLine={false} minTickGap={28} />
-        <YAxis allowDecimals={false} tick={axisTick} axisLine={false} tickLine={false} width={44} />
-        <Tooltip
-          cursor={{ fill: "var(--secondary)", opacity: 0.6 }}
-          contentStyle={tooltipStyle}
-          labelFormatter={(d: string) =>
-            weekly ? t("pages.dashboard.activity.week_of", { date: dayLabel(d) }) : dayLabel(d, "EEEE d MMM")
-          }
-          formatter={(value: number, key: string) => [value, t(`pages.dashboard.activity.${key}`)]}
-        />
-        <Bar
-          isAnimationActive={false}
-          dataKey="manual"
-          stackId="a"
-          fill="var(--chart-1)"
-          stroke="var(--card)"
-          strokeWidth={1}
-          radius={[0, 0, 0, 0]}
-        />
-        <Bar
-          isAnimationActive={false}
-          dataKey="synced"
-          stackId="a"
-          fill="var(--chart-synced)"
-          stroke="var(--card)"
-          strokeWidth={1}
-          radius={[4, 4, 0, 0]}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-};
-
-/* Category share: donut with the category's own color, total in the middle */
-
-export const CategoryDonut = ({ categories, metric }: { categories: CategoryActivity[]; metric: "updates" | "stats" }) => {
-  const { t } = useTranslation();
-  const [active, setActive] = useState<number | null>(null);
-  const data = categories.filter((category) => category[metric] > 0);
-  const total = data.reduce((sum, category) => sum + category[metric], 0);
-  const focused = active !== null ? data[active] : null;
-
-  return (
-    <div className="relative h-full w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey={metric}
-            nameKey="name"
-            innerRadius="68%"
-            outerRadius="100%"
-            paddingAngle={data.length > 1 ? 2 : 0}
-            cornerRadius={4}
-            stroke="var(--card)"
-            strokeWidth={2}
-            startAngle={90}
-            endAngle={-270}
-            onMouseEnter={(_, index) => setActive(index)}
-            onMouseLeave={() => setActive(null)}
-          >
-            {data.map((category, index) => (
-              <Cell key={category._id} fill={category.color} opacity={active === null || active === index ? 1 : 0.35} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="font-display text-3xl font-bold tracking-tight">{focused ? focused[metric] : total}</span>
-        <span className="max-w-[60%] truncate text-xs text-muted-foreground">
-          {focused ? focused.name : t(`pages.dashboard.by_category.${metric}`, { count: total })}
-        </span>
-      </div>
-    </div>
-  );
-};
 
 /* Heatmap of the last weeks, one cell per day, Monday first */
 
