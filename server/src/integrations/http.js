@@ -26,7 +26,11 @@ export const fetchJson = async (url, options = {}, notFoundMessage) => {
 
   if (response.status === 404 && notFoundMessage) throw new ProviderError(notFoundMessage);
   if (response.status === 401 || response.status === 403) {
-    throw new ProviderError("Access refused by the service: check that your key is valid or that your profile is public.");
+    const error = new ProviderError("Access refused by the service: check that your key is valid or that your profile is public.");
+    // Kept for the logs: services explain the refusal in the body (expired token, missing permission...)
+    error.status = response.status;
+    error.detail = (await response.text().catch(() => "")).slice(0, 300);
+    throw error;
   }
   if (!response.ok) throw new Error(`${new URL(url).host} answered ${response.status}`);
 

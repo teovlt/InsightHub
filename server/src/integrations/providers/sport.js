@@ -10,6 +10,7 @@ const strava = async (path, accessToken) => {
   } catch (err) {
     // 401/403: a revoked access, or a permission unticked on the consent page
     if (err instanceof ProviderError) {
+      console.error(`strava ${path.split("?")[0]} answered ${err.status}: ${err.detail}`);
       throw new ProviderError("Strava refused access: reconnect Strava and keep every permission ticked.");
     }
     throw err;
