@@ -13,6 +13,8 @@ import {
 import {
   connectWithCredential,
   getGithubUser,
+  oauthCallback,
+  redirectToOAuth,
   redirectToGithub,
   syncStatistics,
   toggleActivedStat,
@@ -61,6 +63,18 @@ integrationRouter.get("/auth/github", verifyToken(), redirectToGithub);
  * Retour de GitHub : l'utilisateur est retrouvé via le state stocké en session
  */
 integrationRouter.get("/auth/github/callback", getGithubUser);
+
+/**
+ * GET /api/integrations/auth/oauth/:provider?integrationId=
+ * Redirige l'utilisateur connecté vers la page d'autorisation du service (Strava, Spotify...)
+ */
+integrationRouter.get("/auth/oauth/:provider", verifyToken(), redirectToOAuth);
+
+/**
+ * GET /api/integrations/auth/oauth/:provider/callback
+ * Retour du service : l'utilisateur est retrouvé via le state stocké en session
+ */
+integrationRouter.get("/auth/oauth/:provider/callback", oauthCallback);
 
 /**
  * POST /api/integrations/:integrationId/connection

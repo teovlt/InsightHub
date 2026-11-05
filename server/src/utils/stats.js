@@ -1,7 +1,7 @@
 import { Integration } from "../models/integrationModel.js";
 import { IntegrationUser } from "../models/integrationUser.js";
 import { Stat } from "../models/statModel.js";
-import { decrypt } from "./crypto.js";
+import { getCredential } from "../integrations/oauth.js";
 import { ensureProviderCategory, getStatKey } from "../integrations/ensure.js";
 import { getProvider } from "../integrations/index.js";
 import { emitToUser } from "../sockets/socket.js";
@@ -116,7 +116,7 @@ export const autoSyncStats = async (userId, integrationId, { force = false } = {
     }
 
     const values = await provider.fetchStats(
-      decrypt(integrationUser.accessToken),
+      await getCredential(integrationUser, provider),
       activeStats.map((stat) => getStatKey(provider, stat)),
       integrationUser,
     );

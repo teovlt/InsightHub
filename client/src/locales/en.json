@@ -396,7 +396,8 @@
         "redirecting": "Redirecting to {{name}} to sign in...",
         "connect_failed": "Connection failed, please try again.",
         "load_failed": "Failed to load integrations, please try again.",
-        "first_sync_failed": "App connected, but the first sync failed. Try \"Sync now\" in a moment."
+        "first_sync_failed": "App connected, but the first sync failed. Try \"Sync now\" in a moment.",
+        "denied": "Connection cancelled: nothing was shared."
       },
       "synced_ago": "Synced {{when}}",
       "never_synced": "Not synced yet",

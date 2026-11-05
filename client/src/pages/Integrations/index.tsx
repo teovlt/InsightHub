@@ -116,7 +116,10 @@ export function IntegrationsPage() {
 
     // Set by the server when the OAuth callback fails
     const params = new URLSearchParams(window.location.search);
-    if (params.get("error") === "sync") {
+    if (params.get("error") === "denied") {
+      toast.info(t("pages.integrations.toasts.denied"));
+      window.history.replaceState(null, "", window.location.pathname);
+    } else if (params.get("error") === "sync") {
       toast.error(t("pages.integrations.toasts.first_sync_failed"));
       window.history.replaceState(null, "", window.location.pathname);
     } else if (params.get("error")) {

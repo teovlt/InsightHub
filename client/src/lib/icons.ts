@@ -6,12 +6,14 @@ import {
   Calendar,
   Car,
   Circle,
+  Clapperboard,
   Cloud,
   Code,
   CookingPot,
   Crown,
   CreditCard,
   DollarSign,
+  Dumbbell,
   Facebook,
   Footprints,
   Gamepad2,
@@ -63,6 +65,8 @@ export const categoryIcons: Record<string, LucideIcon> = {
   Languages,
   Music,
   Timer,
+  Dumbbell,
+  Clapperboard,
 };
 
 export const integrationIcons: Record<string, LucideIcon> = {
@@ -96,6 +100,9 @@ export const integrationIcons: Record<string, LucideIcon> = {
   Keyboard,
   Languages,
   Timer,
+  Activity,
+  Dumbbell,
+  Clapperboard,
 };
 
 const allIcons: Record<string, LucideIcon> = { ...categoryIcons, ...integrationIcons };

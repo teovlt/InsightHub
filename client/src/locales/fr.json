@@ -396,7 +396,8 @@
         "redirecting": "Direction {{name}} pour te connecter...",
         "connect_failed": "La connexion n'a pas marché. Réessaie dans un instant.",
         "load_failed": "Impossible de charger les intégrations. Réessaie dans un instant.",
-        "first_sync_failed": "App connectée, mais la première synchro a échoué. Lance « Synchroniser » dans un moment."
+        "first_sync_failed": "App connectée, mais la première synchro a échoué. Lance « Synchroniser » dans un moment.",
+        "denied": "Connexion annulée : rien n'a été partagé."
       },
       "synced_ago": "Synchronisé {{when}}",
       "never_synced": "Pas encore synchronisé",

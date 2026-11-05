@@ -5,7 +5,8 @@ import { Integration } from "../models/integrationModel.js";
 import { ensureGithubStats } from "../utils/github/integration.js";
 import { autoSyncStats } from "../utils/stats.js";
 import { handleServerError } from "../utils/httpErrors.js";
-import { getProvider } from "../integrations/index.js";
+import { getProvider, getProviderByKey, isProviderReady } from "../integrations/index.js";
+import { buildAuthorizeUrl, exchangeCode, getCallbackUrl, serializeTokens } from "../integrations/oauth.js";
 import { ensureProviderStats } from "../integrations/ensure.js";
 import { ProviderError } from "../integrations/http.js";
 
@@ -128,6 +129,91 @@ export const getGithubUser = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.redirect(`${getClientUrl()}/integrations?error=github`);
+  }
+};
+
+/**
+ * Sends the connected user to the authorization page of an OAuth provider (Strava, Spotify...).
+ * The state, kept in the session, ties the callback to this user and integration.
+ *
+ * @param {Object} req - The request object, params { provider }, query { integrationId }.
+ * @param {Object} res - The response object.
+ */
+export const redirectToOAuth = async (req, res) => {
+  const provider = getProviderByKey(req.params.provider);
+  if (!provider?.oauth) return res.status(404).json({ error: "server.integrations.errors.not_found" });
+  if (!isProviderReady(provider)) return res.status(500).json({ error: `Missing env variables for ${provider.name} OAuth.` });
+
+  try {
+    const integration = await Integration.findOne({ _id: req.query.integrationId, provider: provider.key, status: "available" });
+    if (!integration) return res.status(404).json({ error: "server.integrations.errors.not_found" });
+
+    const state = crypto.randomBytes(16).toString("hex");
+    req.session.oauth = { state, provider: provider.key, integrationId: integration._id.toString(), userId: req.userId };
+
+    const url = buildAuthorizeUrl(provider, getCallbackUrl(req, provider), state);
+    // The state must be persisted before the service redirects back
+    req.session.save((err) => {
+      if (err) return handleServerError(res, err);
+      res.redirect(url);
+    });
+  } catch (error) {
+    handleServerError(res, error);
+  }
+};
+
+/**
+ * Return from an OAuth provider: trades the code for tokens, stores them encrypted, then runs the first sync.
+ * Always ends on the client's integrations page, with ?error= when something failed.
+ *
+ * @param {Object} req - The request object, params { provider }, query { code, state, error }.
+ * @param {Object} res - The response object.
+ */
+export const oauthCallback = async (req, res) => {
+  const provider = getProviderByKey(req.params.provider);
+  const context = req.session.oauth;
+  // The state is single-use
+  delete req.session.oauth;
+  const back = (error) => res.redirect(`${getClientUrl()}/integrations${error ? `?error=${error}` : ""}`);
+
+  if (!provider?.oauth) return res.status(404).send("Unknown integration.");
+  // The user clicked "Cancel" on the service
+  if (req.query.error) return back("denied");
+  if (!req.query.code) return res.status(400).send(`No code provided for ${provider.name} OAuth.`);
+  if (!context || !req.query.state || req.query.state !== context.state || context.provider !== provider.key) {
+    return res.status(400).send("Invalid OAuth state.");
+  }
+
+  const { userId, integrationId } = context;
+  try {
+    const { tokens, raw } = await exchangeCode(provider, req.query.code, getCallbackUrl(req, provider));
+    const { account, config } = await provider.connect(tokens.accessToken, raw);
+
+    await IntegrationUser.findOneAndUpdate(
+      { userId, integrationId },
+      {
+        userId,
+        integrationId,
+        connected: true,
+        accessToken: serializeTokens(tokens),
+        config: { account, ...config },
+        $unset: { lastSyncedAt: 1 },
+      },
+      { upsert: true, new: true },
+    );
+
+    // First connection: every stat is activated; a reconnection keeps the user's choice
+    const updated = await ensureProviderStats(integrationId, provider);
+    const integrationUser = await IntegrationUser.findOne({ userId, integrationId }).lean();
+    if (!integrationUser.activedStat?.length) {
+      await IntegrationUser.updateOne({ _id: integrationUser._id }, { activedStat: updated.availableStats.map((stat) => stat._id) });
+    }
+
+    const result = await autoSyncStats(userId, integrationId, { force: true });
+    back(result.error ? "sync" : null);
+  } catch (err) {
+    console.error(`${provider.key} OAuth:`, err.message);
+    back(provider.key);
   }
 };
 

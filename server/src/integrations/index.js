@@ -4,10 +4,14 @@ import { ensureProviderStats } from "./ensure.js";
 import { chesscom, lichess, steam } from "./providers/games.js";
 import { codewars, leetcode, monkeytype, wakatime } from "./providers/code.js";
 import { duolingo, lastfmProvider, openlibrary } from "./providers/life.js";
+import { hevyProvider, stravaProvider } from "./providers/sport.js";
+import { letterboxd, spotifyProvider } from "./providers/media.js";
 
 /*
  * A provider describes one third-party service:
- * - auth: "oauth" (redirect flow, GitHub only for now), "username" (public profile) or "apiKey" (personal key)
+ * - auth: "oauth" (redirect flow), "username" (public profile) or "apiKey" (personal key)
+ * - oauth: settings of the generic OAuth flow (see oauth.js), with connect(accessToken, tokenAnswer) → { account, config };
+ *   GitHub predates it and keeps its own flow
  * - stats: what it can compute; each user's values live in their own Stat documents
  * - verify(credential): checks the username or key on connection, returns { account, credential? }
  * - fetchStats(credential, keys, connection): values by stat id (null when unknown)
@@ -31,6 +35,10 @@ export const github = {
 
 export const PROVIDERS = [
   github,
+  stravaProvider,
+  hevyProvider,
+  spotifyProvider,
+  letterboxd,
   chesscom,
   lichess,
   steam,
@@ -53,6 +61,8 @@ export const getProvider = (integration) =>
   PROVIDERS.find((provider) => provider.key === integration?.provider) ??
   PROVIDERS.find((provider) => !integration?.provider && provider.name.toLowerCase() === integration?.name?.toLowerCase()) ??
   null;
+
+export const getProviderByKey = (key) => PROVIDERS.find((provider) => provider.key === key) ?? null;
 
 export const isProviderReady = (provider) => (provider.requiresEnv ?? []).every((name) => Boolean(process.env[name]));
 
