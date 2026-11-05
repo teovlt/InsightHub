@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ThemeChanger } from "./themeChanger";
+import { LanguageChanger } from "./languageChanger";
 import { useTranslation } from "react-i18next";
 import { Separator } from "../ui/separator";
 import { BarChart3, LayoutDashboard, Link2, LogIn, LogOut, Menu, Trophy, User, Wrench, X, type LucideIcon } from "lucide-react";
@@ -89,7 +90,10 @@ export const Navbar = () => {
           )}
 
           <div className="hidden items-center gap-3 md:flex">
-            <ThemeChanger />
+            <div className="flex items-center gap-1">
+              <LanguageChanger />
+              <ThemeChanger />
+            </div>
             {authUser ? (
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
@@ -180,7 +184,10 @@ export const Navbar = () => {
         </nav>
         <Separator />
         <div className="flex items-center justify-between p-4">
-          <ThemeChanger />
+          <div className="flex items-center gap-1">
+            <LanguageChanger align="start" />
+            <ThemeChanger />
+          </div>
           {authUser && (
             <Button variant="ghost" onClick={() => logout()} disabled={loading}>
               <LogOut className="w-4 h-4" />
