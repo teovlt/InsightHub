@@ -283,7 +283,7 @@
         "gold": "Gold"
       },
       "toast": {
-        "title": "New badge: {{name}}!",
+        "title": "New badge: {{name}}",
         "description": "{{tier}} tier unlocked. Well done!",
         "action": "View"
       },

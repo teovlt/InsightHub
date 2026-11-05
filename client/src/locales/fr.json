@@ -283,7 +283,7 @@
         "gold": "Or"
       },
       "toast": {
-        "title": "Nouveau badge : {{name}} !",
+        "title": "Nouveau badge : {{name}}",
         "description": "Palier {{tier}} débloqué. Bien joué !",
         "action": "Voir"
       },

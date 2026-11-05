@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -6,21 +6,36 @@ import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AchievementMedal, TierPill } from "@/components/customs/achievementBadge";
 import { axiosConfig } from "@/config/axiosConfig";
+import { useSocketContext } from "@/contexts/socketContext";
 import { dateLocale } from "@/lib/stats";
 import { recentUnlocks } from "@/lib/achievements";
 import type { AchievementInterface } from "@/interfaces/Achievement";
 
 export const RecentAchievements = () => {
   const { t } = useTranslation();
+  const { socket } = useSocketContext();
   const [achievements, setAchievements] = useState<AchievementInterface[]>([]);
 
-  useEffect(() => {
+  const fetchAchievements = useCallback(() => {
     axiosConfig
       .get("/achievements")
       .then((response) => setAchievements(response.data.achievements))
       // The profile works without its badges
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchAchievements();
+  }, [fetchAchievements]);
+
+  // A badge unlocked while the profile is open shows up right away
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("achievement:unlocked", fetchAchievements);
+    return () => {
+      socket.off("achievement:unlocked", fetchAchievements);
+    };
+  }, [socket, fetchAchievements]);
 
   const recent = recentUnlocks(achievements, 4);
 

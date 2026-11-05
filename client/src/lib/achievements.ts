@@ -28,11 +28,10 @@ export const TIER_STYLES: Record<AchievementTier, { medal: string; pill: string;
 export const progressTarget = (achievement: AchievementInterface) =>
   achievement.next?.threshold ?? achievement.tiers[achievement.tiers.length - 1].threshold;
 
-// Unlocked tiers of every achievement, most recent first
+// Unlocked achievements at their best tier, most recent first (one entry per achievement, not one per tier)
 export const recentUnlocks = (achievements: AchievementInterface[], limit: number) =>
   achievements
-    .flatMap((achievement) =>
-      achievement.tiers.filter((t) => t.unlockedAt).map((t) => ({ achievement, tier: t.tier, unlockedAt: t.unlockedAt as string })),
-    )
+    .filter((achievement) => achievement.tier && achievement.unlockedAt)
+    .map((achievement) => ({ achievement, tier: achievement.tier as AchievementTier, unlockedAt: achievement.unlockedAt as string }))
     .sort((a, b) => new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime())
     .slice(0, limit);
